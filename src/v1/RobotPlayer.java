@@ -1,6 +1,7 @@
 package v1;
 
 import battlecode.common.*;
+import Iteration2.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ public class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
+            Globals.init(rc); // Initialize globals for shared usage
             if (rc.getType().isTowerType()){
             while(true){
                 try {
@@ -66,9 +68,12 @@ public class RobotPlayer {
         } 
 
         Robot rb = new Robot(rc);
-        if (rc.getType() == UnitType.SOLDIER){
-            rb = new Soldier(rc);
+        switch (rc.getType()){
+            case SOLDIER: rb = new Soldier(rc); break; 
+            case MOPPER: rb = new Mopper(rc); break;
+            case SPLASHER: rb = new Soldier(rc); break;
         }
+      
         while(true){
             try {
                 rb.beginTurn();

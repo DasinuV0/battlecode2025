@@ -20,6 +20,7 @@ public class Robot {
      */
     static final int LOWPAINTTRESHHOLD = 20;
     static final int PAINTTOTAKE = -20;
+    static final int PAINTTOGIVE = 20;
     static final Random rng = new Random(6147);
 
     static final Direction[] directions = {
@@ -60,4 +61,8 @@ public class Robot {
 
     }
 
+
+    int calculatePaintPercentage(RobotInfo robot) {
+        return (int)(((double)robot.paintAmount / robot.type.paintCapacity) * 100);
+    }
 }
