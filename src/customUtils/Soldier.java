@@ -58,15 +58,13 @@ public class Soldier extends Robot {
                 }
             }
 
-            rc.setIndicatorString(""+friendMopperFound);
+            // rc.setIndicatorString(""+friendMopperFound);
             if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
                 rc.transferPaint(nearestTower, PAINTTOTAKE);
             else if (friendMopperFound)
                 ; //stop here and wait for the mopper to give paint
             else{
-                Direction dir = rc.getLocation().directionTo(nearestTower);
-                if (rc.canMove(dir))
-                    rc.move(dir);
+                BugNavigator.moveTo(nearestTower);
             }
         }
         else{
