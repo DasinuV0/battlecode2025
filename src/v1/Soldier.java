@@ -18,6 +18,7 @@ public class Soldier extends Robot {
     //instructions run at the beginning of each turn
     void beginTurn() throws GameActionException {
         lowPaintFlag = false;
+        patternDamaged = false;
         curRuin = null;
 
         // friendMopperFound = false;
@@ -82,8 +83,6 @@ public class Soldier extends Robot {
         }else if (curRuin != null){
             MapLocation targetLoc = curRuin.getMapLocation();
             Direction dir = rc.getLocation().directionTo(targetLoc);
-            if (rc.canMove(dir))
-                rc.move(dir);
             // Mark the pattern we need to draw to build a tower here if we haven't already.
             MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(dir);
             if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
@@ -92,10 +91,17 @@ public class Soldier extends Robot {
             }
             // Fill in any spots in the pattern with the appropriate paint.
             for (MapInfo patternTile : rc.senseNearbyMapInfos(targetLoc, 8)){
-                if (patternTile.getMark() != patternTile.getPaint() && patternTile.getMark() != PaintType.EMPTY){
-                    boolean useSecondaryColor = patternTile.getMark() == PaintType.ALLY_SECONDARY;
-                    if (patternTile.getPaint() == PaintType.EMPTY && rc.canAttack(patternTile.getMapLocation()))
-                        rc.attack(patternTile.getMapLocation(), useSecondaryColor);
+                if (patternTile.getMark().isAlly()){
+                    if (patternTile.getMark() != patternTile.getPaint() && patternTile.getPaint().isAlly()){
+                        boolean useSecondaryColor = patternTile.getMark() == PaintType.ALLY_SECONDARY;
+                        if (rc.canAttack(patternTile.getMapLocation())){
+                            rc.attack(patternTile.getMapLocation(), useSecondaryColor);
+                        }
+                    }else if (patternTile.getPaint().isEnemy()){
+                            rc.setIndicatorDot(patternTile.getMapLocation(), 255,0,0);
+                            patternDamaged = true;
+                            rc.setIndicatorString("pattern damaged, enemy paint found.");
+                    }
                 }
             }
             // Complete the ruin if we can.
@@ -104,6 +110,24 @@ public class Soldier extends Robot {
                 rc.setTimelineMarker("Tower built", 0, 255, 0);
                 System.out.println("Built a tower at " + targetLoc + "!");
             }
+        }
+
+        if (patternDamaged){
+            //DONE: go to the nearest tower 
+            MapLocation nearestTower = new MapLocation(0,0);
+            int minDist = 9999;
+            for (MapLocation pos : towersPos){
+                int currDist = pos.distanceSquaredTo(rc.getLocation());
+                if (minDist > currDist){
+                    nearestTower = pos;
+                    minDist = currDist;
+                }
+            }
+            BugNavigator.moveTo(nearestTower);
+            if (rc.canSendMessage(nearestTower))
+                rc.sendMessage(nearestTower, OptCode.NEEDMOPPER);
+                System.out.println("message sent");
+            
         }
 
         //TODO: establish an algo to move/find ruin
@@ -116,7 +140,9 @@ public class Soldier extends Robot {
 
         MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
         if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
-            rc.attack(rc.getLocation());
+            // rc.attack(rc.getLocation());
+            boolean useSecondaryColor = rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.ALLY_SECONDARY;
+            rc.attack(rc.getLocation(), useSecondaryColor);
         }
 
 
