@@ -40,6 +40,8 @@ public class Robot {
     
     static boolean lowPaintFlag;
     static boolean friendMopperFound;
+    static boolean patternDamaged;
+    MapInfo curRuin;
    
 
     public Robot(RobotController _rc) throws GameActionException {

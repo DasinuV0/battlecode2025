@@ -9,10 +9,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.LinkedList;
+import java.util.Queue;
 
-public class Soldier extends Robot {
-    public Soldier(RobotController _rc) throws GameActionException {
+
+public class Mopper extends Robot {
+    
+    static Queue<MapLocation> robotToHealQueue;
+    static Set<MapLocation> robotToHealSet;
+
+    public Mopper(RobotController _rc) throws GameActionException {
         super(_rc);
+        robotToHealQueue = new LinkedList<>();
+        robotToHealSet = new HashSet<>();
+
     }
 
     //instructions run at the beginning of each turn
@@ -27,7 +37,6 @@ public class Soldier extends Robot {
             lowPaintFlag = true;
         else    
             lowPaintFlag = false;
-            friendMopperFound = false;
         
 
         //check if any tower is found
@@ -35,9 +44,10 @@ public class Soldier extends Robot {
         for (RobotInfo robot : nearbyRobots)
             if (robot.type.isTowerType())
                 towersPos.add(robot.location);
-            else if (robot.team.isPlayer() && robot.type == UnitType.MOPPER){
-                rc.setIndicatorDot(robot.location, 1,1,1);
-                friendMopperFound = true;
+            else if (robot.team.isPlayer() && robot.type.isRobotType() && robot.type != UnitType.MOPPER && robotToHealSet.contains(robot.location) == false && calculatePaintPercentage(robot) <= LOWPAINTTRESHHOLD){
+                rc.setIndicatorDot(robot.location, 255,0,0);
+                robotToHealQueue.add(robot.location);
+                robotToHealSet.add(robot.location);
             }
     }
 
@@ -63,8 +73,8 @@ public class Soldier extends Robot {
             // rc.setIndicatorString(""+friendMopperFound);
             if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
                 rc.transferPaint(nearestTower, PAINTTOTAKE);
-            else if (friendMopperFound)
-                ; //stop here and wait for the mopper to give paint
+            // else if (friendMopperFound)
+            //     ; //stop here and wait for the mopper to give paint
             else{
                 BugNavigator.moveTo(nearestTower);
             }
@@ -73,6 +83,28 @@ public class Soldier extends Robot {
 
         }
         else{
+            //if there is any robot to heal
+            if (!robotToHealQueue.isEmpty()){
+                MapLocation curr = robotToHealQueue.peek();
+                //if curr is within the vision range && if at curr the robot is gone
+                    while(rc.canSenseLocation(curr) && rc.canSenseRobotAtLocation(curr) == false && !robotToHealQueue.isEmpty()){ 
+                        robotToHealQueue.remove();
+                        robotToHealSet.remove(curr);
+                        if (!robotToHealQueue.isEmpty())
+                            curr = robotToHealQueue.peek();
+                    }
+
+                if (!robotToHealQueue.isEmpty()){
+                    if (rc.canTransferPaint(curr, PAINTTOGIVE)){
+                        rc.transferPaint(curr, PAINTTOGIVE);
+                        robotToHealQueue.remove();
+                        robotToHealSet.remove(curr);
+                    }
+                    else
+                        BugNavigator.moveTo(curr);
+                }
+            }
+
             //TODO: establish an algo to move/find ruin
             // Move and attack randomly if no objective.
             Direction dir = directions[rng.nextInt(directions.length)];
@@ -81,9 +113,11 @@ public class Soldier extends Robot {
             }
 
             MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
-            if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation())){
+            if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation()))
                 rc.attack(rc.getLocation());
-            }
+        
+
+        
         }
 
 
