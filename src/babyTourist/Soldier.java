@@ -9,49 +9,54 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.ArrayList;
+
 
 public class Soldier extends Robot {
+    MapLocation targetTower;
+    Direction dirToEnemy;
+
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
-    }
-
-    //instructions run at the beginning of each turn
-    void beginTurn() throws GameActionException {
-        if (isSuicideRobot == 1) {
+        if (_rc.getRoundNum() == 2) {
+            System.out.println("suicide robot generated");
+            this.isSuicideRobot = 1;
             Team enemy = rc.getTeam().opponent();
             Team myTeam = rc.getTeam();
             MapLocation myLocation = rc.getLocation();
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, myTeam);
-            MapLocation[] allyTowers = Arrays.stream(nearbyRobots)
-                    .filter(robot -> robot.getType().isTowerType())
-                    .map(RobotInfo::getLocation)
-                    .toArray(MapLocation[]::new);
+            // MapLocation[] allyTowers = Arrays.stream(nearbyRobots)
+            //         .filter(robot -> robot.getType().isTowerType())
+            //         .map(RobotInfo::getLocation())
+            //         .toArray(MapLocation[]::new);
+
+            ArrayList<MapLocation> allyTowers = new ArrayList<>();
+            for (RobotInfo robot : nearbyRobots){
+                if (robot.getType().isTowerType()){
+                    allyTowers.add(robot.getLocation());
+                }
+            }
 
             // Guess enemy tower locations based on symmetry
-            MapLocation[] guessedEnemyTowers = new MapLocation[allyTowers.length];
+            MapLocation[] guessedEnemyTowers = new MapLocation[allyTowers.size()];
             int mapWidth = rc.getMapWidth();
             int mapHeight = rc.getMapHeight();
 
-            for (int i = 0; i < allyTowers.length; i++) {
-                int mirroredX = mapWidth - allyTowers[i].x - 1;
-                int mirroredY = mapHeight - allyTowers[i].y - 1;
+            for (int i = 0; i < allyTowers.size(); i++) {
+                int mirroredX = mapWidth - allyTowers.get(i).x - 1;
+                int mirroredY = mapHeight - allyTowers.get(i).y - 1;
                 guessedEnemyTowers[i] = new MapLocation(mirroredX, mirroredY);
             }
 
             // Send soldiers to the closest guessed enemy tower
-            MapLocation targetTower = guessedEnemyTowers[0];
-            Direction dirToEnemy = myLocation.directionTo(targetTower);
+            targetTower = guessedEnemyTowers[0];
+            dirToEnemy = myLocation.directionTo(targetTower);
 
-            // Move towards the guessed enemy tower
-            if (rc.canMove(dirToEnemy)) {
-                rc.move(dirToEnemy);
-            }
+        }
+    }
 
-            // Attack the guessed enemy tower if in range
-            if (rc.canAttack(targetTower)) {
-                rc.attack(targetTower);
-            }
-        } else {
+    //instructions run at the beginning of each turn
+    void beginTurn() throws GameActionException {
         lowPaintFlag = false;
         // friendMopperFound = false;
 
@@ -74,7 +79,6 @@ public class Soldier extends Robot {
                 rc.setIndicatorDot(robot.location, 1,1,1);
                 friendMopperFound = true;
             }
-        }
     }
 
     //Instructions at the end of each turn
@@ -84,41 +88,54 @@ public class Soldier extends Robot {
 
     //Core turn method
     void runTurn() throws GameActionException {
-        if (lowPaintFlag){
-            //DONE: go to the nearest tower
-            MapLocation nearestTower = new MapLocation(0,0);
-            int minDist = 9999;
-            for (MapLocation pos : towersPos){
-                int currDist = pos.distanceSquaredTo(rc.getLocation());
-                if (minDist > currDist){
-                    nearestTower = pos;
-                    minDist = currDist;
+        if (isSuicideRobot == 1) {
+            rc.setIndicatorString("suicideRobot");
+            // Move towards the guessed enemy tower
+            if (rc.canMove(dirToEnemy)) {
+                rc.move(dirToEnemy);
+            }
+
+            // Attack the guessed enemy tower if in range
+            if (rc.canAttack(targetTower)) {
+                rc.attack(targetTower);
+            }
+        }else{
+            if (lowPaintFlag){
+                //DONE: go to the nearest tower
+                MapLocation nearestTower = new MapLocation(0,0);
+                int minDist = 9999;
+                for (MapLocation pos : towersPos){
+                    int currDist = pos.distanceSquaredTo(rc.getLocation());
+                    if (minDist > currDist){
+                        nearestTower = pos;
+                        minDist = currDist;
+                    }
                 }
-            }
 
-            // rc.setIndicatorString(""+friendMopperFound);
-            if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
-                rc.transferPaint(nearestTower, PAINTTOTAKE);
-            else if (friendMopperFound)
-                ; //stop here and wait for the mopper to give paint
+                // rc.setIndicatorString(""+friendMopperFound);
+                if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
+                    rc.transferPaint(nearestTower, PAINTTOTAKE);
+                else if (friendMopperFound)
+                    ; //stop here and wait for the mopper to give paint
+                else{
+                    BugNavigator.moveTo(nearestTower);
+                }
+            }else if (false){
+                //TODO: what if rc found a ruin
+
+            }
             else{
-                BugNavigator.moveTo(nearestTower);
-            }
-        }else if (false){
-            //TODO: what if rc found a ruin
+                //TODO: establish an algo to move/find ruin
+                // Move and attack randomly if no objective.
+                Direction dir = directions[rng.nextInt(directions.length)];
+                if (rc.canMove(dir)){
+                    rc.move(dir);
+                }
 
-        }
-        else{
-            //TODO: establish an algo to move/find ruin
-            // Move and attack randomly if no objective.
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)){
-                rc.move(dir);
-            }
-
-            MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
-            if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation())){
-                rc.attack(rc.getLocation());
+                MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
+                if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation())){
+                    rc.attack(rc.getLocation());
+                }
             }
         }
 

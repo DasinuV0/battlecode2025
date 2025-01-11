@@ -94,11 +94,6 @@ public class RobotPlayer {
 
         while(true){
             try {
-                if (rc.getRoundNum() == 1) {
-                    rb.isSuicideRobot = 1;
-                } else {
-                    rb.isSuicideRobot = 0;
-                }
                 // if (rc.getRoundNum() == 2){
                 //     runSoldier(rc);
                 // } else {
