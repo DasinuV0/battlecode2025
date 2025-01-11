@@ -1,7 +1,6 @@
-package v1;
+package Iteration3;
 
 import battlecode.common.*;
-import Iteration2.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +28,8 @@ public class Mopper extends Robot {
     void beginTurn() throws GameActionException {
         lowPaintFlag = false;
         // friendMopperFound = false;
+
+        listenMessage();
 
         //get the robotInfo of rc and then calculate the percetange of the remain paint 
         int remainPaint = calculatePaintPercentage(rc.senseRobotAtLocation(rc.getLocation()));
@@ -82,44 +83,55 @@ public class Mopper extends Robot {
             //TODO: what if rc found a ruin
 
         }
-        else{
-            //if there is any robot to heal
-            if (!robotToHealQueue.isEmpty()){
-                MapLocation curr = robotToHealQueue.peek();
-                //if curr is within the vision range && if at curr the robot is gone
-                    while(rc.canSenseLocation(curr) && rc.canSenseRobotAtLocation(curr) == false && !robotToHealQueue.isEmpty()){ 
-                        robotToHealQueue.remove();
-                        robotToHealSet.remove(curr);
-                        if (!robotToHealQueue.isEmpty())
-                            curr = robotToHealQueue.peek();
-                    }
-
-                if (!robotToHealQueue.isEmpty()){
-                    if (rc.canTransferPaint(curr, PAINTTOGIVE)){
-                        rc.transferPaint(curr, PAINTTOGIVE);
-                        robotToHealQueue.remove();
-                        robotToHealSet.remove(curr);
-                    }
-                    else
-                        BugNavigator.moveTo(curr);
+        //if there is any robot to heal
+        else if (!robotToHealQueue.isEmpty()){
+            MapLocation curr = robotToHealQueue.peek();
+            //if curr is within the vision range && if at curr the robot is gone
+                while(rc.canSenseLocation(curr) && rc.canSenseRobotAtLocation(curr) == false && !robotToHealQueue.isEmpty()){ 
+                    robotToHealQueue.remove();
+                    robotToHealSet.remove(curr);
+                    if (!robotToHealQueue.isEmpty())
+                        curr = robotToHealQueue.peek();
                 }
+
+            if (!robotToHealQueue.isEmpty()){
+                if (rc.canTransferPaint(curr, PAINTTOGIVE)){
+                    rc.transferPaint(curr, PAINTTOGIVE);
+                    robotToHealQueue.remove();
+                    robotToHealSet.remove(curr);
+                }
+                else
+                    BugNavigator.moveTo(curr);
             }
-
-            //TODO: establish an algo to move/find ruin
-            // Move and attack randomly if no objective.
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)){
-                rc.move(dir);
-            }
-
-            MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
-            if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation()))
-                rc.attack(rc.getLocation());
-        
-
-        
         }
 
+        //TODO: establish an algo to move/find ruin
+        //TODO: attack only those that are clsoe to ruins
+        // Move and attack randomly if no objective.
+        // Direction dir = directions[rng.nextInt(directions.length)];
+        // if (rc.canMove(dir)){
+        //     rc.move(dir);
+        // }
 
+        // MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
+        // if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation()))
+        //     rc.attack(rc.getLocation());
+        if (stayPut){
+            MapLocation nearestTower = new MapLocation(0,0);
+            int minDist = 9999;
+            for (MapLocation pos : towersPos){
+                int currDist = pos.distanceSquaredTo(rc.getLocation());
+                if (minDist > currDist){
+                    nearestTower = pos;
+                    minDist = currDist;
+                }
+            }
+            
+            for (Direction dir : directions){
+                MapLocation newLoc = nearestTower.add(dir);
+                if (rc.canSenseLocation(newLoc) && rc.senseMapInfo(newLoc).getPaint() == PaintType.EMPTY && rc.canAttack(newLoc))
+                    rc.attack(newLoc);
+            }
+        }
     }
 }
