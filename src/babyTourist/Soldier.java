@@ -18,7 +18,7 @@ public class Soldier extends Robot {
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
-        if (_rc.getRoundNum() == 2) {
+        if (_rc.getRoundNum() < 10) {
             System.out.println("suicide robot generated");
             this.isSuicideRobot = 1;
             Team enemy = rc.getTeam().opponent();
