@@ -4,6 +4,11 @@ import battlecode.common.*;
 
 import java.util.Random;
 
+// commands:
+// 1 = stay put
+// 2 = attack location
+// 4 = request paint
+
 public class TowerLogic {
     static final Random rng = new Random(6147);
     static final Direction[] directions = {
@@ -64,30 +69,32 @@ public class TowerLogic {
 
     private static void runEarlyGame(RobotController rc) throws GameActionException{
         System.out.println("Running Early Game Logic");
+        checkAndRequestPaint(rc); // check paint capacity and request for more paint if needed
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
-        // Spawn Mopper if it hasn't been spawned yet
-        if (!mopperSpawnedYet && rc.canBuildRobot(UnitType.MOPPER, nextLoc)){
-            buildRobot(rc, UnitType.MOPPER);
-            mopperSpawnedYet = true;
-
-            // Command the Mopper to stay put
-            int stayPutCommand = 1; // Command: Stay put
-            sendMessageToRobots(rc, "EARLY_GAME", stayPutCommand, null);
-            System.out.println("Spawned Mopper and commanded it to stay put.");
-            return; // Exit early to avoid spawning Soldier in the same turn
-        }
-
         // Spawn Soldier if it hasn't been spawned yet
-        if (mopperSpawnedYet && !soldierSpawnedYet && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+        if (!soldierSpawnedYet && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
             buildRobot(rc, UnitType.SOLDIER);
             soldierSpawnedYet = true;
 
             // Command the Soldier to stay put
             int stayPutCommand = 1; // Command: Stay put
-            sendMessageToRobots(rc, "EARLY_GAME", stayPutCommand, null);
+
+            sendMessageToRobots(rc, stayPutCommand, null);
             System.out.println("Spawned Soldier and commanded it to stay put.");
+            return; // Exit early to avoid spawning Soldier in the same turn
+        }
+
+        // Spawn Mopper if it hasn't been spawned yet
+        if (!mopperSpawnedYet && soldierSpawnedYet && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
+            buildRobot(rc, UnitType.MOPPER);
+            mopperSpawnedYet = true;
+
+            // Command the Mopper to stay put
+            int stayPutCommand = 1; // Command: Stay put
+            sendMessageToRobots(rc, stayPutCommand, null);
+            System.out.println("Spawned Mopper and commanded it to stay put.");
             return; // Exit early to avoid sending movement commands prematurely
         }
 
@@ -95,7 +102,7 @@ public class TowerLogic {
         if (mopperSpawnedYet && soldierSpawnedYet) {
             int moveCommand = 3; // Command: Move to target location
             MapLocation target = new MapLocation(5, 5); // Example target location
-            sendMessageToRobots(rc, "EARLY_GAME", moveCommand, target);
+            sendMessageToRobots(rc, moveCommand, target);
             System.out.println("Commanded robots to move to target location.");
             mopperSpawnedYet = false; soldierSpawnedYet = false;
         }
@@ -147,6 +154,8 @@ public class TowerLogic {
         }
     }
 
+
+
 //    private static void sendMessageToRobots(RobotController rc, String gamePhase) throws GameActionException {
 //        MapLocation towerLoc = rc.getLocation(); // Tower's location
 //        // commands start from the 12th bit onwards, bits 1 to 12 are for coordinates.
@@ -172,7 +181,29 @@ public class TowerLogic {
 //        }
 //    }
 
-    private static void sendMessageToRobots(RobotController rc, String gamePhase, int command, MapLocation targetLoc) throws GameActionException {
+    private static void checkAndRequestPaint(RobotController rc) throws GameActionException {
+        // Threshold for low paint
+        int lowPaintThreshold = 400;  // adjust as needed, but i think this is a good number
+
+        // Check if tower has low paint
+        if (rc.getPaint() <= lowPaintThreshold) {
+            // Find a nearby robot to send the message to
+            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+
+            for (RobotInfo robot : nearbyRobots) {
+                // Only send to robots that are not on the same team and are not towers
+                if (robot.team != rc.getTeam() && !robot.type.isTowerType()) {
+                    // Send a message to the robot to request paint
+                    int requestPaintCommand = 4; // Command to request paint
+                    MapLocation towerLocation = rc.getLocation();
+                    sendMessageToRobots(rc, requestPaintCommand, towerLocation);
+                    break;  // Send to only one robot at a time
+                }
+            }
+        }
+    }
+
+    private static void sendMessageToRobots(RobotController rc, int command, MapLocation targetLoc) throws GameActionException {
         int x = targetLoc != null ? targetLoc.x : 0; // Default x-coordinate if no target
         int y = targetLoc != null ? targetLoc.y : 0; // Default y-coordinate if no target
 
@@ -184,7 +215,6 @@ public class TowerLogic {
 
         for (RobotInfo ally : nearbyAllies) {
             MapLocation allyLoc = ally.getLocation();
-
             // Check if the message can be sent to this robot
             if (rc.canSendMessage(allyLoc, messageContent)) {
                 rc.sendMessage(allyLoc, messageContent);
