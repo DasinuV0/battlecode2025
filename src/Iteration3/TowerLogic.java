@@ -75,26 +75,33 @@ public class TowerLogic {
 
         // Spawn Soldier if it hasn't been spawned yet
         if (!soldierSpawnedYet && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
-            buildRobot(rc, UnitType.SOLDIER);
+            if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
+                buildRobotOnRandomTile(rc, UnitType.SOLDIER);
+                System.out.println("Spawned Soldier on a random tile");
+                return; // Exit early to avoid setting flag to true
+            }
             soldierSpawnedYet = true;
 
             // Command the Soldier to stay put
             int stayPutCommand = 1; // Command: Stay put
 
             sendMessageToRobots(rc, stayPutCommand, null);
-            System.out.println("Spawned Soldier and commanded it to stay put.");
+            System.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
             return; // Exit early to avoid spawning Soldier in the same turn
         }
 
         // Spawn Mopper if it hasn't been spawned yet
         if (!mopperSpawnedYet && soldierSpawnedYet && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-            buildRobot(rc, UnitType.MOPPER);
+            if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
+                System.out.println("No paint tile detected, not spawning mopper");
+                return;
+            }
             mopperSpawnedYet = true;
 
             // Command the Mopper to stay put
             int stayPutCommand = 1; // Command: Stay put
             sendMessageToRobots(rc, stayPutCommand, null);
-            System.out.println("Spawned Mopper and commanded it to stay put.");
+            System.out.println("Spawned Mopper on a paint tile and commanded it to stay put.");
             return; // Exit early to avoid sending movement commands prematurely
         }
 
@@ -130,7 +137,7 @@ public class TowerLogic {
 //        attackNearbyEnemies(rc); // Simultaneously attack enemies
     }
 
-    private static void buildRobot(RobotController rc, UnitType unitType) throws GameActionException {
+    private static void buildRobotOnRandomTile(RobotController rc, UnitType unitType) throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
@@ -139,6 +146,34 @@ public class TowerLogic {
             System.out.println("BUILT A " + unitType);
         }
     }
+
+    private static boolean buildRobotOnPaintTile(RobotController rc, UnitType unitType) throws GameActionException {
+        for (Direction dir : directions) {
+            MapLocation nextLoc = rc.getLocation().add(dir);
+
+            // Check if the location is valid for building a robot
+            if (rc.canBuildRobot(unitType, nextLoc)){
+                PaintType paintType = rc.senseMapInfo(nextLoc).getPaint();
+                if (paintType == PaintType.ALLY_PRIMARY){
+                    // Ensure the tile is painted with ALLY_PRIMARY
+                    rc.buildRobot(unitType, nextLoc);
+                    System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_PRIMARY + ") at " + nextLoc);
+                    return true; // Exit after successfully building the robot
+                }
+                else if (paintType == PaintType.ALLY_SECONDARY){
+                    rc.buildRobot(unitType, nextLoc);
+                    System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_SECONDARY + ") at " + nextLoc);
+                    return true; // Exit after successfully building the robot
+                }
+            }
+        }
+
+        // If no valid paint tile is found
+        System.out.println("FAILED to build " + unitType + ": No valid friendly paint tiles nearby.");
+        return false;
+    }
+
+
 
     private static void attackNearbyEnemies(RobotController rc) throws GameActionException {
         Team enemy = rc.getTeam().opponent();
@@ -153,8 +188,6 @@ public class TowerLogic {
             }
         }
     }
-
-
 
 //    private static void sendMessageToRobots(RobotController rc, String gamePhase) throws GameActionException {
 //        MapLocation towerLoc = rc.getLocation(); // Tower's location
@@ -219,6 +252,33 @@ public class TowerLogic {
             if (rc.canSendMessage(allyLoc, messageContent)) {
                 rc.sendMessage(allyLoc, messageContent);
                 System.out.println("Sent message to " + allyLoc + ": " + messageContent);
+            }
+        }
+    }
+
+    private static void handleMessages(RobotController rc) throws GameActionException {
+        Message[] messages = rc.readMessages(-1); // Read all messages from the past 5 rounds
+
+        for (Message message : messages) {
+            int messageContent = message.getBytes();
+
+            // Decode command and coordinates
+            int x = (messageContent >> 6) & 63; // Extract x-coordinate (bits 6-11)
+            int y = messageContent & 63;       // Extract y-coordinate (bits 0-5)
+            int command = (messageContent >> 12); // Extract command (bits 12+)
+
+            System.out.println("Received command: " + command + " for location: (" + x + ", " + y + ")");
+
+            // Execute actions based on command
+            switch (command) {
+                case 1: // Stay put
+                    System.out.println("Staying put as per command.");
+                    break;
+                case 3: // Move to target location
+                    MapLocation targetLoc = new MapLocation(x, y);
+                    BugNavigator.moveTo(targetLoc);
+                    System.out.println("Moving to " + targetLoc + " via BugNav");
+                    break;
             }
         }
     }
