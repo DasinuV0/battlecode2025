@@ -53,7 +53,24 @@ public class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
-        System.out.println("I'm alive");
+        Set<MapLocation> coords = new HashSet<>();
+        int symm = -1;
+        if(rc.getType().isTowerType() && rc.getRoundNum() == 1) {
+            MapLocation nr = symmetry.getStartingTowersCoord(rc);
+            coords.add(nr);
+        }
+        // example when the tower receives a message with the other tower's coords we can start doing the symmetry computations
+        coords.add(new MapLocation(0,0));
+        if(coords.size() == 2) {
+            //determine symmetry type
+            MapLocation[] coordsArray = coords.toArray(new MapLocation[0]);
+            MapLocation first = coordsArray[0];
+            MapLocation second = coordsArray[1];
+            symm = symmetry.getSymmetryType(rc, coordsArray);
+        }
+        MapLocation[] ends = symmetry.getLineEnds(rc, symm);
+        for(MapLocation i : ends)
+            System.out.println(i);
 
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
