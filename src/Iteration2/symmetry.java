@@ -90,15 +90,15 @@ public class symmetry {
             points[1] = new MapLocation(rc.getMapWidth() / 4, 0);
             points[2] = symm[0];
             points[3] = symm[1];
-            points[4] = new MapLocation((int)(rc.getMapWidth() * 1.5), rc.getMapHeight() - 1);
-            points[5] = new MapLocation((int)(rc.getMapWidth() * 1.5), 0);
+            points[4] = new MapLocation((int)(rc.getMapWidth() / 1.5), rc.getMapHeight() - 1);
+            points[5] = new MapLocation((int)(rc.getMapWidth() / 1.5), 0);
         }
         else if(symmetryType == 1) {
             points[0] = new MapLocation(0, rc.getMapHeight() / 4);
             points[1] = new MapLocation(rc.getMapWidth() - 1, rc.getMapHeight() / 4);
             points[2] = symm[0];
             points[3] = symm[1];
-            points[4] = new MapLocation(0, (int)(rc.getMapHeight() * 1.5));
+            points[4] = new MapLocation(0, (int)(rc.getMapHeight() / 1.5));
             points[5] = new MapLocation(rc.getMapWidth() - 1, (int)(rc.getMapHeight() * 1.5));
         }
         else {
@@ -118,7 +118,7 @@ public class symmetry {
                 return 0;
             if(loc.x <= rc.getMapWidth() / 2)
                 return 1;
-            if(loc.x <= (int)(rc.getMapWidth() * 1.5))
+            if(loc.x <= (int)(rc.getMapWidth() / 1.5))
                 return 2;
             return 3;
         }
@@ -127,7 +127,7 @@ public class symmetry {
                 return 0;
             if(loc.y <= rc.getMapHeight() / 2)
                 return 1;
-            if(loc.y <= (int)(rc.getMapHeight() * 1.5))
+            if(loc.y <= (int)(rc.getMapHeight() / 1.5))
                 return 2;
             return 3;
         }
