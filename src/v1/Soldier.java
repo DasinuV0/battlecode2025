@@ -95,6 +95,15 @@ public class Soldier extends Robot {
 
             if (rc.getLocation().distanceSquaredTo(moveToTarget) < 2 )
                 moveToTarget = new MapLocation(-1,-1);
+            MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
+            if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
+                // rc.attack(rc.getLocation());
+                boolean useSecondaryColor = rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.ALLY_SECONDARY;
+                rc.attack(rc.getLocation(), useSecondaryColor);
+
+            return;
+        }
+
         }
 
         //if in past round the bot found some tiles (which is part of a pattern) are paint by enemy
@@ -119,10 +128,10 @@ public class Soldier extends Robot {
                     // Remove the first element
                     iterator.remove();
                 }
-                rc.sendMessage(nearestTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // TODO: add first firstElement to the messag
+                rc.sendMessage(nearestTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // DONE: add first firstElement to the messag
                 System.out.println("message sent: damaged pattern find");
                 rc.setIndicatorDot(nearestTower, 0,255,0);
-                rc.setIndicatorString("go to nearset tower");
+                rc.setIndicatorString("message sent: damaged pattern find");
             }
         }
 
@@ -176,6 +185,7 @@ public class Soldier extends Robot {
                             if (rc.canAttack(patternTile.getMapLocation())){
                                 rc.attack(patternTile.getMapLocation(), useSecondaryColor);
                                 rc.setIndicatorString("try to build the tower");
+                                
                             }
                         else{
                             BugNavigator.moveTo(patternTile.getMapLocation());
