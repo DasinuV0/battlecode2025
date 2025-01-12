@@ -131,7 +131,7 @@ public class symmetry {
                 return 2;
             return 3;
         }
-        if(loc.x <= rc.getMapWidth() / 2 && loc.y <= rc.getMapHeight() / 2)
+        if(loc.x < rc.getMapWidth() / 2 && loc.y < rc.getMapHeight() / 2)
             return 0;
         int maxi = Math.max(rc.getMapWidth(), rc.getMapHeight());
         if(loc.x + loc.y <= maxi)
