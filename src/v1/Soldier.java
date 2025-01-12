@@ -27,9 +27,12 @@ public class Soldier extends Robot {
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots)
-            if (robot.type.isTowerType())
-                towersPos.add(robot.location);
-            else if (robot.team.isPlayer() && robot.type == UnitType.MOPPER)
+            //check if our paint/money tower is found
+            if (isPaintTower(robot.type) && robot.team == rc.getTeam())
+                    paintTowersPos.add(robot.location);
+            else if (isMoneyTower(robot.type) && robot.team == rc.getTeam())
+                    moneyTowersPos.add(robot.location);
+            else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
 
 
@@ -76,17 +79,15 @@ public class Soldier extends Robot {
          */
         if (stayPut){
             rc.setIndicatorString("stay put");
-            MapLocation nearestTower = getNearestTower();
+            MapLocation nearestAllyTower = getNearestAllyTower();
          
             //paint the robots pos
-            if (rc.senseMapInfo(rc.getLocation()).getPaint() == PaintType.EMPTY)
-                tryToPaintAtLoc(rc.getLocation());
+            tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
             
             //if robots pos is already paint, try to paint tiles near the tower
             for (Direction dir : directions){
-                MapLocation newLoc = nearestTower.add(dir);
-                if (rc.senseMapInfo(newLoc).getPaint() == PaintType.EMPTY)
-                    tryToPaintAtLoc(newLoc);
+                MapLocation newLoc = nearestAllyTower.add(dir);
+                tryToPaintAtLoc(newLoc, PaintType.EMPTY);
             }
             return;
         }
@@ -99,16 +100,18 @@ public class Soldier extends Robot {
                     boolean useSecondaryColor = rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.ALLY_SECONDARY;
                     rc.attack(rc.getLocation(), useSecondaryColor);
                 }
+                rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
                 return;
             }
             //once reached the target loc
 
             //if in past round the bot found some tiles (which is part of a pattern) are paint by enemy
             if (ruinWithPatternDamaged.size() > 0){
-                MapLocation nearestTower = getNearestTower();
-                BugNavigator.moveTo(nearestTower);
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                BugNavigator.moveTo(nearestAllyTower);
+                rc.setIndicatorString("damaged pattern find: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
-                if (rc.canSendMessage(nearestTower)){
+                if (rc.canSendMessage(nearestAllyTower)){
                     MapLocation firstElement = new MapLocation(0, 0);
                     // Get an iterator
                     Iterator<MapLocation> iterator = ruinWithPatternDamaged.iterator();
@@ -117,34 +120,38 @@ public class Soldier extends Robot {
                         // Remove the first element
                         iterator.remove();
                     }
-                    rc.sendMessage(nearestTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // DONE: add first firstElement to the messag
-                    rc.setIndicatorDot(nearestTower, 0,255,0);
-                    rc.setIndicatorString("message sent: damaged pattern find");
+                    rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // DONE: add first firstElement to the messag
+                    System.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
+                    
+                    rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                    rc.setIndicatorString("message sent: damaged pattern found");
                 }
+                return;
             }
 
             if (lowPaintFlag){
                 rc.setIndicatorString("need healing");
-                MapLocation nearestTower = getNearestTower();
+                MapLocation nearestAllyTower = getNearestAllyTower();
 
-                //if i can get paint from nearestTower
-                if (rc.canTransferPaint(nearestTower, PAINTTOTAKE)){
-                    stayPut = false; 
-                    rc.transferPaint(nearestTower, PAINTTOTAKE);
+                //if i can get paint from nearestAllyTower
+                if (rc.canTransferPaint(nearestAllyTower, PAINTTOTAKE)){
+                    rc.transferPaint(nearestAllyTower, PAINTTOTAKE);
                 }
                 else if (friendMopperFound){
                     return;//stop here and wait for the mopper to give paint
                 }
                 else{
-                    BugNavigator.moveTo(nearestTower);
-                    if (rc.canSendMessage(nearestTower))
-                        rc.sendMessage(nearestTower, OptCode.NEEDPAINT);
+                    BugNavigator.moveTo(nearestAllyTower);
+                    if (rc.canSendMessage(nearestAllyTower))
+                        rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
                     rc.setIndicatorString("wait for heal");
                 }
+                return;
             }
 
             if (enemyTowerFound){
             //TODO: what to do once an enemy tower is found
+                return;
             }
 
             if (ruinsFound.size() > 0){
@@ -156,8 +163,10 @@ public class Soldier extends Robot {
                         //if we see an ally mark
                         if (patternTile.getMark().isAlly()){
                             //try to move to empty tile
-                            if (patternTile.getPaint() == PaintType.EMPTY)
+                            if (patternTile.getPaint() == PaintType.EMPTY){
+                                rc.setIndicatorDot(patternTile.getMapLocation(), 200,200,200);
                                 BugNavigator.moveTo(patternTile.getMapLocation());
+                            }
 
                             //if the tile is not paint as expected (primary color instead of secondary or vice versa or empty paint)
                             if (patternTile.getMark() != patternTile.getPaint()){
@@ -169,6 +178,7 @@ public class Soldier extends Robot {
                         //if there is a pattern and it's paint by enemy
                         else if (patternTile.getPaint().isEnemy()){
                             ruinWithPatternDamaged.add(curRuin.getMapLocation());
+                            rc.setIndicatorDot(patternTile.getMapLocation(), 25,14,24); //TODO: find a way to avoid multiple bot find the same enemy tile and all go back to the tower
                             rc.setIndicatorString("pattern damaged, enemy paint found."); //TODO: find a way to avoid multiple bot find the same enemy tile and all go back to the tower
                         }
                     }
@@ -178,7 +188,7 @@ public class Soldier extends Robot {
             }
 
             //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
-            if (emptyTile.x != -1){
+            if (emptyTile.x != -1 && rc.isMovementReady()){
                 BugNavigator.moveTo(emptyTile);
                 rc.setIndicatorString("move to a random empty tile");
 

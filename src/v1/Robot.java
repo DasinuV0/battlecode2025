@@ -29,8 +29,8 @@ public class Robot {
      * Core robot class. Contains all necessary info for other classes and all high level instructions.
      */
     static final int LOWPAINTTRESHHOLD = 20;
-    static final int PAINTTOTAKE = -20;
-    static final int PAINTTOGIVE = 20;
+    static final int PAINTTOTAKE = -60;
+    static final int PAINTTOGIVE = 60;
     static final Random rng = new Random(6147);
 
     static final Direction[] directions = {
@@ -46,7 +46,8 @@ public class Robot {
 
     static RobotController rc;
 
-    static Set<MapLocation> towersPos = new  LinkedHashSet<>();
+    static Set<MapLocation> paintTowersPos = new  LinkedHashSet<>();
+    static Set<MapLocation> moneyTowersPos = new  LinkedHashSet<>();
     
     //general flags
     static boolean lowPaintFlag;
@@ -101,34 +102,44 @@ public class Robot {
             lowPaintFlag = true;
     }
 
-    void listenMessage(){
-        Message[] messages = rc.readMessages(rc.getRoundNum());
-        //if no message received in this turn, don't change any message flags
-        if (messages.length == 0)
-            return;
-
-        stayPut = false;
-        exploreMode = false;
-        targetLocation = new MapLocation(-1,-1);
-
-        for (Message m : messages) {
-            int command = m.getBytes() >> 12;
-            if (command == OptCode.PUTSTATE){
-                stayPut = true;
-            }
-            else if (command == OptCode.EXPLORE){
-                int y = m.getBytes() & 63;
-                int x = (m.getBytes() >> 6) & 63;
-                exploreMode = true;
-                targetLocation = new MapLocation(x,y);
-            }
-        }
-    }
-
-    MapLocation getNearestTower(){
+    MapLocation getNearestAllyPaintTower(){
         MapLocation nearestTower = new MapLocation(0,0);
         int minDist = 9999;
-        for (MapLocation pos : towersPos){
+        for (MapLocation pos : paintTowersPos){
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+        return nearestTower;
+    }
+
+    MapLocation getNearestAllyMoneyTower(){
+        MapLocation nearestTower = new MapLocation(0,0);
+        int minDist = 9999;
+        for (MapLocation pos : moneyTowersPos){
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+        return nearestTower;
+    }
+
+    MapLocation getNearestAllyTower(){
+        MapLocation nearestTower = new MapLocation(0,0);
+        int minDist = 9999;
+        for (MapLocation pos : moneyTowersPos){
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+
+        for (MapLocation pos : paintTowersPos){
             int currDist = pos.distanceSquaredTo(rc.getLocation());
             if (minDist > currDist){
                 nearestTower = pos;
@@ -140,9 +151,8 @@ public class Robot {
 
     //return true when we moved
     boolean tryToReachTargetLocation() throws GameActionException{
-        if (targetLocation.x != -1){
+        if (targetLocation.x != (-1)){
             BugNavigator.moveTo(targetLocation);
-            rc.setIndicatorString("move to  " + targetLocation.x + " " + targetLocation.y);
             if (rc.getLocation().distanceSquaredTo(targetLocation) < 2 )
                 targetLocation = new MapLocation(-1,-1);
             return true;
@@ -173,8 +183,8 @@ public class Robot {
     }
 
     //default color is primaryColor
-    void tryToPaintAtLoc(MapLocation loc) throws GameActionException{
-        if (rc.canSenseLocation(loc) && rc.canAttack(loc))
+    void tryToPaintAtLoc(MapLocation loc, PaintType paintType) throws GameActionException{
+        if (rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getPaint() == paintType && rc.canAttack(loc))
             rc.attack(loc);
     }
     //overloading: call tryToPaintAtLoc(loc, true) to useSecondaryColor
@@ -187,6 +197,35 @@ public class Robot {
         return (int)(((double)robot.paintAmount / robot.type.paintCapacity) * 100);
     }
 
+    void listenMessage(){
+        Message[] messages = rc.readMessages(rc.getRoundNum());
+        //if no message received in this turn, don't change any message flags
+        if (messages.length == 0)
+            return;
+
+        stayPut = false;
+        exploreMode = false;
+        targetLocation = new MapLocation(-1,-1);
+
+        for (Message m : messages) {
+            int command = m.getBytes() >> 12;
+            if (command == OptCode.PUTSTATE){
+                stayPut = true;
+            }
+            else if (command == OptCode.EXPLORE){
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                exploreMode = true;
+                targetLocation = new MapLocation(x,y);
+            }else if (command == OptCode.DAMAGEDPATTERN){
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                exploreMode = true;
+                targetLocation = new MapLocation(x,y); 
+            }
+        }
+    }
+
     int encodeMessage(int command, MapLocation targetLoc){
         int x = targetLoc != null ? targetLoc.x : 0; // Default x-coordinate if no target
         int y = targetLoc != null ? targetLoc.y : 0; // Default y-coordinate if no target
@@ -194,5 +233,17 @@ public class Robot {
         // Encode coordinates and command into messageContent
         int messageContent = (x << 6) | y | (command << 12);
         return messageContent;
+    }
+
+    boolean isPaintTower(UnitType tower){
+        return tower == UnitType.LEVEL_ONE_PAINT_TOWER || tower == UnitType.LEVEL_TWO_PAINT_TOWER || tower == UnitType.LEVEL_THREE_PAINT_TOWER;
+    }
+
+    boolean isMoneyTower(UnitType tower){
+        return tower == UnitType.LEVEL_ONE_MONEY_TOWER || tower == UnitType.LEVEL_TWO_MONEY_TOWER || tower == UnitType.LEVEL_THREE_MONEY_TOWER;
+    }
+
+    boolean isDefendTower(UnitType tower){
+        return tower == UnitType.LEVEL_ONE_DEFENSE_TOWER || tower == UnitType.LEVEL_TWO_DEFENSE_TOWER || tower == UnitType.LEVEL_THREE_DEFENSE_TOWER;
     }
 }

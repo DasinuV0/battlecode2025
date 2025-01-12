@@ -31,17 +31,24 @@ public class Mopper extends Robot {
         updateLowPaintFlag();
 
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots)
-            //check if any tower is found
-            if (robot.type.isTowerType())
-                towersPos.add(robot.location);
-            //check if any bot needs heal
-            else if (robot.team.isPlayer() && robot.type.isRobotType() && robot.type != UnitType.MOPPER && robotToHealSet.contains(robot.location) == false && calculatePaintPercentage(robot) <= LOWPAINTTRESHHOLD){
+        for (RobotInfo robot : nearbyRobots){
+            //check if our paint/money tower is found
+            if (isPaintTower(robot.type) && robot.team == rc.getTeam()){
+                paintTowersPos.add(robot.location);
+            }
+            
+            if (isMoneyTower(robot.type) && robot.team == rc.getTeam()){
+                moneyTowersPos.add(robot.location);
+            }
+
+            //check if any bot/tower needs heal
+            if (robot.team == rc.getTeam() && robot.type != UnitType.MOPPER && isPaintTower(robot.type) == false && robotToHealSet.contains(robot.location) == false && calculatePaintPercentage(robot) <= LOWPAINTTRESHHOLD){
                 rc.setIndicatorDot(robot.location, 255,0,0);
                 robotToHealQueue.add(robot.location);
                 robotToHealSet.add(robot.location);
             }
-
+        }
+        
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         // Search for a nearby ruin to complete.
@@ -76,7 +83,6 @@ public class Mopper extends Robot {
         HEAL MODE
         if there is a tower nearby, send the message to the tower
         otherwise go to heal the bot
-        go back to the tower
 
         REMOVE PATTERN MODE
         once reached the target loc
@@ -91,19 +97,21 @@ public class Mopper extends Robot {
 
         if (exploreMode){
             //if he is not at the destination yet, don't do anything else
-            if (tryToReachTargetLocation())
+            if (tryToReachTargetLocation()){
+                rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
                 return;
+            }
             
             //once reached the target loc
             if (lowPaintFlag){
-                rc.setIndicatorString("need healing");
-                MapLocation nearestTower = getNearestTower();
+                MapLocation nearestAllyPaintTower = getNearestAllyPaintTower();
+                rc.setIndicatorString("need healing: go to (" + nearestAllyPaintTower.x + " " + nearestAllyPaintTower.y + ")");
 
-                //if i can get paint from nearestTower
-                if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
-                    rc.transferPaint(nearestTower, PAINTTOTAKE);
+                //if i can get paint from nearestAllyPaintTower
+                if (rc.canTransferPaint(nearestAllyPaintTower, PAINTTOTAKE))
+                    rc.transferPaint(nearestAllyPaintTower, PAINTTOTAKE);
                 else
-                    BugNavigator.moveTo(nearestTower);
+                    BugNavigator.moveTo(nearestAllyPaintTower);
                 return;
             }
 
@@ -114,9 +122,13 @@ public class Mopper extends Robot {
 
                     //if eneny paint found near the ruin
                     for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
-                        MapLocation newLoc = patternTile.getMapLocation();
-                        if (rc.senseMapInfo(newLoc).getPaint().isEnemy())
-                            tryToPaintAtLoc(newLoc);
+                        if (patternTile.getPaint().isEnemy()){
+                            MapLocation newLoc = patternTile.getMapLocation();
+                            BugNavigator.moveTo(newLoc);
+                            rc.setIndicatorDot(newLoc, 0,0,255);
+                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY);
+                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY);
+                        }
                     }
                 
                 }
@@ -144,8 +156,10 @@ public class Mopper extends Robot {
                         robotToHealQueue.remove();
                         robotToHealSet.remove(curr);
                     }
-                    else
+                    else{
                         BugNavigator.moveTo(curr);
+                        rc.setIndicatorString("heal bot: move to (" + curr.x + " " + curr.y + ")");
+                    }
                 }
             }
 
@@ -163,11 +177,40 @@ public class Mopper extends Robot {
         }
 
         if (removePatterMode){
+            //if he is not at the destination yet, don't do anything else
+            if (tryToReachTargetLocation()){
+                rc.setIndicatorString("removePatter mode: move to  " + targetLocation.x + " " + targetLocation.y);
+                return;
+            }
 
+            if (ruinsFound.size() > 0){
+                for (MapInfo curRuin : ruinsFound){
+                    tryToMarkPattern(curRuin);
+                    tryToBuildTower(curRuin);
+
+                    //if eneny paint found near the ruin
+                    for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
+                        if (patternTile.getPaint().isEnemy()){
+                            MapLocation newLoc = patternTile.getMapLocation();
+                            BugNavigator.moveTo(newLoc);
+                            rc.setIndicatorDot(newLoc, 0,0,255);
+                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY);
+                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY);
+                            rc.setIndicatorString("try to remove enemy paint");
+                        }
+                    }
+                
+                }
+            }
         }
         
     }
 
+    // custom lowpaintflag
+    void updateLowPaintFlag() throws GameActionException{
+        if (rc.getPaint() <= 60)
+            lowPaintFlag = true;
+    }
 
 
     // void someoneNeedPaint(int x, int y){
