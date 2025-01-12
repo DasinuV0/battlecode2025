@@ -26,13 +26,16 @@ public class BugNavigator extends Globals {
 
         boolean hasOptions = false;
         for (int i = adjacentDirections.length; --i >= 0; ) {
-            if (canMoveWithMark(adjacentDirections[i])) {
+            if (canMove(adjacentDirections[i])) {
                 hasOptions = true;
                 break;
             }
         }
 
-        if (!hasOptions) return; // do nothing
+        if (!hasOptions){
+            //System.out.println("bot has no options, just return");
+            return; // do nothing
+        }
 
 
         MapLocation myLocation = rc.getLocation();
@@ -40,6 +43,7 @@ public class BugNavigator extends Globals {
         // it resets the state and updates minDistanceToTarget.
         int distanceToTarget = distance1d(myLocation, target);
         if (distanceToTarget < minDistanceToTarget) {
+            //System.out.println("A new minDistance is found, resetting to update");
             reset();
             minDistanceToTarget = distanceToTarget;
         }
@@ -47,12 +51,13 @@ public class BugNavigator extends Globals {
         // if there is an obstacle and if that obstacle is now passable.
         // when it previously wasn't then reset because now we can potentially
         // consider a better direction to go to.
-        if (currentObstacle != null && rc.canSenseLocation(currentObstacle) && rc.sensePassability(currentObstacle)) {
-            reset();
-        }
+//        if (currentObstacle != null && rc.canSenseLocation(currentObstacle) && rc.sensePassability(currentObstacle)) {
+//            reset();
+//        }
 
         // check if previously visited the same state
         if (!visitedStates.add(getState(target))) {
+            //System.out.println("state has been visited before, resetting");
             reset();
         }
 
@@ -62,8 +67,8 @@ public class BugNavigator extends Globals {
         // no obstacle, see if can move diagonally to target
         if (currentObstacle == null) {
             Direction forward = myLocation.directionTo(target);
-            if (canMoveWithMark(forward)) {
-                moveWithMark(forward);
+            if (canMove(forward)) {
+                move(forward);
                 return;
             }
             // otherwise, we set initial direction again for followWall function
@@ -137,25 +142,27 @@ public class BugNavigator extends Globals {
 
         for (int i = 8; --i >= 0; ) {
             direction = obstacleOnRight ? direction.rotateLeft() : direction.rotateRight();
-            if (canMoveWithMark(direction)) {
-                moveWithMark(direction);
+            if (canMove(direction)) {
+                //System.out.println("Moving with mark in " + direction);
+                move(direction);
                 return;
             }
 
             MapLocation location = rc.adjacentLocation(direction);
-            // Handle case when robot is out of bounds
             if (canRotate && !rc.onTheMap(location)) {
-                obstacleOnRight = !obstacleOnRight; // obstacle in this direction
-                followWall(false); // move in a different direction
+                //System.out.println("can rotate and rc not on map");
+                obstacleOnRight = !obstacleOnRight;
+                followWall(false);
                 return;
             }
 
-            // robot exists on the map and a wall is detected
             if (rc.onTheMap(location) && !rc.sensePassability(location)) {
-                currentObstacle = location; // update new wall location
+                //System.out.println("rc on the map, but this location is an obstacle");
+                currentObstacle = location;
             }
         }
     }
+
 
     private static char getState(MapLocation target) {
         MapLocation myLocation = rc.getLocation();
@@ -173,21 +180,15 @@ public class BugNavigator extends Globals {
     }
 
     // can move in this direction and mark this tile
-    private static boolean canMoveWithMark(Direction direction) {
+    private static boolean canMove(Direction direction) {
         return rc.canMove(direction);
-        // return rc.canMove(direction) && rc.canMark(rc.adjacentLocation(direction));
     }
 
     // move in this direction and mark this tile
-    private static void moveWithMark(Direction direction) throws GameActionException {
+    private static void move(Direction direction) throws GameActionException {
         MapLocation fillLocation = rc.adjacentLocation(direction);
-        // if (rc.canMark(fillLocation)) {
-        //     rc.mark(fillLocation, false);
-        // }
 
-        if (rc.canMove(direction)) {
-            rc.move(direction);
-        }
+        rc.move(direction);
 
         Logger.log("bug " + direction);
     }
