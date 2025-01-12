@@ -26,27 +26,16 @@ public class Mopper extends Robot {
 
     //instructions run at the beginning of each turn
     void beginTurn() throws GameActionException {
-        lowPaintFlag = false;
-        ruinsFound = new HashSet<>();
-
-        // stayPut = false;
-        // moveToTarget = new MapLocation(-1,-1);
+        resetFlags();
         listenMessage();
+        updateLowPaintFlag();
 
-        //get the robotInfo of rc and then calculate the percetange of the remain paint 
-        int remainPaint = calculatePaintPercentage(rc.senseRobotAtLocation(rc.getLocation()));
-        //check if it is low paint
-        if (remainPaint <= LOWPAINTTRESHHOLD)
-            lowPaintFlag = true;
-        else    
-            lowPaintFlag = false;
-        
-
-        //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots)
+            //check if any tower is found
             if (robot.type.isTowerType())
                 towersPos.add(robot.location);
+            //check if any bot needs heal
             else if (robot.team.isPlayer() && robot.type.isRobotType() && robot.type != UnitType.MOPPER && robotToHealSet.contains(robot.location) == false && calculatePaintPercentage(robot) <= LOWPAINTTRESHHOLD){
                 rc.setIndicatorDot(robot.location, 255,0,0);
                 robotToHealQueue.add(robot.location);
@@ -59,6 +48,8 @@ public class Mopper extends Robot {
         for (MapInfo tile : nearbyTiles)
             if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null)
                 ruinsFound.add(tile);
+
+        // someoneNeedPaint();
     }
 
     //Instructions at the end of each turn
@@ -68,74 +59,78 @@ public class Mopper extends Robot {
 
     //Core turn method
     void runTurn() throws GameActionException {
+        //stayPut, moveToTarget, ruinWithPatternDamaged, lowPaintFlag, ruinsFound, enemyTowerFound
+        /*
+
+        STAYPUT MODE
+        don't do anything else
+
+        EXPLORE MODE
+        once reached the target loc
+        1) if lowPaintFlag
+        2) ruinsFound (try to build)
+            - ruinWithPatternDamaged (clean the tile)
+        3) if enemyTowerFound (go back to tower and tell the tower about it then go back to ruindsFound the explore mode) 
+        4) if he found a bot with low paint (heal)
+        
+        HEAL MODE
+        if there is a tower nearby, send the message to the tower
+        otherwise go to heal the bot
+        go back to the tower
+
+        REMOVE PATTERN MODE
+        once reached the target loc
+        clean tile
+        go back to the tower
+        */  
+
         if (stayPut){
             rc.setIndicatorString("stay put");
             return;
-        }else if (moveToTarget.x != -1){
-            MapLocation temp = new MapLocation(10,10);
-            BugNavigator.moveTo(moveToTarget);
-            rc.setIndicatorString("move to  " + moveToTarget.x + " " + moveToTarget.y);
-            if (rc.getLocation().distanceSquaredTo(moveToTarget) < 2 )
-                moveToTarget = new MapLocation(-1,-1);
-            return;
         }
 
+        if (exploreMode){
+            //if he is not at the destination yet, don't do anything else
+            if (tryToReachTargetLocation())
+                return;
+            
+            //once reached the target loc
+            if (lowPaintFlag){
+                rc.setIndicatorString("need healing");
+                MapLocation nearestTower = getNearestTower();
 
-        if (lowPaintFlag){
-            rc.setIndicatorString("need healing");
-            //DONE: go to the nearest tower 
-            MapLocation nearestTower = new MapLocation(0,0);
-            int minDist = 9999;
-            for (MapLocation pos : towersPos){
-                int currDist = pos.distanceSquaredTo(rc.getLocation());
-                if (minDist > currDist){
-                    nearestTower = pos;
-                    minDist = currDist;
+                //if i can get paint from nearestTower
+                if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
+                    rc.transferPaint(nearestTower, PAINTTOTAKE);
+                else
+                    BugNavigator.moveTo(nearestTower);
+                return;
+            }
+
+            if (ruinsFound.size() > 0){
+                for (MapInfo curRuin : ruinsFound){
+                    tryToMarkPattern(curRuin);
+                    tryToBuildTower(curRuin);
+
+                    //if eneny paint found near the ruin
+                    for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
+                        MapLocation newLoc = patternTile.getMapLocation();
+                        if (rc.senseMapInfo(newLoc).getPaint().isEnemy())
+                            tryToPaintAtLoc(newLoc);
+                    }
+                
                 }
             }
 
-            // rc.setIndicatorString(""+friendMopperFound);
-            if (rc.canTransferPaint(nearestTower, PAINTTOTAKE))
-                rc.transferPaint(nearestTower, PAINTTOTAKE);
-            // else if (friendMopperFound)
-            //     ; //stop here and wait for the mopper to give paint
-            else{
-                BugNavigator.moveTo(nearestTower);
+
+            if (enemyTowerFound){
+            //TODO: what to do once an enemy tower is found
             }
-            return;
-        }
-        
-        if (ruinsFound.size() > 0){
-            for (MapInfo curRuin : ruinsFound){
-                MapLocation targetLoc = curRuin.getMapLocation();
-                Direction dir = rc.getLocation().directionTo(targetLoc);
 
-                // Mark the pattern we need to draw to build a tower here if we haven't already.
-                MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(dir);
-                //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
-                if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
-                    //TODO: which tower should the bot build?
-                    rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
-                }
-
-                                // Complete the ruin if we can.
-                if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
-                    rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
-                    rc.setTimelineMarker("Tower built", 0, 255, 0);
-                }
-
-                for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
-                    MapLocation newLoc = patternTile.getMapLocation();
-                        if (rc.canSenseLocation(newLoc) && rc.senseMapInfo(newLoc).getPaint().isEnemy() && rc.canAttack(newLoc))
-                            rc.attack(newLoc);
-                }
-             
-            }
-        }
-        //if there is any robot to heal
-        else if (!robotToHealQueue.isEmpty()){
-            MapLocation curr = robotToHealQueue.peek();
-            //if curr is within the vision range && if at curr the robot is gone
+            //if there is any robot to heal
+            if (!robotToHealQueue.isEmpty()){
+                MapLocation curr = robotToHealQueue.peek();
+                //if curr is within the vision range && if at curr the robot is gone
                 while(rc.canSenseLocation(curr) && rc.canSenseRobotAtLocation(curr) == false && !robotToHealQueue.isEmpty()){ 
                     robotToHealQueue.remove();
                     robotToHealSet.remove(curr);
@@ -143,43 +138,39 @@ public class Mopper extends Robot {
                         curr = robotToHealQueue.peek();
                 }
 
-            if (!robotToHealQueue.isEmpty()){
-                if (rc.canTransferPaint(curr, PAINTTOGIVE)){
-                    rc.transferPaint(curr, PAINTTOGIVE);
-                    robotToHealQueue.remove();
-                    robotToHealSet.remove(curr);
+                if (!robotToHealQueue.isEmpty()){
+                    if (rc.canTransferPaint(curr, PAINTTOGIVE)){
+                        rc.transferPaint(curr, PAINTTOGIVE);
+                        robotToHealQueue.remove();
+                        robotToHealSet.remove(curr);
+                    }
+                    else
+                        BugNavigator.moveTo(curr);
                 }
-                else
-                    BugNavigator.moveTo(curr);
+            }
+
+            // Move randomly if no objective.
+            Direction dir = directions[rng.nextInt(directions.length)];
+            if (rc.canMove(dir)){
+                rc.move(dir);
+                rc.setIndicatorString("move randomly");
             }
         }
 
-        //TODO: establish an algo to move/find ruin
-        //TODO: attack only those that are clsoe to ruins
-        // Move and attack randomly if no objective.
-        // Direction dir = directions[rng.nextInt(directions.length)];
-        // if (rc.canMove(dir)){
-        //     rc.move(dir);
-        // }
 
+        if (healMode){
 
-
-        // MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
-        // if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation()))
-        //     rc.attack(rc.getLocation());
-        
-        // Move randomly if no objective.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)){
-            rc.move(dir);
-            rc.setIndicatorString("move randomly");
         }
 
-        // MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
-        // if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
-        //     rc.attack(rc.getLocation());
-        // }
+        if (removePatterMode){
 
+        }
         
     }
+
+
+
+    // void someoneNeedPaint(int x, int y){
+
+    // }
 }
