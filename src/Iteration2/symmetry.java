@@ -37,7 +37,7 @@ public class symmetry {
             points[0] = new MapLocation(0, rc.getMapHeight() / 2);
             points[1] = new MapLocation(rc.getMapWidth() - 1, rc.getMapHeight() / 2);
         }
-        else {//diagonal line
+        else { //diagonal line
             points[0] = new MapLocation(0, 0);
             points[1] = new MapLocation(rc.getMapWidth() - 1, rc.getMapHeight() - 1);
         }
@@ -82,5 +82,33 @@ public class symmetry {
                 return null;
         }
     }
-
+    public static MapLocation[] getLines(RobotController rc, int symmetryType) {
+        MapLocation[] symm = getLineEnds(rc, symmetryType);
+        MapLocation[] points = new MapLocation[6];
+        if(symmetryType == 0) {
+            points[0] = new MapLocation(rc.getMapWidth() / 4, rc.getMapHeight() - 1);
+            points[1] = new MapLocation(rc.getMapWidth() / 4, 0);
+            points[2] = symm[0];
+            points[3] = symm[1];
+            points[4] = new MapLocation((int)(rc.getMapWidth() * 1.5), rc.getMapHeight() - 1);
+            points[5] = new MapLocation((int)(rc.getMapWidth() * 1.5), 0);
+        }
+        else if(symmetryType == 1) {
+            points[0] = new MapLocation(0, rc.getMapHeight() / 4);
+            points[1] = new MapLocation(rc.getMapWidth() - 1, rc.getMapHeight() / 4);
+            points[2] = symm[0];
+            points[3] = symm[1];
+            points[4] = new MapLocation(0, (int)(rc.getMapHeight() * 1.5));
+            points[5] = new MapLocation(rc.getMapWidth() - 1, (int)(rc.getMapHeight() * 1.5));
+        }
+        else {
+            points[0] = new MapLocation(0, rc.getMapHeight() / 2);
+            points[1] = new MapLocation(rc.getMapWidth() / 2, 0);
+            points[2] = symm[0];
+            points[3] = symm[1];
+            points[4] = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() - 1);
+            points[5] = new MapLocation(rc.getMapWidth() - 1, rc.getMapHeight() / 2);
+        }
+        return points;
+    }
 }
