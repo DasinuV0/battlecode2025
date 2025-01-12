@@ -24,6 +24,8 @@ public class Soldier extends Robot {
         enemyTowerFound = false;
         emptyTile = new MapLocation(-1,-1);
 
+        // stayPut = false;
+        // moveToTarget = new MapLocation(-1,-1);
         listenMessage();
 
         //get the robotInfo of rc and then calculate the percetange of the remain paint 
@@ -48,11 +50,11 @@ public class Soldier extends Robot {
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         // Search for a nearby ruin to complete.
         for (MapInfo tile : nearbyTiles)
-            if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null)
+            if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null){
                 ruinsFound.add(tile);
+            }
             else if (emptyTile.x == -1 && tile.getPaint() == PaintType.EMPTY && tile.isPassable()){
                 emptyTile = tile.getMapLocation(); //TODO: improve this, for now just one the first empty tile
-                rc.setIndicatorDot(emptyTile, 1,1,1);
             }
         
     }
@@ -63,7 +65,7 @@ public class Soldier extends Robot {
     }
 
     //Core turn method
-    void runTurn() throws GameActionException {
+    void runTurn() throws GameActionException {       
         //if in past round the bot found some tiles (which is part of a pattern) are paint by enemy
         if (ruinWithPatternDamaged.size() > 0){
             //DONE: go to the nearest tower 
@@ -86,9 +88,12 @@ public class Soldier extends Robot {
                     // Remove the first element
                     iterator.remove();
                 }
-                rc.sendMessage(nearestTower, OptCode.ENEMYTOWERFOUND); // TODO: add first firstElement to the messag
-                // System.out.println("message sent: enemytowerleft: " + ruinWithPatternDamaged.size());
+                rc.sendMessage(nearestTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // TODO: add first firstElement to the messag
+                System.out.println("message sent: damaged pattern find");
+                rc.setIndicatorDot(nearestTower, 0,255,0);
             }
+            rc.setIndicatorString("go to nearset tower");
+            return;
         }
 
 
@@ -104,6 +109,7 @@ public class Soldier extends Robot {
                 }
             }
 
+            rc.setIndicatorString("need healing");
             // rc.setIndicatorString(""+friendMopperFound);
             if (rc.canTransferPaint(nearestTower, PAINTTOTAKE)){
                 stayPut = false; 
@@ -123,8 +129,8 @@ public class Soldier extends Robot {
 
                 // Mark the pattern we need to draw to build a tower here if we haven't already.
                 MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(dir);
-                //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
-                if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
+                //if ruin is found, but pattern is not marked                                                                                               && just double check we can mark the tower pattern
+                if (rc.senseMapInfo(shouldBeMarked).getMark() != PaintType.ALLY_PRIMARY && rc.senseMapInfo(shouldBeMarked).getMark() != PaintType.ALLY_SECONDARY && rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
                     //TODO: which tower should the bot build?
                     rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
                 }
@@ -161,6 +167,8 @@ public class Soldier extends Robot {
                         // System.out.println("pattern damaged, enemy paint found.");
                     }
                 }
+                rc.setIndicatorString("try to build the tower");
+
                                 // Complete the ruin if we can.
                 if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
@@ -171,7 +179,7 @@ public class Soldier extends Robot {
             //TODO: what to do once an enemy tower is found
         }
 
-
+    
         if (stayPut){
                 MapLocation nearestTower = new MapLocation(0,0);
                 int minDist = 9999;
@@ -192,15 +200,21 @@ public class Soldier extends Robot {
         }else if (moveToTarget.x != -1){
             MapLocation temp = new MapLocation(10,10);
             BugNavigator.moveTo(moveToTarget);
-            rc.setIndicatorString("move to " + moveToTarget.x + moveToTarget.y);
+            rc.setIndicatorString("move to  " + moveToTarget.x + " " + moveToTarget.y);
 
+            
+            if (rc.getLocation() == moveToTarget)
+                moveToTarget = new MapLocation(-1,-1);
         }
+
+    
         //DONE: establish an algo to move/find ruin (explore state)
         //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
         if (emptyTile.x != -1)
             BugNavigator.moveTo(emptyTile);
 
-        // Move and attack randomly if no objective.
+    
+            // Move and attack randomly if no objective.
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)){
             rc.move(dir);

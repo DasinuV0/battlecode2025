@@ -27,8 +27,10 @@ public class Mopper extends Robot {
     //instructions run at the beginning of each turn
     void beginTurn() throws GameActionException {
         lowPaintFlag = false;
-        // friendMopperFound = false;
+        ruinsFound = new HashSet<>();
 
+        // stayPut = false;
+        // moveToTarget = new MapLocation(-1,-1);
         listenMessage();
 
         //get the robotInfo of rc and then calculate the percetange of the remain paint 
@@ -50,6 +52,13 @@ public class Mopper extends Robot {
                 robotToHealQueue.add(robot.location);
                 robotToHealSet.add(robot.location);
             }
+
+        // Sense information about all visible nearby tiles.
+        MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
+        // Search for a nearby ruin to complete.
+        for (MapInfo tile : nearbyTiles)
+            if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null)
+                ruinsFound.add(tile);
     }
 
     //Instructions at the end of each turn
@@ -60,6 +69,7 @@ public class Mopper extends Robot {
     //Core turn method
     void runTurn() throws GameActionException {
         if (lowPaintFlag){
+            rc.setIndicatorString("need healing");
             //DONE: go to the nearest tower 
             MapLocation nearestTower = new MapLocation(0,0);
             int minDist = 9999;
@@ -79,9 +89,35 @@ public class Mopper extends Robot {
             else{
                 BugNavigator.moveTo(nearestTower);
             }
-        }else if (false){
-            //TODO: what if rc found a ruin
+            return;
+        }
+        
+        if (ruinsFound.size() > 0){
+            for (MapInfo curRuin : ruinsFound){
+                MapLocation targetLoc = curRuin.getMapLocation();
+                Direction dir = rc.getLocation().directionTo(targetLoc);
 
+                // Mark the pattern we need to draw to build a tower here if we haven't already.
+                MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(dir);
+                //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
+                if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
+                    //TODO: which tower should the bot build?
+                    rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
+                }
+
+                                // Complete the ruin if we can.
+                if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
+                    rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
+                    rc.setTimelineMarker("Tower built", 0, 255, 0);
+                }
+
+                for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
+                    MapLocation newLoc = patternTile.getMapLocation();
+                        if (rc.canSenseLocation(newLoc) && rc.senseMapInfo(newLoc).getPaint().isEnemy() && rc.canAttack(newLoc))
+                            rc.attack(newLoc);
+                }
+             
+            }
         }
         //if there is any robot to heal
         else if (!robotToHealQueue.isEmpty()){
@@ -113,25 +149,33 @@ public class Mopper extends Robot {
         //     rc.move(dir);
         // }
 
+        if (stayPut){
+            return;
+        }else if (moveToTarget.x != -1){
+            MapLocation temp = new MapLocation(10,10);
+            BugNavigator.moveTo(moveToTarget);
+            rc.setIndicatorString("move to  " + moveToTarget.x + " " + moveToTarget.y);
+            if (rc.getLocation().distanceSquaredTo(moveToTarget) < 2 )
+                moveToTarget = new MapLocation(-1,-1);
+        }
+
+
         // MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
         // if (!currentTile.getPaint().isAlly() && rc.canAttack(rc.getLocation()))
         //     rc.attack(rc.getLocation());
-        if (stayPut){
-            MapLocation nearestTower = new MapLocation(0,0);
-            int minDist = 9999;
-            for (MapLocation pos : towersPos){
-                int currDist = pos.distanceSquaredTo(rc.getLocation());
-                if (minDist > currDist){
-                    nearestTower = pos;
-                    minDist = currDist;
-                }
-            }
-            
-            for (Direction dir : directions){
-                MapLocation newLoc = nearestTower.add(dir);
-                if (rc.canSenseLocation(newLoc) && rc.senseMapInfo(newLoc).getPaint() == PaintType.EMPTY && rc.canAttack(newLoc))
-                    rc.attack(newLoc);
-            }
+        
+        // Move randomly if no objective.
+        Direction dir = directions[rng.nextInt(directions.length)];
+        if (rc.canMove(dir)){
+            rc.move(dir);
+            rc.setIndicatorString("move randomly");
         }
+
+        // MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
+        // if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
+        //     rc.attack(rc.getLocation());
+        // }
+
+        
     }
 }

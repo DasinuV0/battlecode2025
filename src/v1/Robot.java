@@ -17,12 +17,13 @@ public class Robot {
     class OptCode {
         static final int NEEDPAINT = 0;
         static final int RUINFOUND = 1;
-        static final int ENEMYTOWERFOUND = 2;
+        static final int DAMAGEDPATTERN = 2;
         static final int PUTSTATE = 3;
         static final int MOVETOSPECIFICLOC = 4;
+        static final int ENEMYTOWERFOUND = 5;
         
-        static final int EXPLORE = 5;
-        static final int ENGAGEMENT = 6;
+        static final int EXPLORE = 6;
+        static final int ENGAGEMENT = 7;
     }   
     /**
      * Core robot class. Contains all necessary info for other classes and all high level instructions.
@@ -103,5 +104,14 @@ public class Robot {
 
     int calculatePaintPercentage(RobotInfo robot) {
         return (int)(((double)robot.paintAmount / robot.type.paintCapacity) * 100);
+    }
+
+    int encodeMessage(int command, MapLocation targetLoc){
+        int x = targetLoc != null ? targetLoc.x : 0; // Default x-coordinate if no target
+        int y = targetLoc != null ? targetLoc.y : 0; // Default y-coordinate if no target
+
+        // Encode coordinates and command into messageContent
+        int messageContent = (x << 6) | y | (command << 12);
+        return messageContent;
     }
 }
