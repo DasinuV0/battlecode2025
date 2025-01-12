@@ -39,7 +39,7 @@ public class TowerLogic {
 
     public static void run(RobotController rc) throws GameActionException {
         int currentTurn = rc.getRoundNum(); // Get the current game turn
-        System.out.println("Current Turn: " + currentTurn);
+        //System.out.println("Current Turn: " + currentTurn);
 
         // Determine the game phase
         String gamePhase = determineGamePhase(currentTurn);
@@ -72,7 +72,7 @@ public class TowerLogic {
     private static boolean mopperSpawnedYet = false;
     private static boolean soldierSpawnedYet = false;
     private static boolean randomSoldierSpawnedYet = false;
-    private static MapLocation targetLoc = new MapLocation(0, 0);
+    private static MapLocation targetLoc = new MapLocation(0,0);
 
     // Bolean flags to track whether 2 moppers exists in vision range
     private static boolean calledSoldierStayPutYet = false;
@@ -96,6 +96,9 @@ public class TowerLogic {
 //        }
         // System.out.println(rc.getMoney());
         // always spawn a soldier at a random tile first
+
+        handleMessages(rc);
+
         if (isDefault){
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
@@ -113,15 +116,13 @@ public class TowerLogic {
                 soldierSpawnedYet = true;
 
                 // Command the Soldier to stay put
-                int stayPutCommand = 1; // Command: Stay put
-
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
                 System.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
-                return; // Exit early to avoid spawning Soldier in the same turn
+                // return; // Exit early to avoid spawning Soldier in the same turn
             }
 
             // Spawn Mopper if it hasn't been spawned yet
-            if (!mopperSpawnedYet){
+            else if (!mopperSpawnedYet){
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                     System.out.println("No paint tile detected, not spawning mopper");
                     return;
@@ -130,16 +131,15 @@ public class TowerLogic {
                 mopperSpawnedYet = true;
 
                 // Command the Mopper to stay put
-                int stayPutCommand = 1; // Command: Stay put
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 1);
                 System.out.println("Spawned Mopper on a paint tile and commanded it to stay put.");
-                return; // Exit early to avoid sending movement commands prematurely
+                //return; // Exit early to avoid sending movement commands prematurely
             }
 
             // Once both robots are spawned, command them to move to a target location
-            if (mopperSpawnedYet && soldierSpawnedYet){
+            else if (mopperSpawnedYet && soldierSpawnedYet){
                 int moveCommand = 3; // Command: Move to target location
-                MapLocation target = new MapLocation(11, 15); // Example target location
+                MapLocation target = new MapLocation(29, 29); // Example target location
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.SOLDIER, 1);
                 System.out.println("Commanded robots to move to target location.");
@@ -147,25 +147,28 @@ public class TowerLogic {
             }
         }
         else if (isDamagedPatternFound){
+            System.out.println("Oh no! Damaged pattern is found!");
             if (!calledSoldierStayPutYet){
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
+                System.out.println("One soldier is stayed put now");
                 calledSoldierStayPutYet = true;
             }
+
 
             int mopperCount = sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 2);
 
             if (mopperCount < 2){
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                    System.out.println("No tiles found that are friendly so far, not spawning soldier");
+                    System.out.println("Not enough paint, not spawning MOPPER");
                     return; // Exit early to avoid sending wrong mopper message
                 }
-
+                System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 1);
-                return;
             }
             else if (mopperCount >= 2){
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, 2);
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                System.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
                 isDamagedPatternFound = false; calledSoldierStayPutYet = false; isDefault = true;
             }
         }
@@ -334,6 +337,7 @@ public class TowerLogic {
                 if (rc.canSendMessage(allyLoc, messageContent)) {
                     rc.sendMessage(allyLoc, messageContent);
                     sentCount++;
+                    if (isDamagedPatternFound) System.out.println("sent to mopper + soldier bruh");
                     System.out.println("Sent message to " + allyLoc + ": " + messageContent);
 
                     // Stop if we've reached the maximum number of robots
@@ -350,6 +354,9 @@ public class TowerLogic {
     private static void handleMessages(RobotController rc) throws GameActionException {
         Message[] messages = rc.readMessages(-1); // Read all messages from the past 5 rounds
 
+        //if no message received in this turn, don't change any message flags
+        if (messages.length == 0) return;
+
         for (Message message : messages) {
             int messageContent = message.getBytes();
 
@@ -359,15 +366,17 @@ public class TowerLogic {
             int command = (messageContent >> 12); // Extract command (bits 12+)
 
             System.out.println("Received command: " + command + " for location: (" + x + ", " + y + ")");
-
+            //System.out.println(targetLoc);
             // Execute actions based on command
             switch (command) {
+                case 0: // need paint command
+                    break;
                 case 1: //
                     System.out.println("Staying put as per command.");
                     break;
                 case 2: // damaged ruin found
                     if (isDefault){
-                        MapLocation targetLoc = new MapLocation(x, y);
+                        targetLoc = new MapLocation(x, y);
                         // send 2 mopper + soldier
                         isDefault = false;
                         isDamagedPatternFound = true;
