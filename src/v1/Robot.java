@@ -93,7 +93,7 @@ public class Robot {
                 stayPut = true;
             else if (command == 3){
                 int y = m.getBytes() & 63;
-                int x = m.getBytes() & 4032;
+                int x = (m.getBytes() >> 6) & 63;
                 moveToTarget = new MapLocation(x,y);
             }
         }
