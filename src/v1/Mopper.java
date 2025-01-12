@@ -68,6 +68,19 @@ public class Mopper extends Robot {
 
     //Core turn method
     void runTurn() throws GameActionException {
+        if (stayPut){
+            rc.setIndicatorString("stay put");
+            return;
+        }else if (moveToTarget.x != -1){
+            MapLocation temp = new MapLocation(10,10);
+            BugNavigator.moveTo(moveToTarget);
+            rc.setIndicatorString("move to  " + moveToTarget.x + " " + moveToTarget.y);
+            if (rc.getLocation().distanceSquaredTo(moveToTarget) < 2 )
+                moveToTarget = new MapLocation(-1,-1);
+            return;
+        }
+
+
         if (lowPaintFlag){
             rc.setIndicatorString("need healing");
             //DONE: go to the nearest tower 
@@ -149,15 +162,6 @@ public class Mopper extends Robot {
         //     rc.move(dir);
         // }
 
-        if (stayPut){
-            return;
-        }else if (moveToTarget.x != -1){
-            MapLocation temp = new MapLocation(10,10);
-            BugNavigator.moveTo(moveToTarget);
-            rc.setIndicatorString("move to  " + moveToTarget.x + " " + moveToTarget.y);
-            if (rc.getLocation().distanceSquaredTo(moveToTarget) < 2 )
-                moveToTarget = new MapLocation(-1,-1);
-        }
 
 
         // MapInfo currentTile = rc.senseMapInfo(rc.getLocation());

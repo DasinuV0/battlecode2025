@@ -90,8 +90,10 @@ public class Robot {
 
         for (Message m : messages) {
             int command = m.getBytes() >> 12;
-            if (command == 1)
+            if (command == 1){
                 stayPut = true;
+                System.out.println("message received: stay put");
+            }
             else if (command == 3){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
