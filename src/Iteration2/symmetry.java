@@ -111,4 +111,33 @@ public class symmetry {
         }
         return points;
     }
+    public static int getZone(RobotController rc, int symmetryType) {
+        MapLocation loc = rc.getLocation();
+        if(symmetryType == 0) {
+            if(loc.x <= rc.getMapWidth() / 4)
+                return 0;
+            if(loc.x <= rc.getMapWidth() / 2)
+                return 1;
+            if(loc.x <= (int)(rc.getMapWidth() * 1.5))
+                return 2;
+            return 3;
+        }
+        if(symmetryType == 1) {
+            if(loc.y <= rc.getMapHeight() / 4)
+                return 0;
+            if(loc.y <= rc.getMapHeight() / 2)
+                return 1;
+            if(loc.y <= (int)(rc.getMapHeight() * 1.5))
+                return 2;
+            return 3;
+        }
+        if(loc.x <= rc.getMapWidth() / 2 && loc.y <= rc.getMapHeight() / 2)
+            return 0;
+        int maxi = Math.max(rc.getMapWidth(), rc.getMapHeight());
+        if(loc.x + loc.y <= maxi)
+            return 1;
+        if(loc.x <= rc.getMapWidth() / 2 || loc.y <= rc.getMapHeight() / 2)
+            return 2;
+        return 3;
+    }
 }
