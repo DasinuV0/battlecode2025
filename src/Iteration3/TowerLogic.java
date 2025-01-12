@@ -66,6 +66,7 @@ public class TowerLogic {
     // Boolean flags to track whether the robots have been spawned
     private static boolean mopperSpawnedYet = false;
     private static boolean soldierSpawnedYet = false;
+    private static boolean randomSoldierSpawnedYet = false;
 
     private static void runEarlyGame(RobotController rc) throws GameActionException{
         System.out.println("Running Early Game Logic");
@@ -73,13 +74,22 @@ public class TowerLogic {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
+        // System.out.println(rc.getMoney());
+        // always spawn a soldier at a random tile first
+        if (!randomSoldierSpawnedYet){
+            buildRobotOnRandomTile(rc, UnitType.SOLDIER);
+            System.out.println("Spawned Soldier on a random tile");
+            randomSoldierSpawnedYet = true;
+            return;
+        }
+
         // Spawn Soldier if it hasn't been spawned yet
-        if (!soldierSpawnedYet && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
+        if (!soldierSpawnedYet){
             if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                buildRobotOnRandomTile(rc, UnitType.SOLDIER);
-                System.out.println("Spawned Soldier on a random tile");
+                System.out.println("No tiles found that are friendly so far, not spawning soldier");
                 return; // Exit early to avoid setting flag to true
             }
+
             soldierSpawnedYet = true;
 
             // Command the Soldier to stay put
@@ -91,11 +101,12 @@ public class TowerLogic {
         }
 
         // Spawn Mopper if it hasn't been spawned yet
-        if (!mopperSpawnedYet && soldierSpawnedYet && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
+        if (!mopperSpawnedYet){
             if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                 System.out.println("No paint tile detected, not spawning mopper");
                 return;
             }
+
             mopperSpawnedYet = true;
 
             // Command the Mopper to stay put
@@ -108,7 +119,7 @@ public class TowerLogic {
         // Once both robots are spawned, command them to move to a target location
         if (mopperSpawnedYet && soldierSpawnedYet) {
             int moveCommand = 3; // Command: Move to target location
-            MapLocation target = new MapLocation(5, 5); // Example target location
+            MapLocation target = new MapLocation(1, 15); // Example target location
             sendMessageToRobots(rc, moveCommand, target);
             System.out.println("Commanded robots to move to target location.");
             mopperSpawnedYet = false; soldierSpawnedYet = false;
@@ -150,10 +161,11 @@ public class TowerLogic {
     private static boolean buildRobotOnPaintTile(RobotController rc, UnitType unitType) throws GameActionException {
         for (Direction dir : directions) {
             MapLocation nextLoc = rc.getLocation().add(dir);
-
+            // System.out.println(nextLoc);
             // Check if the location is valid for building a robot
             if (rc.canBuildRobot(unitType, nextLoc)){
                 PaintType paintType = rc.senseMapInfo(nextLoc).getPaint();
+                // System.out.println(paintType);
                 if (paintType == PaintType.ALLY_PRIMARY){
                     // Ensure the tile is painted with ALLY_PRIMARY
                     rc.buildRobot(unitType, nextLoc);
