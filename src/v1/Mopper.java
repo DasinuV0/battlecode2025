@@ -184,22 +184,43 @@ public class Mopper extends Robot {
             }
 
             if (ruinsFound.size() > 0){
+                //if action is in cooldown, wait for the cooldown
+                if (!rc.isActionReady())
+                    return;
+                MapLocation enemyTilePos = new MapLocation(-1,-1);
+                boolean tileIsCleaned = false;
                 for (MapInfo curRuin : ruinsFound){
-                    tryToMarkPattern(curRuin);
-                    tryToBuildTower(curRuin);
+                    // tryToMarkPattern(curRuin);
+                    // tryToBuildTower(curRuin);
 
                     //if eneny paint found near the ruin
                     for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
                         if (patternTile.getPaint().isEnemy()){
                             MapLocation newLoc = patternTile.getMapLocation();
-                            BugNavigator.moveTo(newLoc);
+
                             rc.setIndicatorDot(newLoc, 0,0,255);
-                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY);
-                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY);
-                            rc.setIndicatorString("try to remove enemy paint");
+                            if (tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY) || tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY)){
+                                tileIsCleaned = true;
+                                rc.setIndicatorDot(newLoc, 0,255,255);
+                            }else
+                                enemyTilePos = newLoc;
                         }
                     }
-                
+                }
+
+                //if, by looking all the ruin, some enemy tile is cleaned
+                if (tileIsCleaned){
+                    rc.setIndicatorString("enemy paint removed");
+                }else{
+                    if (enemyTilePos.x == -1){
+                        MapLocation nearestAllyTower = getNearestAllyTower();
+                        BugNavigator.moveTo(nearestAllyTower);
+                        rc.setIndicatorString("enemy paint not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+                    }
+                    else{
+                        BugNavigator.moveTo(enemyTilePos);
+                        rc.setIndicatorString("move closer to the enemy paint (" + enemyTilePos.x + " " + enemyTilePos.y + ")");
+                    } 
                 }
             }
         }

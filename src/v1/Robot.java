@@ -190,7 +190,7 @@ public class Robot {
     boolean tryToReachTargetLocation() throws GameActionException{
         if (targetLocation.x != (-1)){
             BugNavigator.moveTo(targetLocation);
-            if (rc.getLocation().distanceSquaredTo(targetLocation) < 2 )
+            if (rc.getLocation().distanceSquaredTo(targetLocation) < 4 )
                 targetLocation = new MapLocation(-1,-1);
             return true;
         }
@@ -220,11 +220,14 @@ public class Robot {
     }
 
     //default color is primaryColor
-    void tryToPaintAtLoc(MapLocation loc, PaintType paintType) throws GameActionException{
-        if (rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getPaint() == paintType && rc.canAttack(loc))
+    boolean tryToPaintAtLoc(MapLocation loc, PaintType paintType) throws GameActionException{
+        if (rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getPaint() == paintType && rc.canAttack(loc)){
             rc.attack(loc);
+            return true;
+        }
+        return false;
     }
-    //overloading: call tryToPaintAtLoc(loc, true) to useSecondaryColor
+    //overloading: call tryToPaintAtLoc(loc, true) to useSecondaryColor (assuming that loc is either neutral or ally tile)
     void tryToPaintAtLoc(MapLocation loc, boolean useSecondaryColor) throws GameActionException{
         if (rc.canSenseLocation(loc) && rc.canAttack(loc))
             rc.attack(loc, useSecondaryColor);

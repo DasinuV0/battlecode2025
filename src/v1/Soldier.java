@@ -42,6 +42,7 @@ public class Soldier extends Robot {
             // Search all nearby ruins
             if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null){
                 ruinsFound.add(tile);
+                rc.setIndicatorDot(tile.getMapLocation(), 0, 255, 255);
             }
             //search of an emptyTile 
             //TODO: improve this, for now just one the first empty tile
