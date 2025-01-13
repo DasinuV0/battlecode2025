@@ -19,7 +19,8 @@ public class Robot {
      * Core robot class. Contains all necessary info for other classes and all high level instructions.
      */
     static int isSuicideRobot = 0;
-    static int isDefenceRobot = 0;
+    static int isDefenceMopper = 0;
+    static int checkedEnemyTower = 0;
 
     static final int LOWPAINTTRESHHOLD = 20;
     static final int PAINTTOTAKE = -20;

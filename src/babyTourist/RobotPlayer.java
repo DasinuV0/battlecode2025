@@ -1,7 +1,7 @@
 package babyTourist;
 
 import battlecode.common.*;
-import Iteration2.*;
+// import Iteration2.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,15 +45,17 @@ public class RobotPlayer {
         if(rc.getType().isTowerType() && rc.getRoundNum() == 1) {
             MapLocation nr = Symmetry.getStartingTowersCoord(rc);
             coords.add(nr);
+            MapLocation enemyTower = Symmetry.getEnemyStartingTowerCoord(rc, nr);
+            coords.add(enemyTower);
         }
         // example when the tower receives a message with the other tower's coords we can start doing the symmetry computations
-        coords.add(new MapLocation(0,0));
         if(coords.size() == 2) {
             //determine symmetry type
             MapLocation[] coordsArray = coords.toArray(new MapLocation[0]);
             MapLocation first = coordsArray[0];
             MapLocation second = coordsArray[1];
             symm = Symmetry.getSymmetryType(rc, coordsArray);
+            System.out.println("Symmetry type: " + symm);
         }
         MapLocation[] ends = Symmetry.getLineEnds(rc, symm);
         
@@ -62,7 +64,8 @@ public class RobotPlayer {
         if (rc.getType().isTowerType()){
             while(true){
                 try {
-                    runTower(rc);
+                    // runTower(rc);
+                    TowerLogic.run(rc);
                 }
                 catch (GameActionException e) {
                     // Oh no! It looks like we did something illegal in the Battlecode world. You should
@@ -134,28 +137,32 @@ public class RobotPlayer {
     public static void runTower(RobotController rc) throws GameActionException{
         Direction[] directions = Direction.allDirections();
         MapLocation myLocation = rc.getLocation();
+        MapLocation enemyTower = Symmetry.getEnemyStartingTowerCoord(rc, myLocation);
+        Direction dirToEnemy = myLocation.directionTo(enemyTower);
         int soldiersSpawned = 0;
+
+        MapLocation spawnLocation = myLocation.add(dirToEnemy);
 
         for (Direction dir : directions) {
             if (soldiersSpawned >= 4) {
                 break;
-            }
-            MapLocation spawnLocation = myLocation.add(dir);
+            }            
             if (rc.canBuildRobot(UnitType.SOLDIER, spawnLocation)) {
                 rc.buildRobot(UnitType.SOLDIER, spawnLocation);
                 soldiersSpawned++;
+                System.out.println("Soldiers spawned: " + soldiersSpawned);
             }
         }
         
-        if (soldiersSpawned == 4) {
-            MapLocation spawnLocation = myLocation.add(Direction.CENTER);
+        if (soldiersSpawned < 6) {            
             if (rc.canBuildRobot(UnitType.MOPPER, spawnLocation)) {
                 rc.buildRobot(UnitType.MOPPER, spawnLocation);
+                soldiersSpawned++;
             }
         }
 
         // generate a random Unit
-        if (soldiersSpawned > 4) {
+        if (soldiersSpawned > 6) {
             if (rng.nextInt(100) < 50) {
                 if (rc.canBuildRobot(UnitType.SOLDIER, myLocation.add(Direction.CENTER))) {
                     rc.buildRobot(UnitType.SOLDIER, myLocation.add(Direction.CENTER));

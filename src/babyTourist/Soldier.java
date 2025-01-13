@@ -1,7 +1,7 @@
 package babyTourist;
 
 import battlecode.common.*;
-import Iteration2.*;
+// import Iteration2.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,41 +18,18 @@ public class Soldier extends Robot {
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
+        Team enemy = rc.getTeam().opponent();
+        Team myTeam = rc.getTeam();
+        MapLocation myLocation = rc.getLocation();
+        
+        rushInitialise(_rc);
+    }
+
+    public void rushInitialise(RobotController _rc) {
         if (_rc.getRoundNum() < 10) {
             System.out.println("suicide robot generated");
             this.isSuicideRobot = 1;
-            Team enemy = rc.getTeam().opponent();
-            Team myTeam = rc.getTeam();
-            MapLocation myLocation = rc.getLocation();
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, myTeam);
-            // MapLocation[] allyTowers = Arrays.stream(nearbyRobots)
-            //         .filter(robot -> robot.getType().isTowerType())
-            //         .map(RobotInfo::getLocation())
-            //         .toArray(MapLocation[]::new);
-
-            ArrayList<MapLocation> allyTowers = new ArrayList<>();
-            for (RobotInfo robot : nearbyRobots){
-                if (robot.getType().isTowerType()){
-                    allyTowers.add(robot.getLocation());
-                }
-            }
-
-            // Guess enemy tower locations based on symmetry
-            MapLocation[] guessedEnemyTowers = new MapLocation[allyTowers.size()];
-            int mapWidth = rc.getMapWidth();
-            int mapHeight = rc.getMapHeight();
-
-            for (int i = 0; i < allyTowers.size(); i++) {
-                int mirroredX = mapWidth - allyTowers.get(i).x - 1;
-                int mirroredY = mapHeight - allyTowers.get(i).y - 1;
-                guessedEnemyTowers[i] = new MapLocation(mirroredX, mirroredY);
-            }
-
-            // Send soldiers to the closest guessed enemy tower
-            targetTower = guessedEnemyTowers[0];
-            dirToEnemy = myLocation.directionTo(targetTower);
-
-        }
+        }        
     }
 
     //instructions run at the beginning of each turn
@@ -72,13 +49,32 @@ public class Soldier extends Robot {
 
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots)
+        for (RobotInfo robot : nearbyRobots) {
             if (robot.type.isTowerType())
                 towersPos.add(robot.location);
             else if (robot.team.isPlayer() && robot.type == UnitType.MOPPER){
                 rc.setIndicatorDot(robot.location, 1,1,1);
                 friendMopperFound = true;
             }
+        }
+        
+        // if suicideRobot, find the enemy tower
+        if (isSuicideRobot == 1) rushTowerFind(rc);
+    }
+
+    void rushTowerFind(RobotController _rc) throws GameActionException {
+        Team myTeam = rc.getTeam();
+        MapLocation myLocation = rc.getLocation();
+        if (this.checkedEnemyTower == 0) {
+            RobotInfo[] nearbyAllyRobots = rc.senseNearbyRobots(-1, myTeam);
+            if (nearbyAllyRobots[0].getType().isTowerType()) {
+                System.out.println("ally Tower found at " + nearbyAllyRobots[0].location);
+                this.checkedEnemyTower = 1;
+                MapLocation allyTower = nearbyAllyRobots[0].getLocation();
+                this.targetTower = Symmetry.getEnemyStartingTowerCoord(rc, allyTower);
+                this.dirToEnemy = myLocation.directionTo(targetTower);
+            }
+        }
     }
 
     //Instructions at the end of each turn
@@ -91,9 +87,10 @@ public class Soldier extends Robot {
         if (isSuicideRobot == 1) {
             rc.setIndicatorString("suicideRobot");
             // Move towards the guessed enemy tower
-            if (rc.canMove(dirToEnemy)) {
-                rc.move(dirToEnemy);
-            }
+            // System.out.println("Moving towards enemy tower: " + targetTower.toString());
+            
+            BugNavigator.moveTo(targetTower);
+            
 
             // Attack the guessed enemy tower if in range
             if (rc.canAttack(targetTower)) {
