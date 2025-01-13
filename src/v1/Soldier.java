@@ -81,15 +81,36 @@ public class Soldier extends Robot {
         if (stayPut){
             rc.setIndicatorString("stay put");
             MapLocation nearestAllyTower = getNearestAllyTower();
-         
+            if (nearestAllyTower.x == -1){
+                resetMessageFlag();
+                exploreMode = true;
+                rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                return;
+            }
             //paint the robots pos
             tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
-            
+            UnitType towerToBuild = rc.senseRobotAtLocation(nearestAllyTower).type;
+            //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
+            if (rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, nearestAllyTower)){
+                //DONE: which tower should the bot build?
+                rc.markTowerPattern(towerToBuild, nearestAllyTower);
+            }
             //if robots pos is already paint, try to paint tiles near the tower
             for (Direction dir : directions){
                 MapLocation newLoc = nearestAllyTower.add(dir);
-                tryToPaintAtLoc(newLoc, PaintType.EMPTY);
+                if (tryToPaintAtLoc(newLoc, PaintType.EMPTY))
+                    return;
             }
+            
+            BugNavigator.moveTo(nearestAllyTower);
+            //if tiles near the tower is already paint, paint the pattern
+            for (MapInfo patternTile : rc.senseNearbyMapInfos(nearestAllyTower, 8)){
+                if (patternTile.getMark() != patternTile.getPaint()){
+                    boolean useSecondaryColor = patternTile.getMark() == PaintType.ALLY_SECONDARY;
+                    tryToPaintAtLoc(patternTile.getMapLocation(), useSecondaryColor);
+                }
+            }
+
             return;
         }
 
@@ -113,6 +134,12 @@ public class Soldier extends Robot {
             //if in past round the bot found some tiles (which is part of a pattern) are paint by enemy
             if (ruinWithPatternDamaged.size() > 0){
                 MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x == -1){
+                    resetMessageFlag();
+                    exploreMode = true;
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    return;
+                }
                 BugNavigator.moveTo(nearestAllyTower);
                 rc.setIndicatorString("damaged pattern find: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
@@ -137,6 +164,13 @@ public class Soldier extends Robot {
             if (lowPaintFlag){
                 rc.setIndicatorString("need healing");
                 MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x == -1){
+                    resetMessageFlag();
+                    exploreMode = true;
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    return;
+                }                
+
 
                 //if i can get paint from nearestAllyTower
                 if (rc.canTransferPaint(nearestAllyTower, PAINTTOTAKE)){
@@ -167,11 +201,7 @@ public class Soldier extends Robot {
                     for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
                         //if we see an ally mark
                         if (patternTile.getMark().isAlly()){
-                            //try to move to empty tile
-                            if (patternTile.getPaint() == PaintType.EMPTY){
-                                rc.setIndicatorDot(patternTile.getMapLocation(), 200,200,200);
-                                BugNavigator.moveTo(patternTile.getMapLocation());
-                            }
+                            BugNavigator.moveTo(curRuin.getMapLocation());
 
                             //if the tile is not paint as expected (primary color instead of secondary or vice versa or empty paint)
                             if (patternTile.getMark() != patternTile.getPaint()){

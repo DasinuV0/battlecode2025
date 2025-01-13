@@ -105,6 +105,12 @@ public class Mopper extends Robot {
             //once reached the target loc
             if (lowPaintFlag){
                 MapLocation nearestAllyPaintTower = getNearestAllyPaintTower();
+                if (nearestAllyPaintTower.x == -1){
+                    resetMessageFlag();
+                    exploreMode = true;
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    return;
+                }
                 rc.setIndicatorString("need healing: go to (" + nearestAllyPaintTower.x + " " + nearestAllyPaintTower.y + ")");
 
                 //if i can get paint from nearestAllyPaintTower
@@ -214,6 +220,12 @@ public class Mopper extends Robot {
                 }else{
                     if (enemyTilePos.x == -1){
                         MapLocation nearestAllyTower = getNearestAllyTower();
+                        if (nearestAllyTower.x == -1){
+                            resetMessageFlag();
+                            exploreMode = true;
+                            rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                            return;
+                        }
                         BugNavigator.moveTo(nearestAllyTower);
                         rc.setIndicatorString("enemy paint not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
                     }
@@ -222,6 +234,17 @@ public class Mopper extends Robot {
                         rc.setIndicatorString("move closer to the enemy paint (" + enemyTilePos.x + " " + enemyTilePos.y + ")");
                     } 
                 }
+            }else{
+                //if ruins are not found, go back to the tower
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x == -1){
+                    resetMessageFlag();
+                    exploreMode = true;
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    return;
+                }
+                BugNavigator.moveTo(nearestAllyTower);
+                rc.setIndicatorString("enemy paint not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
             }
         }
         

@@ -104,13 +104,15 @@ public class Robot {
     }
 
     MapLocation getNearestAllyPaintTower() throws GameActionException{
-        MapLocation nearestTower = new MapLocation(0,0);
+        MapLocation nearestTower = new MapLocation(-1,-1);
+
         int minDist = 9999;
         for (Iterator<MapLocation> iterator = paintTowersPos.iterator(); iterator.hasNext();) {
             MapLocation pos =  iterator.next();
-            if (!towerExists(pos)){
+            //if pos is within the vision range and tower is destroyed
+            if (rc.canSenseLocation(pos) && !towerExists(pos)){
                 iterator.remove();
-                continue;
+                return new MapLocation(-1,-1);
             }
             int currDist = pos.distanceSquaredTo(rc.getLocation());
 
@@ -124,13 +126,13 @@ public class Robot {
     }
 
     MapLocation getNearestAllyMoneyTower() throws GameActionException{
-        MapLocation nearestTower = new MapLocation(0,0);
+        MapLocation nearestTower = new MapLocation(-1,-1);
         int minDist = 9999;
         for (Iterator<MapLocation> iterator = moneyTowersPos.iterator(); iterator.hasNext();) {
             MapLocation pos =  iterator.next();
-            if (!towerExists(pos)){
+            if (rc.canSenseLocation(pos) && !towerExists(pos)){
                 iterator.remove();
-                continue;
+                return new MapLocation(-1,-1);
             }
             int currDist = pos.distanceSquaredTo(rc.getLocation());
 
@@ -144,17 +146,18 @@ public class Robot {
     }
 
     MapLocation getNearestAllyTower() throws GameActionException{
-        MapLocation nearestTower = new MapLocation(0,0);
+        MapLocation nearestTower = new MapLocation(-1,-1);
         int minDist = 9999;
         for (Iterator<MapLocation> iterator = moneyTowersPos.iterator(); iterator.hasNext();) {
             MapLocation pos =  iterator.next();
-            if (!towerExists(pos)){
+            if (rc.canSenseLocation(pos) && !towerExists(pos)){
                 iterator.remove();
-                continue;
+                return new MapLocation(-1,-1);
             }
             int currDist = pos.distanceSquaredTo(rc.getLocation());
 
             if (minDist > currDist){
+
                 nearestTower = pos;
                 minDist = currDist;
             }
@@ -162,9 +165,9 @@ public class Robot {
 
         for (Iterator<MapLocation> iterator = paintTowersPos.iterator(); iterator.hasNext();) {
             MapLocation pos =  iterator.next();
-            if (!towerExists(pos)){
+            if (rc.canSenseLocation(pos) && !towerExists(pos)){
                 iterator.remove();
-                continue;
+                return new MapLocation(-1,-1);
             }
             int currDist = pos.distanceSquaredTo(rc.getLocation());
 
@@ -178,7 +181,7 @@ public class Robot {
 
     boolean towerExists(MapLocation tower) throws GameActionException {
         //if nearestAllyTower is within the vision range && if nearestAllyTower is not destroyed
-        if (rc.canSenseLocation(tower) && rc.canSenseRobotAtLocation(tower) == false){
+        if (rc.canSenseRobotAtLocation(tower) == false){
             System.out.println("tower is destroyed at " + tower.x + " " + tower.y);
             return false;
         }
@@ -198,16 +201,29 @@ public class Robot {
         return false;
     }
 
+    UnitType getTowerToBuild() throws GameActionException{
+        if (true){//TODO: if i'm in the region 0,1
+            if (rc.getNumberTowers() % 2 == 0)
+                return UnitType.LEVEL_ONE_MONEY_TOWER;
+            else
+                return UnitType.LEVEL_ONE_PAINT_TOWER;
+        }
+        //if i'm in the region 2
+        return UnitType.LEVEL_ONE_DEFENSE_TOWER;    
+        
+    }
+
     void tryToMarkPattern(MapInfo curRuin) throws GameActionException{
         MapLocation targetLoc = curRuin.getMapLocation();
         Direction dir = rc.getLocation().directionTo(targetLoc);
 
         // Mark the pattern we need to draw to build a tower here if we haven't already.
         MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(dir);
+        UnitType towerToBuild = getTowerToBuild();
         //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
-        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
-            //TODO: which tower should the bot build?
-            rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
+        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, targetLoc)){
+            //DONE: which tower should the bot build?
+            rc.markTowerPattern(towerToBuild, targetLoc);
         }
     }
 
@@ -215,6 +231,14 @@ public class Robot {
         MapLocation targetLoc = curRuin.getMapLocation();
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
+            rc.setTimelineMarker("Tower built", 0, 255, 0);
+        }
+        if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc)){
+            rc.completeTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc);
+            rc.setTimelineMarker("Tower built", 0, 255, 0);
+        }
+        if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc)){
+            rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
         }
     }
@@ -237,19 +261,27 @@ public class Robot {
         return (int)(((double)robot.paintAmount / robot.type.paintCapacity) * 100);
     }
 
+    void resetMessageFlag(){
+        stayPut = false;
+        exploreMode = false;
+        targetLocation = new MapLocation(-1,-1);
+        healMode = false;  
+        removePatterMode = false;
+    }
+
     void listenMessage(){
         Message[] messages = rc.readMessages(rc.getRoundNum());
         //if no message received in this turn, don't change any message flags
         if (messages.length == 0)
             return;
 
-        stayPut = false;
-        exploreMode = false;
-        targetLocation = new MapLocation(-1,-1);
+        resetMessageFlag();
 
         for (Message m : messages) {
             int command = m.getBytes() >> 12;
-            if (command == OptCode.PUTSTATE){
+            System.out.println("command " + command + " received");
+
+            if (command == OptCode.PUTSTATE || command == 4){
                 stayPut = true;
             }
             else if (command == OptCode.EXPLORE){
