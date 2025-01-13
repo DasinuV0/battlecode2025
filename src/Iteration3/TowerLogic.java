@@ -67,6 +67,8 @@ public class TowerLogic {
         }
     }
 
+    // rush phase variables
+    private static int soldiersSpawned = 0;
 
     // Boolean flags to track whether the robots have been spawned (default command)
     private static boolean mopperSpawnedYet = false;
@@ -85,6 +87,27 @@ public class TowerLogic {
         checkAndRequestPaint(rc); // check paint capacity and request for more paint if needed
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
+
+//        if (getMapArea(rc) <= 450 && rc.getRoundNum() < 10) {
+//            MapLocation myLocation = rc.getLocation();
+//            MapLocation enemyTower = Symmetry.getEnemyStartingTowerCoord(rc, myLocation);
+//            Direction dirToEnemy = myLocation.directionTo(enemyTower);
+//            MapLocation spawnLocation = myLocation.add(dirToEnemy);
+//
+//            while (soldiersSpawned < 2) {
+//                if (rc.canBuildRobot(UnitType.SOLDIER, spawnLocation)) {
+//                    rc.buildRobot(UnitType.SOLDIER, spawnLocation);
+//                    soldiersSpawned++;
+//                }
+//            }
+//
+//            if (soldiersSpawned < 3) {
+//                if (rc.canBuildRobot(UnitType.MOPPER, spawnLocation)) {
+//                    rc.buildRobot(UnitType.MOPPER, spawnLocation);
+//                    soldiersSpawned++;
+//                }
+//            }
+//        }
 
 //        if (isEnemyTowerFound){
 //            if (!findMopper()){
@@ -143,7 +166,7 @@ public class TowerLogic {
             // Once both robots are spawned, command them to move to a target location
             else if (mopperSpawnedYet && soldierSpawnedYet){
                 int moveCommand = 3; // Command: Move to target location
-                MapLocation target = new MapLocation(15, 15); // Example target location
+                MapLocation target = new MapLocation(27, 28); // Example target location
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.SOLDIER, 1);
                 System.out.println("Commanded robots to move to target location.");
@@ -158,7 +181,7 @@ public class TowerLogic {
                 calledSoldierStayPutYet = true;
             }
 
-            int mopperCount = countMoppersInTowerRange(rc);
+            int mopperCount = countMoppersInTowerRangeOnPaint(rc);
 //            int mopperCount = sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 2);
 
             if (mopperCount < 2){
@@ -173,7 +196,7 @@ public class TowerLogic {
                     return; // Exit early to avoid sending wrong mopper message
                 }
                 System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
-                int currentMopperCountAfterSpawn = countMoppersInTowerRange(rc);
+                int currentMopperCountAfterSpawn = countMoppersInTowerRangeOnPaint(rc);
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, currentMopperCountAfterSpawn);
             }
             else if (mopperCount >= 2){
@@ -259,7 +282,7 @@ public class TowerLogic {
         }
     }
 
-    private static int countMoppersInTowerRange(RobotController rc) throws GameActionException {
+    private static int countMoppersInTowerRangeOnPaint(RobotController rc) throws GameActionException {
         // Get all nearby robots within the tower's sensing range
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, rc.getTeam());
 
@@ -269,12 +292,19 @@ public class TowerLogic {
         for (RobotInfo robot : nearbyRobots) {
             // Check if the robot is a mopper
             if (robot.getType() == UnitType.MOPPER) {
-                mopperCount++;
+                MapLocation robotLoc = robot.getLocation();
+
+                // Check if the robot is on a friendly paint tile
+                PaintType paintType = rc.senseMapInfo(robotLoc).getPaint();
+                if (paintType == PaintType.ALLY_PRIMARY || paintType == PaintType.ALLY_SECONDARY){
+                    mopperCount++;
+                }
             }
         }
 
         return mopperCount;
     }
+
 
 
     private static void checkAndRequestPaint(RobotController rc) throws GameActionException {
@@ -387,5 +417,15 @@ public class TowerLogic {
             }
         }
     }
+
+    private static int getMapArea(RobotController rc) {
+        // Get the map's width and height
+        int mapWidth = rc.getMapWidth();
+        int mapHeight = rc.getMapHeight();
+
+        // Calculate and return the map area
+        return mapWidth * mapHeight;
+    }
+
 
 }
