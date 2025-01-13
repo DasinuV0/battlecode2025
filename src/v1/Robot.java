@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.ArrayList;
 
@@ -102,11 +103,71 @@ public class Robot {
             lowPaintFlag = true;
     }
 
-    MapLocation getNearestAllyPaintTower(){
+    MapLocation getNearestAllyPaintTower() throws GameActionException{
         MapLocation nearestTower = new MapLocation(0,0);
         int minDist = 9999;
-        for (MapLocation pos : paintTowersPos){
+        for (Iterator<MapLocation> iterator = paintTowersPos.iterator(); iterator.hasNext();) {
+            MapLocation pos =  iterator.next();
+            if (!towerExists(pos)){
+                iterator.remove();
+                continue;
+            }
             int currDist = pos.distanceSquaredTo(rc.getLocation());
+
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+     
+        return nearestTower;
+    }
+
+    MapLocation getNearestAllyMoneyTower() throws GameActionException{
+        MapLocation nearestTower = new MapLocation(0,0);
+        int minDist = 9999;
+        for (Iterator<MapLocation> iterator = moneyTowersPos.iterator(); iterator.hasNext();) {
+            MapLocation pos =  iterator.next();
+            if (!towerExists(pos)){
+                iterator.remove();
+                continue;
+            }
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+     
+        return nearestTower;
+    }
+
+    MapLocation getNearestAllyTower() throws GameActionException{
+        MapLocation nearestTower = new MapLocation(0,0);
+        int minDist = 9999;
+        for (Iterator<MapLocation> iterator = moneyTowersPos.iterator(); iterator.hasNext();) {
+            MapLocation pos =  iterator.next();
+            if (!towerExists(pos)){
+                iterator.remove();
+                continue;
+            }
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+
+        for (Iterator<MapLocation> iterator = paintTowersPos.iterator(); iterator.hasNext();) {
+            MapLocation pos =  iterator.next();
+            if (!towerExists(pos)){
+                iterator.remove();
+                continue;
+            }
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+
             if (minDist > currDist){
                 nearestTower = pos;
                 minDist = currDist;
@@ -115,38 +176,14 @@ public class Robot {
         return nearestTower;
     }
 
-    MapLocation getNearestAllyMoneyTower(){
-        MapLocation nearestTower = new MapLocation(0,0);
-        int minDist = 9999;
-        for (MapLocation pos : moneyTowersPos){
-            int currDist = pos.distanceSquaredTo(rc.getLocation());
-            if (minDist > currDist){
-                nearestTower = pos;
-                minDist = currDist;
-            }
-        }
-        return nearestTower;
-    }
-
-    MapLocation getNearestAllyTower(){
-        MapLocation nearestTower = new MapLocation(0,0);
-        int minDist = 9999;
-        for (MapLocation pos : moneyTowersPos){
-            int currDist = pos.distanceSquaredTo(rc.getLocation());
-            if (minDist > currDist){
-                nearestTower = pos;
-                minDist = currDist;
-            }
+    boolean towerExists(MapLocation tower) throws GameActionException {
+        //if nearestAllyTower is within the vision range && if nearestAllyTower is not destroyed
+        if (rc.canSenseLocation(tower) && rc.canSenseRobotAtLocation(tower) == false){
+            System.out.println("tower is destroyed at " + tower.x + " " + tower.y);
+            return false;
         }
 
-        for (MapLocation pos : paintTowersPos){
-            int currDist = pos.distanceSquaredTo(rc.getLocation());
-            if (minDist > currDist){
-                nearestTower = pos;
-                minDist = currDist;
-            }
-        }
-        return nearestTower;
+        return true;
     }
 
     //return true when we moved
@@ -220,7 +257,7 @@ public class Robot {
             }else if (command == OptCode.DAMAGEDPATTERN){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
-                exploreMode = true;
+                removePatterMode = true;
                 targetLocation = new MapLocation(x,y); 
             }
         }

@@ -92,7 +92,7 @@ public class Soldier extends Robot {
             return;
         }
 
-        if (exploreMode){
+        if (exploreMode || removePatterMode){
             if (tryToReachTargetLocation()){
                 //paint while traveling
                 MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
@@ -100,7 +100,11 @@ public class Soldier extends Robot {
                     boolean useSecondaryColor = rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.ALLY_SECONDARY;
                     rc.attack(rc.getLocation(), useSecondaryColor);
                 }
-                rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
+                if (exploreMode)
+                    rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
+                else
+                    rc.setIndicatorString("removePatternMode mode: move to  " + targetLocation.x + " " + targetLocation.y);
+
                 return;
             }
             //once reached the target loc
@@ -142,9 +146,9 @@ public class Soldier extends Robot {
                 }
                 else{
                     BugNavigator.moveTo(nearestAllyTower);
-                    if (rc.canSendMessage(nearestAllyTower))
-                        rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
-                    rc.setIndicatorString("wait for heal");
+                    // if (rc.canSendMessage(nearestAllyTower))
+                        // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
+                    rc.setIndicatorString("move to get healed");
                 }
                 return;
             }
@@ -191,7 +195,7 @@ public class Soldier extends Robot {
             if (emptyTile.x != -1 && rc.isMovementReady()){
                 BugNavigator.moveTo(emptyTile);
                 rc.setIndicatorString("move to a random empty tile");
-
+                tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
             }
         
             // Move and attack randomly if no objective.
