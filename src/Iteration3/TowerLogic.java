@@ -36,6 +36,7 @@ public class TowerLogic {
     private static boolean isMoveToSpecificLocation = false;
     private static boolean isNeedMopper = false;
     private static boolean isAttack = false;
+    private static int saveTurn = 0;
 
     public static void run(RobotController rc) throws GameActionException {
         int currentTurn = rc.getRoundNum(); // Get the current game turn
@@ -87,6 +88,7 @@ public class TowerLogic {
         checkAndRequestPaint(rc); // check paint capacity and request for more paint if needed
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
+        int currentTurn = rc.getRoundNum();
 
 //        if (getMapArea(rc) <= 450 && rc.getRoundNum() < 10) {
 //            MapLocation myLocation = rc.getLocation();
@@ -124,6 +126,12 @@ public class TowerLogic {
         handleMessages(rc);
 
         if (isDefault){
+            if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
+                System.out.println("Currently is a saving turn: " + saveTurn);
+                saveTurn--;
+                attackNearbyEnemies(rc);
+                return;
+            }
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
                 System.out.println("Spawned Soldier on a random tile");
@@ -204,7 +212,9 @@ public class TowerLogic {
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 System.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
                 isDamagedPatternFound = false; calledSoldierStayPutYet = false; isDefault = true;
+                saveTurn = 5;
             }
+
         }
 
         attackNearbyEnemies(rc);
