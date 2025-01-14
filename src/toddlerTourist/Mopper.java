@@ -115,27 +115,27 @@ public class Mopper extends Robot {
 
     //Core turn method
     void runTurn() throws GameActionException {
-        if (isDefenceMopper == 1) {
-            rc.setIndicatorString("Defense Mopper");
+        // if (isDefenceMopper == 1) {
+        //     rc.setIndicatorString("Defense Mopper");
 
             
-            if (enemyFound == false) {
-                BugNavigator.moveTo(targetTower);
-            }
-            Team enemy = rc.getTeam().opponent();
+        //     if (enemyFound == false) {
+        //         BugNavigator.moveTo(targetTower);
+        //     }
+        //     Team enemy = rc.getTeam().opponent();
 
-            // sense and attack enemy robots
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, enemy);
-            for (RobotInfo robot : nearbyRobots) {
-                Direction dirToEnemy = rc.getLocation().directionTo(robot.location);
-                if (rc.canAttack(robot.location)) {
-                    rc.attack(robot.location);
-                }
-                BugNavigator.moveTo(robot.location);
-                enemyFound = true;
-            }
-            givePaintToTower(rc);
-        }
+        //     // sense and attack enemy robots
+        //     RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, enemy);
+        //     for (RobotInfo robot : nearbyRobots) {
+        //         Direction dirToEnemy = rc.getLocation().directionTo(robot.location);
+        //         if (rc.canAttack(robot.location)) {
+        //             rc.attack(robot.location);
+        //         }
+        //         BugNavigator.moveTo(robot.location);
+        //         enemyFound = true;
+        //     }
+        //     givePaintToTower(rc);
+        // }
         //stayPut, moveToTarget, ruinWithPatternDamaged, lowPaintFlag, ruinsFound, enemyTowerFound
         /*
 
@@ -169,6 +169,13 @@ public class Mopper extends Robot {
             rc.setIndicatorString("stay put");
             //if i can get paint from nearestAllyPaintTower
             MapLocation nearestAllyTower = getNearestAllyTower();
+            if (nearestAllyTower.x == -1){
+                resetMessageFlag();
+                exploreMode = true;
+                rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                tryToRebuildTower();
+                return;
+            }
             int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
             if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
                 rc.transferPaint(nearestAllyTower, localPaintToTake);
@@ -201,9 +208,8 @@ public class Mopper extends Robot {
             if (lowPaintFlag){
                 MapLocation nearestAllyPaintTower = getNearestAllyPaintTower();
                 if (nearestAllyPaintTower.x == -1){
-                    resetMessageFlag();
-                    exploreMode = true;
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
                     return;
                 }
                 rc.setIndicatorString("need healing: go to (" + nearestAllyPaintTower.x + " " + nearestAllyPaintTower.y + ")");
@@ -320,6 +326,7 @@ public class Mopper extends Robot {
                             resetMessageFlag();
                             exploreMode = true;
                             rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                            tryToRebuildTower();
                             return;
                         }
                         BugNavigator.moveTo(nearestAllyTower);
@@ -337,6 +344,7 @@ public class Mopper extends Robot {
                     resetMessageFlag();
                     exploreMode = true;
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
                     return;
                 }
                 BugNavigator.moveTo(nearestAllyTower);

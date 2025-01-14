@@ -253,6 +253,11 @@ public class Robot {
         }
     }
 
+    void tryToRebuildTower() throws GameActionException{
+        for (MapInfo curRuin : ruinsFound)
+            tryToBuildTower(curRuin);
+    }
+
     //default color is primaryColor
     boolean tryToPaintAtLoc(MapLocation loc, PaintType paintType) throws GameActionException{
         if (rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getPaint() == paintType && rc.canAttack(loc)){

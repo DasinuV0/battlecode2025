@@ -90,14 +90,14 @@ public class Soldier extends Robot {
 
     //Core turn method
     void runTurn() throws GameActionException {  
-        if (isSuicideRobot == 1) {
-            rc.setIndicatorString("suicideRobot");
-            BugNavigator.moveTo(targetTower);
+        // if (isSuicideRobot == 1) {
+        //     rc.setIndicatorString("suicideRobot");
+        //     BugNavigator.moveTo(targetTower);
             
-            if (rc.canAttack(targetTower)) {
-                rc.attack(targetTower);
-            }
-        }     
+        //     if (rc.canAttack(targetTower)) {
+        //         rc.attack(targetTower);
+        //     }
+        // }     
         //stayPut, moveToTarget, ruinWithPatternDamaged, lowPaintFlag, ruinsFound, enemyTowerFound
         /*
         STAYPUT MODE
@@ -124,6 +124,7 @@ public class Soldier extends Robot {
                 resetMessageFlag();
                 exploreMode = true;
                 rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                tryToRebuildTower();
                 return;
             }
             //paint the robots pos
@@ -176,9 +177,8 @@ public class Soldier extends Robot {
             if (ruinWithPatternDamaged.size() > 0){
                 MapLocation nearestAllyTower = getNearestAllyTower();
                 if (nearestAllyTower.x == -1){
-                    resetMessageFlag();
-                    exploreMode = true;
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
                     return;
                 }
                 BugNavigator.moveTo(nearestAllyTower);
@@ -206,9 +206,8 @@ public class Soldier extends Robot {
                 rc.setIndicatorString("need healing");
                 MapLocation nearestAllyTower = getNearestAllyTower();
                 if (nearestAllyTower.x == -1){
-                    resetMessageFlag();
-                    exploreMode = true;
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
                     return;
                 }                
 
@@ -304,6 +303,7 @@ public class Soldier extends Robot {
                     resetMessageFlag();
                     exploreMode = true;
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
                     return;
                 }
                 BugNavigator.moveTo(nearestAllyTower);
@@ -334,6 +334,7 @@ public class Soldier extends Robot {
                     resetMessageFlag();
                     exploreMode = true;
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
                     return;
                 }                
 

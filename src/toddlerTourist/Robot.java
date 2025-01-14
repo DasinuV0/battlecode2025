@@ -1,6 +1,5 @@
 package toddlerTourist;
 
-
 import battlecode.common.*;
 
 import java.util.Arrays;
@@ -251,6 +250,11 @@ public class Robot {
             rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
         }
+    }
+
+    void tryToRebuildTower() throws GameActionException{
+        for (MapInfo curRuin : ruinsFound)
+            tryToBuildTower(curRuin);
     }
 
     //default color is primaryColor
