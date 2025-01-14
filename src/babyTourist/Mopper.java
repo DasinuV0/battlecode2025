@@ -87,14 +87,30 @@ public class Mopper extends Robot {
 
     }
 
+    void givePaintToTower(RobotController rc) throws GameActionException {
+        MapLocation nearestTower = new MapLocation(0,0);
+        int minDist = 9999;
+        for (MapLocation pos : towersPos){
+            int currDist = pos.distanceSquaredTo(rc.getLocation());
+            if (minDist > currDist){
+                nearestTower = pos;
+                minDist = currDist;
+            }
+        }
+    
+        if (rc.canTransferPaint(nearestTower, PAINTTOGIVE))
+            rc.transferPaint(nearestTower, PAINTTOGIVE);        
+    }
+
     //Core turn method
     void runTurn() throws GameActionException {
         if (isDefenceMopper == 1) {
             rc.setIndicatorString("Defense Mopper");
 
-            if (enemyFound == false) {
-                BugNavigator.moveTo(targetTower);
-            }
+            
+            // if (enemyFound == false) {
+            //     BugNavigator.moveTo(targetTower);
+            // }
             Team enemy = rc.getTeam().opponent();
 
             // sense and attack enemy robots
@@ -107,6 +123,7 @@ public class Mopper extends Robot {
                 BugNavigator.moveTo(robot.location);
                 enemyFound = true;
             }
+            givePaintToTower(rc);
         } else {
 
             if (lowPaintFlag){

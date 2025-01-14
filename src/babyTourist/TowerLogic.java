@@ -51,8 +51,10 @@ public class TowerLogic {
         MapLocation enemyTower = Symmetry.getEnemyStartingTowerCoord(rc, myLocation);
         Direction dirToEnemy = myLocation.directionTo(enemyTower);
         MapLocation spawnLocation = myLocation.add(dirToEnemy);
+        MapLocation mopperSpawLocation = myLocation.add(dirToEnemy.opposite());
 
-        if (currentTurn < 10) {
+        attackNearbyEnemies(rc);
+        if (currentTurn < 6) {
             isRush = 1;
 
             while (soldiersSpawned < 2) {
@@ -71,27 +73,36 @@ public class TowerLogic {
             
         }
         System.out.println("Soldiers spawned: " + soldiersSpawned);
-        if (soldiersSpawned >= 3) {
-            if (rc.canBuildRobot(UnitType.SOLDIER, spawnLocation)) {
-                rc.buildRobot(UnitType.SOLDIER, spawnLocation);
+        if (soldiersSpawned < 4) {            
+            if (rc.canBuildRobot(UnitType.MOPPER, spawnLocation)) {
+                System.out.println("Building a Mopper");
+                rc.buildRobot(UnitType.MOPPER, spawnLocation);
+                soldiersSpawned++;
             }
         }
-        attackNearbyEnemies(rc);
+        if (soldiersSpawned >= 4) {
+            // if (rc.canBuildRobot(UnitType.SOLDIER, spawnLocation)) {
+            //     System.out.println("Building a Soldier");
+            //     rc.buildRobot(UnitType.SOLDIER, spawnLocation);
+            // }
+        
+        
 
         // Determine the game phase
-        // String gamePhase = determineGamePhase(currentTurn);
+            String gamePhase = determineGamePhase(currentTurn);
 
-        // switch (gamePhase) {
-        //     case "EARLY_GAME":
-        //         runEarlyGame(rc);
-        //         break;
-        //     case "MID_GAME":
-        //         runMidGame(rc);
-        //         break;
-        //     case "LATE_GAME":
-        //         runLateGame(rc);
-        //         break;
-        // }
+            switch (gamePhase) {
+                case "EARLY_GAME":
+                    runEarlyGame(rc);
+                    break;
+                case "MID_GAME":
+                    runMidGame(rc);
+                    break;
+                case "LATE_GAME":
+                    runLateGame(rc);
+                    break;
+            }
+        }
     }
 
     private static String determineGamePhase(int currentTurn) {
