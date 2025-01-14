@@ -1,7 +1,7 @@
 package toddlerTourist;
 
 import battlecode.common.*;
-import Iteration3.*;
+
 
 import java.util.Arrays;
 import java.util.HashMap;
