@@ -20,8 +20,9 @@ public class Robot {
         static final int PUTSTATE = 1;
         static final int DAMAGEDPATTERN = 2;
         static final int EXPLORE = 3;
-        static final int RUINFOUND = 4;
+        static final int GOTODEFEND = 4;
         static final int ENEMYTOWERFOUND = 5;
+        static final int RUINFOUND = 6;
         
         // static final int MOVETOSPECIFICLOC = 6;
         // static final int ENGAGEMENT = 7;
@@ -72,7 +73,7 @@ public class Robot {
     static MapLocation targetLocation; 
     static boolean healMode;  //specific to mopper
     static boolean removePatterMode; //specific to mopper
-
+    static boolean defendMode; //specific to mopper 
 
         
     public Robot(RobotController _rc) throws GameActionException {
@@ -101,6 +102,7 @@ public class Robot {
         enemyTowerFound = false;
         emptyTile = new MapLocation(-1,-1);
         friendMopperFound = false;
+        defendMode = false;
     }
     
     void updateLowPaintFlag() throws GameActionException{
@@ -190,7 +192,7 @@ public class Robot {
     boolean towerExists(MapLocation tower) throws GameActionException {
         //if nearestAllyTower is within the vision range && if nearestAllyTower is not destroyed
         if (rc.canSenseRobotAtLocation(tower) == false){
-            System.out.println("tower is destroyed at " + tower.x + " " + tower.y);
+            //.out.println("tower is destroyed at " + tower.x + " " + tower.y);
             return false;
         }
 
@@ -287,7 +289,7 @@ public class Robot {
 
         for (Message m : messages) {
             int command = m.getBytes() >> 12;
-            System.out.println("command " + command + " received");
+            //.out.println("command " + command + " received");
 
             if (command == OptCode.PUTSTATE || command == 4){
                 stayPut = true;
@@ -302,6 +304,12 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 removePatterMode = true;
                 targetLocation = new MapLocation(x,y); 
+            }
+            else if (command == OptCode.GOTODEFEND){
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                defendMode = true;
+                targetLocation = new MapLocation(x,y);   
             }
         }
     }

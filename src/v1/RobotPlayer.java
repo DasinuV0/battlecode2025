@@ -49,13 +49,13 @@
 //                     // Oh no! It looks like we did something illegal in the Battlecode world. You should
 //                     // handle GameActionExceptions judiciously, in case unexpected events occur in the game
 //                     // world. Remember, uncaught exceptions cause your robot to explode!
-//                     // System.out.println("GameActionException");
+//                     // //.out.println("GameActionException");
 //                     e.printStackTrace();
 
 //                 } catch (Exception e) {
 //                     // Oh no! It looks like our code tried to do something bad. This isn't a
 //                     // GameActionException, so it's more likely to be a bug in our code.
-//                     // System.out.println("Exception");
+//                     // //.out.println("Exception");
 //                     e.printStackTrace();
 
 //                 } finally {
@@ -83,13 +83,13 @@
 //                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
 //                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
 //                 // world. Remember, uncaught exceptions cause your robot to explode!
-//                 // System.out.println("GameActionException");
+//                 // //.out.println("GameActionException");
 //                 e.printStackTrace();
 
 //             } catch (Exception e) {
 //                 // Oh no! It looks like our code tried to do something bad. This isn't a
 //                 // GameActionException, so it's more likely to be a bug in our code.
-//                 // System.out.println("Exception");
+//                 // //.out.println("Exception");
 //                 e.printStackTrace();
 
 //             } finally {
@@ -108,7 +108,7 @@
 //         // Read incoming messages
 //         Message[] messages = rc.readMessages(-1);
 //         for (Message m : messages) {
-//             // System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+//             // //.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
 //         }
 
 //         // Pick a direction to build in.
@@ -118,15 +118,15 @@
 //         int robotType = rng.nextInt(3);
 //         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
 //             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-//             // System.out.println("BUILT A SOLDIER");
+//             // //.out.println("BUILT A SOLDIER");
 //         }
 //         else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)){
 //             rc.buildRobot(UnitType.MOPPER, nextLoc);
-//             // System.out.println("BUILT A MOPPER");
+//             // //.out.println("BUILT A MOPPER");
 //         }
 //         else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)){
 //             rc.buildRobot(UnitType.SPLASHER, nextLoc);
-//             // System.out.println("BUILT A SPLASHER");
+//             // //.out.println("BUILT A SPLASHER");
 //         }
 //     }
 // }

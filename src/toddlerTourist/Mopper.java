@@ -34,7 +34,7 @@ public class Mopper extends Robot {
 
     private void rushInitialise(RobotController _rc) {
         if (_rc.getRoundNum() < 10) {
-            System.out.println("Defence mopper generated");
+            //.out.println("Defence mopper generated");
             this.isDefenceMopper = 1;
         }
     }
@@ -42,6 +42,8 @@ public class Mopper extends Robot {
     //instructions run at the beginning of each turn
     void beginTurn() throws GameActionException {
         resetFlags();
+        robotToHealQueue = new LinkedList<>();
+        robotToHealSet = new HashSet<>();
         listenMessage();
         updateLowPaintFlag();
 
@@ -82,7 +84,7 @@ public class Mopper extends Robot {
         if (this.checkedEnemyTower == 0) {
             RobotInfo[] nearbyAllyRobots = rc.senseNearbyRobots(-1, myTeam);
             if (nearbyAllyRobots[0].getType().isTowerType()) {
-                System.out.println("ally Tower found at " + nearbyAllyRobots[0].location);
+                //.out.println("ally Tower found at " + nearbyAllyRobots[0].location);
                 this.checkedEnemyTower = 1;
                 MapLocation allyTower = nearbyAllyRobots[0].getLocation();
                 this.targetTower = Symmetry.getEnemyStartingTowerCoord(rc, allyTower);
@@ -156,16 +158,41 @@ public class Mopper extends Robot {
         once reached the target loc
         clean tile
         go back to the tower
+
+        DEFENDMODE
+        go to the target location 
+        stop and attack when he can attack an enemy
+     
         */  
 
         if (stayPut){
             rc.setIndicatorString("stay put");
-            return;
+            //if i can get paint from nearestAllyPaintTower
+            MapLocation nearestAllyTower = getNearestAllyTower();
+            int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
+            if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
+                rc.transferPaint(nearestAllyTower, localPaintToTake);
+            else
+                BugNavigator.moveTo(nearestAllyTower);
+        }
+
+        if (defendMode){
+            rc.setIndicatorString("defend tower: attack enemy bot at: " + targetLocation.x + " " + targetLocation.y);
+            BugNavigator.moveTo(targetLocation);
+
+            Team enemy = rc.getTeam().opponent();
+            // sense and attack enemy robots
+            RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, enemy);
+            for (RobotInfo robot : nearbyRobots)
+                if (rc.canAttack(robot.location)){
+                    rc.attack(robot.location);
+                    System.out.println("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y);
+                }
         }
 
         if (exploreMode){
             //if he is not at the destination yet, don't do anything else
-            if (tryToReachTargetLocation()){
+            if (ruinsFound.size() == 0 && tryToReachTargetLocation()){
                 rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
                 return;
             }
@@ -182,8 +209,9 @@ public class Mopper extends Robot {
                 rc.setIndicatorString("need healing: go to (" + nearestAllyPaintTower.x + " " + nearestAllyPaintTower.y + ")");
 
                 //if i can get paint from nearestAllyPaintTower
-                if (rc.canTransferPaint(nearestAllyPaintTower, PAINTTOTAKE))
-                    rc.transferPaint(nearestAllyPaintTower, PAINTTOTAKE);
+                int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
+                if (rc.canTransferPaint(nearestAllyPaintTower, localPaintToTake))
+                    rc.transferPaint(nearestAllyPaintTower, localPaintToTake);
                 else
                     BugNavigator.moveTo(nearestAllyPaintTower);
                 return;
