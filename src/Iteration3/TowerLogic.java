@@ -8,9 +8,11 @@ import java.util.ArrayList;
 
 // commands:
 // 1 = stay put
-// 2 = attack location , not yet implemented
+// 2 = damaged pattern found
 // 3 = explore
 // 4 = defend tower
+// 5 = attack location
+
 
 public class TowerLogic {
     static final Random rng = new Random(6147);
@@ -32,7 +34,9 @@ public class TowerLogic {
     static final int STAY_PUT_COMMAND = 1;
     static final int MOVE_TO_DAMAGED_PATTERN_COMMAND = 2;
     static final int MOVE_TO_LOCATION_COMMAND = 3;
-    static final int MOVE_TO_DEFEND_COMMAND = 4;
+    static final int MOVE_TO_DEFEND_TOWER_COMMAND = 4;
+    static final int MOVE_TO_ATTACK_TOWER_COMMAND = 5;
+
     private static boolean isDefault = true;
     private static boolean isRuinFound = false;
     private static boolean isDamagedPatternFound = false;
@@ -40,7 +44,6 @@ public class TowerLogic {
     private static boolean isDefendTower = false;
     private static boolean isMoveToSpecificLocation = false;
     private static boolean isNeedMopper = false;
-    private static boolean isAttack = false;
     private static int saveTurn = 0;
 
     public static void run(RobotController rc) throws GameActionException {
@@ -83,8 +86,8 @@ public class TowerLogic {
     // Bolean flags to track whether 2 moppers exists in vision range
     private static boolean calledMoppersStayPutYet = false;
     private static boolean calledSoldierStayPutYet = false;
-    
-    
+
+
     private static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
@@ -126,6 +129,7 @@ public class TowerLogic {
 
         MapLocation enemyLoc = detectEnemyOnDamage(rc);
         if (enemyLoc != null){
+            saveTurn = 5; // save resources after defending
             isDefendTower = true;
             isDefault = false;
             isDamagedPatternFound = false;
@@ -146,20 +150,7 @@ public class TowerLogic {
             return;
         }
 
-        if (isDefault){
-            System.out.println("BACK IN DEFAULT CMD");
-            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-
-            // save resources if i have the unit already
-            if (mopperCount >= 2 && soldierCount >= 2){ // dont spawn any if we have the bots already
-                sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
-                attackNearbyEnemies(rc);
-                return;
-            }
-
+        if (isDefault){ // exploration mode
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
                 System.out.println("Spawned Soldier on a random tile");
@@ -167,8 +158,22 @@ public class TowerLogic {
                 attackNearbyEnemies(rc);
                 return;
             }
+
+            //System.out.println("BACK IN DEFAULT CMD");
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+
+            // save resources if i have the unit already
+            if (mopperCount >= 6 && soldierCount >= 2){ // dont spawn any if we have the bots already
+                sendToLocation(rc);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                attackNearbyEnemies(rc);
+                return;
+            }
+
             // Spawn Soldier if it hasn't been spawned yet
-            if (soldierCount < 1){
+            if (soldierCount < 2){
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     attackNearbyEnemies(rc);
@@ -201,17 +206,29 @@ public class TowerLogic {
                 sendToLocation(rc); // create random destination to explore using probability
                 //System.out.println("new randOM loc created");
                 // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
+                //sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
                 // TODO: add a function to check for how many soldiers
                 // if there is >2, we send 2, otherwise send 1
                 // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                if (soldierCount > 1){
+                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                }
                 System.out.println("Commanded robots to move to target location:" + targetLoc);
             }
         }
-        else if (isDefendTower){
+        else if (isDefendTower){ // defend mode
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-            sendMessageToRobots(rc, MOVE_TO_DEFEND_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
+            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+
+            // while defending, if i have so many soldiers, just send them out
+            // since they are pointless in defending, but leave some for other tasks when
+            // defending is completed
+            if (soldierCount >= 2){
+                sendToLocation(rc);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+            }
+
+            sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
             System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
             if (mopperCount < 2){ // try to have 2 moppers defend, if not enough, spawn if can
                 System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
@@ -223,7 +240,27 @@ public class TowerLogic {
                 System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
             }
         }
-        else if (isDamagedPatternFound){
+        else if (isEnemyTowerFound){ // attack tower mode
+          System.out.println("Enemy tower found, now preparing robots to attack");
+          int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+
+          if (soldierCount >= 2){ // send 2 soldiers out
+              System.out.println("Sending out 2 soldiers to attack enemy tower!");
+              sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, 2);
+              isEnemyTowerFound = false;
+          }
+          else{
+              if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
+                  System.out.println("No paint tile detected, not spawning soldier");
+                  attackNearbyEnemies(rc);
+                  return;
+              }
+
+              System.out.println("1 Soldier spawned on paint tile, preparing more soldiers...");
+          }
+
+        }
+        else if (isDamagedPatternFound){ // damage pattern found mode
             System.out.println("Oh no! Damaged pattern is found!");
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
@@ -432,13 +469,19 @@ public class TowerLogic {
             switch (command) {
                 case 9: //
                     break;
-                case 1: //
-                    System.out.println("Staying put as per command.");
-                    break;
+                case 5: // attack tower
+                    System.out.println("Received attack command, checking if tower is free...");
+                    if (isDefault){
+                        System.out.println("Attack tower command received. Now forming the required formation of troops");
+                        targetLoc = new MapLocation(x, y);
+                        // send 2 soldier : early game
+                        isDefault = false;
+                        isEnemyTowerFound = true;
+                    }
                 case 2: // damaged ruin found
                     if (isDefault){
                         targetLoc = new MapLocation(x, y);
-                        // send 2 mopper + soldier
+                        // send 2 mopper + soldier : early game
                         isDefault = false;
                         isDamagedPatternFound = true;
                     }
