@@ -3,11 +3,14 @@ package Iteration3;
 import battlecode.common.*;
 
 import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
 
 // commands:
 // 1 = stay put
-// 2 = attack location
-// 4 = request paint
+// 2 = attack location , not yet implemented
+// 3 = explore
+// 4 = defend tower
 
 public class TowerLogic {
     static final Random rng = new Random(6147);
@@ -23,16 +26,18 @@ public class TowerLogic {
     };
 
     // Define thresholds for game phases
-    static final int EARLY_GAME_TURNS = 900;   // Example: First 200 turns are early game
-    static final int MID_GAME_TURNS = 1000;   // Example: Turns 201-1000 are mid-game
-    static final int LATE_GAME_TURNS = 1500;  // Example: Turns beyond 1000 are late game
+    static final int EARLY_GAME_TURNS = 1997;   // Example: First 200 turns are early game
+    static final int MID_GAME_TURNS = 1998;   // Example: Turns 201-1000 are mid-game
+    static final int LATE_GAME_TURNS = 1999;  // Example: Turns beyond 1000 are late game
     static final int STAY_PUT_COMMAND = 1;
     static final int MOVE_TO_DAMAGED_PATTERN_COMMAND = 2;
     static final int MOVE_TO_LOCATION_COMMAND = 3;
+    static final int MOVE_TO_DEFEND_COMMAND = 4;
     private static boolean isDefault = true;
     private static boolean isRuinFound = false;
     private static boolean isDamagedPatternFound = false;
     private static boolean isEnemyTowerFound = false;
+    private static boolean isDefendTower = false;
     private static boolean isMoveToSpecificLocation = false;
     private static boolean isNeedMopper = false;
     private static boolean isAttack = false;
@@ -85,9 +90,8 @@ public class TowerLogic {
 
     private static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
-        checkAndRequestPaint(rc); // check paint capacity and request for more paint if needed
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
+//        Direction dir = directions[rng.nextInt(directions.length)];
+//        MapLocation nextLoc = rc.getLocation().add(dir);
         int currentTurn = rc.getRoundNum();
 
 //        if (getMapArea(rc) <= 450 && rc.getRoundNum() < 10) {
@@ -123,15 +127,32 @@ public class TowerLogic {
         // System.out.println(rc.getMoney());
         // always spawn a soldier at a random tile first
 
-        handleMessages(rc);
+        MapLocation enemyLoc = detectEnemyOnDamage(rc);
+        if (enemyLoc != null) isDefendTower = true;
+        else isDefendTower = false; isDamagedPatternFound = false; isDefault = true; // switch back to default command
+        if (!isDefendTower) handleMessages(rc);
+
+
+        if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
+            System.out.println("Currently is a saving turn: " + saveTurn);
+            saveTurn--;
+            attackNearbyEnemies(rc);
+            return;
+        }
 
         if (isDefault){
-            if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
-                System.out.println("Currently is a saving turn: " + saveTurn);
-                saveTurn--;
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+
+            // save resources if i have the unit already
+            if (mopperCount >= 2 && soldierCount >= 2){ // dont spawn any if we have the bots already
+                sendToLocation(rc);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 attackNearbyEnemies(rc);
                 return;
             }
+
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
                 System.out.println("Spawned Soldier on a random tile");
@@ -140,7 +161,7 @@ public class TowerLogic {
                 return;
             }
             // Spawn Soldier if it hasn't been spawned yet
-            if (!soldierSpawnedYet){
+            if (!soldierSpawnedYet && soldierCount < 1){
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier");
                     attackNearbyEnemies(rc);
@@ -156,7 +177,7 @@ public class TowerLogic {
             }
 
             // Spawn Mopper if it hasn't been spawned yet
-            else if (!mopperSpawnedYet){
+            else if (!mopperSpawnedYet && mopperCount < 1){
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                     System.out.println("No paint tile detected, not spawning mopper");
                     attackNearbyEnemies(rc);
@@ -173,23 +194,53 @@ public class TowerLogic {
 
             // Once both robots are spawned, command them to move to a target location
             else if (mopperSpawnedYet && soldierSpawnedYet){
-                int moveCommand = 3; // Command: Move to target location
-                MapLocation target = new MapLocation(27, 28); // Example target location
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.SOLDIER, 1);
-                System.out.println("Commanded robots to move to target location.");
+                //MapLocation target = new MapLocation(29, 29); // Example target location
+                sendToLocation(rc); // create random destination to explore using probability
+
+                // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
+                // TODO: add a function to check for how many soldiers
+                // if there is >2, we send 2, otherwise send 1
+                // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                System.out.println("Commanded robots to move to target location:" + targetLoc);
                 mopperSpawnedYet = false; soldierSpawnedYet = false;
+            }
+        }
+        else if (isDefendTower){
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            sendMessageToRobots(rc, MOVE_TO_DEFEND_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
+            System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
+            if (mopperCount < 2){ // try to have 2 moppers defend, if not enough, spawn if can
+                System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
+                if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
+                    System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
+                    attackNearbyEnemies(rc);
+                    return;
+                }
+                System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
             }
         }
         else if (isDamagedPatternFound){
             System.out.println("Oh no! Damaged pattern is found!");
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+
+            // save resources if i have the unit already
+            if (mopperCount >= 2 && soldierCount >= 1){ // dont spawn any if we have the bots already
+                sendToLocation(rc);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 2);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                attackNearbyEnemies(rc);
+                return;
+            }
+
             if (!calledSoldierStayPutYet){
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
                 System.out.println("One soldier is stayed put now");
                 calledSoldierStayPutYet = true;
             }
 
-            int mopperCount = countMoppersInTowerRangeOnPaint(rc);
 //            int mopperCount = sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 2);
 
             if (mopperCount < 2){
@@ -204,7 +255,7 @@ public class TowerLogic {
                     return; // Exit early to avoid sending wrong mopper message
                 }
                 System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
-                int currentMopperCountAfterSpawn = countMoppersInTowerRangeOnPaint(rc);
+                int currentMopperCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, currentMopperCountAfterSpawn);
             }
             else if (mopperCount >= 2){
@@ -246,7 +297,7 @@ public class TowerLogic {
 
         if (rc.canBuildRobot(unitType, nextLoc)) {
             rc.buildRobot(unitType, nextLoc);
-            System.out.println("BUILT A " + unitType);
+            //System.out.println("BUILT A " + unitType);
         }
     }
 
@@ -261,19 +312,19 @@ public class TowerLogic {
                 if (paintType == PaintType.ALLY_PRIMARY){
                     // Ensure the tile is painted with ALLY_PRIMARY
                     rc.buildRobot(unitType, nextLoc);
-                    System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_PRIMARY + ") at " + nextLoc);
+                    //System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_PRIMARY + ") at " + nextLoc);
                     return true; // Exit after successfully building the robot
                 }
                 else if (paintType == PaintType.ALLY_SECONDARY){
                     rc.buildRobot(unitType, nextLoc);
-                    System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_SECONDARY + ") at " + nextLoc);
+                    //System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_SECONDARY + ") at " + nextLoc);
                     return true; // Exit after successfully building the robot
                 }
             }
         }
 
         // If no valid paint tile is found
-        System.out.println("FAILED to build " + unitType + ": No valid friendly paint tiles nearby.");
+        //System.out.println("FAILED to build " + unitType + ": No valid friendly paint tiles nearby.");
         return false;
     }
 
@@ -292,106 +343,72 @@ public class TowerLogic {
         }
     }
 
-    private static int countMoppersInTowerRangeOnPaint(RobotController rc) throws GameActionException {
+    private static int countUnitsInTowerRangeOnPaint(RobotController rc, UnitType unitType) throws GameActionException {
         // Get all nearby robots within the tower's sensing range
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, rc.getTeam());
 
-        int mopperCount = 0;
+        int unitCount = 0;
 
         // Loop through all nearby robots
         for (RobotInfo robot : nearbyRobots) {
-            // Check if the robot is a mopper
-            if (robot.getType() == UnitType.MOPPER) {
+            // Check if the robot is of the specified type
+            if (robot.getType() == unitType) {
                 MapLocation robotLoc = robot.getLocation();
 
                 // Check if the robot is on a friendly paint tile
                 PaintType paintType = rc.senseMapInfo(robotLoc).getPaint();
-                if (paintType == PaintType.ALLY_PRIMARY || paintType == PaintType.ALLY_SECONDARY){
-                    mopperCount++;
+                if (paintType == PaintType.ALLY_PRIMARY || paintType == PaintType.ALLY_SECONDARY) {
+                    unitCount++;
                 }
             }
         }
 
-        return mopperCount;
+        return unitCount;
     }
 
-
-
-    private static void checkAndRequestPaint(RobotController rc) throws GameActionException {
-        // Threshold for low paint
-        int lowPaintThreshold = 400;  // adjust as needed, but i think this is a good number
-
-        // Check if tower has low paint
-        if (rc.getPaint() <= lowPaintThreshold) {
-            // Find a nearby robot to send the message to
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-
-            for (RobotInfo robot : nearbyRobots) {
-                // Only send to robots that are not on the same team and are not towers
-                if (robot.team != rc.getTeam() && !robot.type.isTowerType()) {
-                    // Send a message to the robot to request paint
-                    int requestPaintCommand = 4; // Command to request paint
-                    MapLocation towerLocation = rc.getLocation();
-                    sendMessageToRobots(rc, requestPaintCommand, towerLocation, UnitType.SOLDIER, 1);
-                    break;  // Send to only one robot at a time
-                }
-            }
-        }
-    }
-
-//    private static void sendMessageToRobots(RobotController rc, int command, MapLocation targetLoc) throws GameActionException {
-//        int x = targetLoc != null ? targetLoc.x : 0; // Default x-coordinate if no target
-//        int y = targetLoc != null ? targetLoc.y : 0; // Default y-coordinate if no target
-//
-//        // Encode coordinates and command into messageContent
-//        int messageContent = (x << 6) | y | (command << 12);
-//
-//        // Find nearby robots to send the message to
-//        RobotInfo[] nearbyAllies = rc.senseNearbyRobots(-1, rc.getTeam());
-//
-//        for (RobotInfo ally : nearbyAllies) {
-//            MapLocation allyLoc = ally.getLocation();
-//            // Check if the message can be sent to this robot
-//            if (rc.canSendMessage(allyLoc, messageContent) && isDefault){
-//                rc.sendMessage(allyLoc, messageContent);
-//                System.out.println("Sent message to " + allyLoc + ": " + messageContent);
-//            }
-//        }
-//    }
 
     private static int sendMessageToRobots(RobotController rc, int command, MapLocation targetLoc, UnitType robotType, int maxRobots) throws GameActionException {
         int x = targetLoc != null ? targetLoc.x : 63; // Default x-coordinate if no target (out of bounds value)
         int y = targetLoc != null ? targetLoc.y : 63; // Default y-coordinate if no target (out of bounds value)
 
-        // Encode coordinates and command into messageContent
         int messageContent = (x << 6) | y | (command << 12);
 
         // Find nearby robots of the specified type
         RobotInfo[] nearbyAllies = rc.senseNearbyRobots(-1, rc.getTeam());
+
+        // Filter for robots of the specified type and their paint levels
+        List<RobotInfo> filteredRobots = new ArrayList<>();
+        for (RobotInfo ally : nearbyAllies) {
+            if (ally.getType() == robotType) {
+                filteredRobots.add(ally);
+            }
+        }
+
+        // Sort the robots by their paint levels in descending order
+        filteredRobots.sort((a, b) -> Integer.compare(b.getPaintAmount(), a.getPaintAmount()));
+
         int sentCount = 0;
 
-        for (RobotInfo ally : nearbyAllies) {
-            // Check if the robot matches the specified type
-            if (ally.getType() == robotType) {
-                MapLocation allyLoc = ally.getLocation();
+        // Send messages to the top maxRobots robots with the highest paint levels
+        for (RobotInfo ally : filteredRobots) {
+            MapLocation allyLoc = ally.getLocation();
 
-                // Check if the message can be sent to this robot
-                if (rc.canSendMessage(allyLoc, messageContent)) {
-                    rc.sendMessage(allyLoc, messageContent);
-                    sentCount++;
-                    if (isDamagedPatternFound) System.out.println("sent to mopper + soldier bruh");
-                    System.out.println("Sent message to " + allyLoc + ": " + messageContent);
+            // Check if the message can be sent to this robot
+            if (rc.canSendMessage(allyLoc, messageContent)) {
+                rc.sendMessage(allyLoc, messageContent);
+                sentCount++;
+                System.out.println("Sent message to " + allyLoc + ": " + messageContent);
 
-                    // Stop if we've reached the maximum number of robots
-                    if (sentCount >= maxRobots) {
-                        break;
-                    }
+                // Stop if we've reached the maximum number of robots
+                if (sentCount >= maxRobots) {
+                    break;
                 }
             }
         }
 
         return sentCount; // Return the number of robots that received the message
     }
+
 
     private static void handleMessages(RobotController rc) throws GameActionException {
         Message[] messages = rc.readMessages(-1); // Read all messages from the past 5 rounds
@@ -411,7 +428,7 @@ public class TowerLogic {
             //System.out.println(targetLoc);
             // Execute actions based on command
             switch (command) {
-                case 0: // need paint command
+                case 9: //
                     break;
                 case 1: //
                     System.out.println("Staying put as per command.");
@@ -428,7 +445,88 @@ public class TowerLogic {
         }
     }
 
-    private static int getMapArea(RobotController rc) {
+    private static final Random rand = new Random(); // Class-level Random object
+
+    private static void sendToLocation(RobotController rc) throws GameActionException {
+        MapLocation myLocation = rc.getLocation();
+        int randomInt = rand.nextInt(3) + 1;
+
+        if (randomInt == 1){ // own region
+            int myRegion = Symmetry.getRegion(rc, myLocation);
+            setNewExploreTarget(myRegion, rc);
+        }
+
+        else if (randomInt == 2 ){ // adjacent region 1
+             int AdjacentRegion1 = Symmetry.getAdjacentRegions(rc, myLocation)[0];
+             setNewExploreTarget(AdjacentRegion1, rc);
+        }
+
+        else{ // another adjacent region
+            int AdjacentRegion2 = Symmetry.getAdjacentRegions(rc, myLocation)[1];
+            setNewExploreTarget(AdjacentRegion2, rc);
+        }
+    }
+
+    private static void setNewExploreTarget(int myRegion, RobotController rc) throws GameActionException {
+        int X = rc.getMapWidth() / 2;
+        int Y = rc.getMapHeight() / 2;
+
+        if (myRegion == 0){ // A, topLeft
+            int randX = rand.nextInt(X);
+            int randY = rand.nextInt(Y) + Y;
+            targetLoc = new MapLocation(randX, randY);
+        }
+
+        else if (myRegion == 1){ // B, topRight
+            int randX = rand.nextInt(X) + X;
+            int randY = rand.nextInt(Y) + Y;
+            targetLoc = new MapLocation(randX, randY);
+        }
+        else if (myRegion == 2){ // C, bottomLeft
+            int randX = rand.nextInt(X);
+            int randY = rand.nextInt(Y);
+            targetLoc = new MapLocation(randX, randY);
+        }
+        else{ // D, bottomRight
+            int randX = rand.nextInt(X) + X;
+            int randY = rand.nextInt(Y);
+            targetLoc = new MapLocation(randX, randY);
+        }
+    }
+
+
+    private static int previousHealth = -1; // Store the previous health of the tower
+
+    public static MapLocation detectEnemyOnDamage(RobotController rc) throws GameActionException{
+        int currentHealth = rc.getHealth();
+
+        // Initialize the previous health if this is the first call
+        if (previousHealth == -1){
+            previousHealth = currentHealth;
+            return null; // No detection on the first call
+        }
+
+        // Check if the tower has taken damage
+        if (currentHealth < previousHealth){
+            previousHealth = currentHealth; // Update the previous health
+
+            // Sense nearby enemies
+            RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+            for (RobotInfo enemy : nearbyEnemies){
+                // If the enemy is within attack range, return its location
+                MapLocation enemyLocation = enemy.getLocation();
+                if (rc.canAttack(enemyLocation)){
+                    return enemyLocation; // Return the first detected enemy
+                }
+            }
+        }
+
+        // Update the previous health in case no damage is taken
+        previousHealth = currentHealth;
+        return null; // Return null if no damage or no enemies are found
+    }
+
+    private static int getMapArea(RobotController rc) throws GameActionException {
         // Get the map's width and height
         int mapWidth = rc.getMapWidth();
         int mapHeight = rc.getMapHeight();
@@ -436,6 +534,5 @@ public class TowerLogic {
         // Calculate and return the map area
         return mapWidth * mapHeight;
     }
-
 
 }
