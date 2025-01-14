@@ -77,17 +77,14 @@ public class TowerLogic {
     private static int soldiersSpawned = 0;
 
     // Boolean flags to track whether the robots have been spawned (default command)
-    private static boolean mopperSpawnedYet = false;
-    private static boolean soldierSpawnedYet = false;
     private static boolean randomSoldierSpawnedYet = false;
     private static MapLocation targetLoc = new MapLocation(0,0);
 
     // Bolean flags to track whether 2 moppers exists in vision range
     private static boolean calledMoppersStayPutYet = false;
     private static boolean calledSoldierStayPutYet = false;
-
-
-
+    
+    
     private static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
@@ -128,8 +125,17 @@ public class TowerLogic {
         // always spawn a soldier at a random tile first
 
         MapLocation enemyLoc = detectEnemyOnDamage(rc);
-        if (enemyLoc != null) isDefendTower = true;
-        else isDefendTower = false; isDamagedPatternFound = false; isDefault = true; // switch back to default command
+        if (enemyLoc != null){
+            isDefendTower = true;
+            isDefault = false;
+            isDamagedPatternFound = false;
+        }
+        else{ // switch back to default command
+            isDefendTower = false;
+            isDamagedPatternFound = false;
+            isDefault = true;
+        }
+
         if (!isDefendTower) handleMessages(rc);
 
 
@@ -141,6 +147,7 @@ public class TowerLogic {
         }
 
         if (isDefault){
+            System.out.println("BACK IN DEFAULT CMD");
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
@@ -161,14 +168,12 @@ public class TowerLogic {
                 return;
             }
             // Spawn Soldier if it hasn't been spawned yet
-            if (!soldierSpawnedYet && soldierCount < 1){
+            if (soldierCount < 1){
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                    System.out.println("No tiles found that are friendly so far, not spawning soldier");
+                    System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     attackNearbyEnemies(rc);
                     return; // Exit early to avoid setting flag to true
                 }
-
-                soldierSpawnedYet = true;
 
                 // Command the Soldier to stay put
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
@@ -177,14 +182,12 @@ public class TowerLogic {
             }
 
             // Spawn Mopper if it hasn't been spawned yet
-            else if (!mopperSpawnedYet && mopperCount < 1){
+            else if (mopperCount < 1){
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                    System.out.println("No paint tile detected, not spawning mopper");
+                    System.out.println("No paint tile detected, not spawning mopper dddd");
                     attackNearbyEnemies(rc);
                     return;
                 }
-
-                mopperSpawnedYet = true;
 
                 // Command the Mopper to stay put
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 1);
@@ -193,10 +196,10 @@ public class TowerLogic {
             }
 
             // Once both robots are spawned, command them to move to a target location
-            else if (mopperSpawnedYet && soldierSpawnedYet){
+            else{
                 //MapLocation target = new MapLocation(29, 29); // Example target location
                 sendToLocation(rc); // create random destination to explore using probability
-
+                //System.out.println("new randOM loc created");
                 // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
                 // TODO: add a function to check for how many soldiers
@@ -204,7 +207,6 @@ public class TowerLogic {
                 // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 System.out.println("Commanded robots to move to target location:" + targetLoc);
-                mopperSpawnedYet = false; soldierSpawnedYet = false;
             }
         }
         else if (isDefendTower){
