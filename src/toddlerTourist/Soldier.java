@@ -90,15 +90,15 @@ public class Soldier extends Robot {
 
     //Core turn method
     void runTurn() throws GameActionException {  
-        // if (isSuicideRobot == 1) {
-        //     rc.setIndicatorString("suicideRobot");
-        //     BugNavigator.moveTo(targetTower);
+        if (isSuicideRobot == 1) {
+            rc.setIndicatorString("suicideRobot");
+            BugNavigator.moveTo(targetTower);
             
-        //     if (rc.canAttack(targetTower)) {
-        //         rc.attack(targetTower);
-        //     }
-        // }     
-        //stayPut, moveToTarget, ruinWithPatternDamaged, lowPaintFlag, ruinsFound, enemyTowerFound
+            if (rc.canAttack(targetTower)) {
+                rc.attack(targetTower);
+            }
+        }     
+        // stayPut, moveToTarget, ruinWithPatternDamaged, lowPaintFlag, ruinsFound, enemyTowerFound
         /*
         STAYPUT MODE
         paint tower nearby tiles
@@ -145,7 +145,7 @@ public class Soldier extends Robot {
             BugNavigator.moveTo(nearestAllyTower);
             //if tiles near the tower is already paint, paint the pattern
             for (MapInfo patternTile : rc.senseNearbyMapInfos(nearestAllyTower, 8)){
-                if (patternTile.getMark() != patternTile.getPaint()){
+                if (patternTile.getMark() != patternTile.getPaint() && patternTile.getPaint().isAlly()){
                     boolean useSecondaryColor = patternTile.getMark() == PaintType.ALLY_SECONDARY;
                     tryToPaintAtLoc(patternTile.getMapLocation(), useSecondaryColor);
                 }
