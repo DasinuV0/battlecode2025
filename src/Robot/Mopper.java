@@ -1,6 +1,7 @@
-package Iteration3;
+package Robot;
 
 import battlecode.common.*;
+import Navigation.Bug2.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ public class Mopper extends Robot {
     }
 
     //instructions run at the beginning of each turn
-    void beginTurn() throws GameActionException {
+    public void beginTurn() throws GameActionException {
         resetFlags();
         robotToHealQueue = new LinkedList<>();
         robotToHealSet = new HashSet<>();
@@ -75,26 +76,26 @@ public class Mopper extends Robot {
 
         // someoneNeedPaint();
 
-        if (isDefenceMopper == 1) rushTowerFind(rc);
+        // if (isDefenceMopper == 1) rushTowerFind(rc);
     }
 
-    void rushTowerFind(RobotController _rc) throws GameActionException {
-        Team myTeam = rc.getTeam();
-        MapLocation myLocation = rc.getLocation();
-        if (this.checkedEnemyTower == 0) {
-            RobotInfo[] nearbyAllyRobots = rc.senseNearbyRobots(-1, myTeam);
-            if (nearbyAllyRobots[0].getType().isTowerType()) {
-                //.out.println("ally Tower found at " + nearbyAllyRobots[0].location);
-                this.checkedEnemyTower = 1;
-                MapLocation allyTower = nearbyAllyRobots[0].getLocation();
-                this.targetTower = Symmetry.getEnemyStartingTowerCoord(rc, allyTower);
-                this.dirToEnemy = myLocation.directionTo(targetTower);
-            }
-        }
-    }
+    // void rushTowerFind(RobotController _rc) throws GameActionException {
+    //     Team myTeam = rc.getTeam();
+    //     MapLocation myLocation = rc.getLocation();
+    //     if (this.checkedEnemyTower == 0) {
+    //         RobotInfo[] nearbyAllyRobots = rc.senseNearbyRobots(-1, myTeam);
+    //         if (nearbyAllyRobots[0].getType().isTowerType()) {
+    //             //.out.println("ally Tower found at " + nearbyAllyRobots[0].location);
+    //             this.checkedEnemyTower = 1;
+    //             MapLocation allyTower = nearbyAllyRobots[0].getLocation();
+    //             this.targetTower = Symmetry.getEnemyStartingTowerCoord(rc, allyTower);
+    //             this.dirToEnemy = myLocation.directionTo(targetTower);
+    //         }
+    //     }
+    // }
 
     //Instructions at the end of each turn
-    void endTurn() throws GameActionException {
+    public  void endTurn() throws GameActionException {
        
     }
 
@@ -114,13 +115,13 @@ public class Mopper extends Robot {
     }
 
     //Core turn method
-    void runTurn() throws GameActionException {
+    public void runTurn() throws GameActionException {
         // if (isDefenceMopper == 1) {
         //     rc.setIndicatorString("Defense Mopper");
 
             
         //     if (enemyFound == false) {
-        //         BugNavigator.moveTo(targetTower);
+        //         Navigation.Bug2.move(targetTower);
         //     }
         //     Team enemy = rc.getTeam().opponent();
 
@@ -131,7 +132,7 @@ public class Mopper extends Robot {
         //         if (rc.canAttack(robot.location)) {
         //             rc.attack(robot.location);
         //         }
-        //         BugNavigator.moveTo(robot.location);
+        //         Navigation.Bug2.move(robot.location);
         //         enemyFound = true;
         //     }
         //     givePaintToTower(rc);
@@ -166,26 +167,46 @@ public class Mopper extends Robot {
         */  
 
         if (defendMode){
-            rc.setIndicatorString("defend tower: attack enemy bot at: " + targetLocation.x + " " + targetLocation.y);
-            BugNavigator.moveTo(targetLocation);
-
+            if (targetLocation.x != -1){
+                rc.setIndicatorString("defend tower: command received, go to " + targetLocation.x + " " + targetLocation.y);
+                Navigation.Bug2.move(targetLocation);
+                // targetLocation = new MapLocation(-1,-1);
+            }
+            
             Team enemy = rc.getTeam().opponent();
             // sense and attack enemy robots
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, enemy);
             boolean mopperAttacked = false;
             for (RobotInfo robot : nearbyRobots)
-                if (rc.canAttack(robot.location)){
+                if (rc.canAttack(robot.location) && robot.paintAmount > 0){
                     rc.attack(robot.location);
                     mopperAttacked = true;
                     System.out.println("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y);
                 }
 
             if (!mopperAttacked && nearbyRobots.length > 0)
-                BugNavigator.moveTo(nearbyRobots[0].location);
+                Navigation.Bug2.move(nearbyRobots[0].location);
 
-            //go to stay put, when defend mode is finished
-            resetMessageFlag();
-            stayPut = true;
+            //if no command received
+            if (targetLocation.x == -1){
+                rc.setIndicatorString("no command received, go to the tower and stay put");
+                if (rc.senseMapInfo(rc.getLocation()).getPaint().isAlly()){
+                    //go to stay put, when defend mode is finished
+                    resetMessageFlag();
+                    stayPut = true;
+                }else{
+                    MapLocation nearestAllyTower = getNearestAllyTower();
+                    if (nearestAllyTower.x != -1)
+                        Navigation.Bug2.move(nearestAllyTower);
+                    else{
+                        rc.setIndicatorString("tower is destroyed, try to re-build the tower");
+                        tryToRebuildTower();
+                        return; 
+                    }
+
+                }
+            }else//reset targetLocation
+                targetLocation = new MapLocation(-1,-1);
             
             return;
         }
@@ -205,7 +226,7 @@ public class Mopper extends Robot {
             if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
                 rc.transferPaint(nearestAllyTower, localPaintToTake);
             // else
-            //     BugNavigator.moveTo(nearestAllyTower);
+            //     Navigation.Bug2.move(nearestAllyTower);
         }
 
 
@@ -231,7 +252,7 @@ public class Mopper extends Robot {
                 if (rc.canTransferPaint(nearestAllyPaintTower, localPaintToTake))
                     rc.transferPaint(nearestAllyPaintTower, localPaintToTake);
                 else
-                    BugNavigator.moveTo(nearestAllyPaintTower);
+                    Navigation.Bug2.move(nearestAllyPaintTower);
                 return;
             }
 
@@ -244,7 +265,7 @@ public class Mopper extends Robot {
                     for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
                         if (patternTile.getPaint().isEnemy()){
                             MapLocation newLoc = patternTile.getMapLocation();
-                            BugNavigator.moveTo(newLoc);
+                            Navigation.Bug2.move(newLoc);
                             rc.setIndicatorDot(newLoc, 0,0,255);
                             tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY);
                             tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY);
@@ -277,7 +298,7 @@ public class Mopper extends Robot {
                         robotToHealSet.remove(curr);
                     }
                     else{
-                        BugNavigator.moveTo(curr);
+                        Navigation.Bug2.move(curr);
                         rc.setIndicatorString("heal bot: move to (" + curr.x + " " + curr.y + ")");
                     }
                 }
@@ -341,11 +362,11 @@ public class Mopper extends Robot {
                             tryToRebuildTower();
                             return;
                         }
-                        BugNavigator.moveTo(nearestAllyTower);
+                        Navigation.Bug2.move(nearestAllyTower);
                         rc.setIndicatorString("enemy paint not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
                     }
                     else{
-                        BugNavigator.moveTo(enemyTilePos);
+                        Navigation.Bug2.move(enemyTilePos);
                         rc.setIndicatorString("move closer to the enemy paint (" + enemyTilePos.x + " " + enemyTilePos.y + ")");
                     } 
                 }
@@ -359,7 +380,7 @@ public class Mopper extends Robot {
                     tryToRebuildTower();
                     return;
                 }
-                BugNavigator.moveTo(nearestAllyTower);
+                Navigation.Bug2.move(nearestAllyTower);
                 rc.setIndicatorString("enemy paint not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
             }
         }
