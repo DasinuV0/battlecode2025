@@ -1,7 +1,7 @@
 package Robot;
 
 import battlecode.common.*;
-import Navigation.Bug2.*;
+import Navigation.Bug1.*;
 
 import java.util.Arrays;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
 package Robot;
 
 import battlecode.common.*;
-import Navigation.Bug2.*;
+import Navigation.Bug1.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -203,7 +203,7 @@ public class Robot {
     //return true when we moved
     boolean tryToReachTargetLocation() throws GameActionException{
         if (targetLocation.x != (-1)){
-            Navigation.Bug2.move(targetLocation);
+            Navigation.Bug1.moveTo(targetLocation);
             if (rc.getLocation().distanceSquaredTo(targetLocation) < 4 )
                 targetLocation = new MapLocation(-1,-1);
             return true;
@@ -262,7 +262,7 @@ public class Robot {
         // if (ruinsFound.size() > 0){
         //     Iterator<MapInfo> iterator = ruinsFound.iterator();
         //     MapInfo curr =  iterator.next();
-        //     Navigation.Bug2.move(curr.getMapLocation());
+        //     Navigation.Bug1.msoveTos(curr.getMapLocation());
         // }
     }
 
