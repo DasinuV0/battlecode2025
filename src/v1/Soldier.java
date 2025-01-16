@@ -418,11 +418,11 @@ public class Soldier extends Robot {
             }
             
             Team enemy = rc.getTeam().opponent();
-            RobotInfo[] enemyTowers = rc.senseNearbyRobots(-1, enemy)
+            RobotInfo[] enemyTowers = rc.senseNearbyRobots(-1, enemy);
 
             for (RobotInfo tower : enemyTowers)
-                if (rc.canAttack(tower)) 
-                    rc.attack(tower);
+                if (rc.canAttack(tower.location)) 
+                    rc.attack(tower.location);
 
         }
 
