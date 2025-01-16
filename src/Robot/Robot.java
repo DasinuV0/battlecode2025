@@ -67,6 +67,8 @@ public class Robot {
     Set<MapInfo> ruinsFound;
     static MapLocation emptyTile;
     static Set<MapLocation> ruinWithPatternDamaged;
+    static boolean isAttackSplasher;
+    static boolean isDefenseSplasher;
    
    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
