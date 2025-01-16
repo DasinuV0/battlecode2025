@@ -165,24 +165,6 @@ public class Mopper extends Robot {
      
         */  
 
-        if (stayPut){
-            rc.setIndicatorString("stay put");
-            //if i can get paint from nearestAllyPaintTower
-            MapLocation nearestAllyTower = getNearestAllyTower();
-            if (nearestAllyTower.x == -1){
-                resetMessageFlag();
-                exploreMode = true;
-                rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
-                tryToRebuildTower();
-                return;
-            }
-            int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
-            if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
-                rc.transferPaint(nearestAllyTower, localPaintToTake);
-            else
-                BugNavigator.moveTo(nearestAllyTower);
-        }
-
         if (defendMode){
             rc.setIndicatorString("defend tower: attack enemy bot at: " + targetLocation.x + " " + targetLocation.y);
             BugNavigator.moveTo(targetLocation);
@@ -190,12 +172,42 @@ public class Mopper extends Robot {
             Team enemy = rc.getTeam().opponent();
             // sense and attack enemy robots
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, enemy);
+            boolean mopperAttacked = false;
             for (RobotInfo robot : nearbyRobots)
                 if (rc.canAttack(robot.location)){
                     rc.attack(robot.location);
+                    mopperAttacked = true;
                     System.out.println("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y);
                 }
+
+            if (!mopperAttacked && nearbyRobots.length > 0)
+                BugNavigator.moveTo(nearbyRobots[0].location);
+
+            //go to stay put, when defend mode is finished
+            resetMessageFlag();
+            stayPut = true;
+            
+            return;
         }
+
+        if (stayPut){
+            rc.setIndicatorString("stay put");
+            //if i can get paint from nearestAllyPaintTower
+            MapLocation nearestAllyTower = getNearestAllyTower();
+            if (nearestAllyTower.x == -1){
+                // resetMessageFlag();
+                // exploreMode = true;
+                rc.setIndicatorString("tower is destroyed, try to re-build the tower");
+                tryToRebuildTower();
+                return;
+            }
+            int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
+            if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
+                rc.transferPaint(nearestAllyTower, localPaintToTake);
+            // else
+            //     BugNavigator.moveTo(nearestAllyTower);
+        }
+
 
         if (exploreMode){
             //if he is not at the destination yet, don't do anything else

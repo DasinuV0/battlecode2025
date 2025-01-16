@@ -21,8 +21,9 @@ public class Robot {
         static final int DAMAGEDPATTERN = 2;
         static final int EXPLORE = 3;
         static final int GOTODEFEND = 4;
-        static final int ENEMYTOWERFOUND = 5;
-        static final int RUINFOUND = 6;
+        static final int ATTACKTOWER = 5;
+        static final int ENEMYTOWERFOUND = 6;
+        static final int RUINFOUND = 7;
         
         // static final int MOVETOSPECIFICLOC = 6;
         // static final int ENGAGEMENT = 7;
@@ -74,6 +75,7 @@ public class Robot {
     static boolean healMode;  //specific to mopper
     static boolean removePatterMode; //specific to mopper
     static boolean defendMode; //specific to mopper 
+    static boolean attackMode; //specific to soldier 
 
         
     public Robot(RobotController _rc) throws GameActionException {
@@ -102,7 +104,6 @@ public class Robot {
         enemyTowerFound = false;
         emptyTile = new MapLocation(-1,-1);
         friendMopperFound = false;
-        defendMode = false;
     }
     
     void updateLowPaintFlag() throws GameActionException{
@@ -256,6 +257,13 @@ public class Robot {
     void tryToRebuildTower() throws GameActionException{
         for (MapInfo curRuin : ruinsFound)
             tryToBuildTower(curRuin);
+
+        //if none of them is built, go closer to one of them
+        // if (ruinsFound.size() > 0){
+        //     Iterator<MapInfo> iterator = ruinsFound.iterator();
+        //     MapInfo curr =  iterator.next();
+        //     BugNavigator.moveTo(curr.getMapLocation());
+        // }
     }
 
     //default color is primaryColor
@@ -282,6 +290,8 @@ public class Robot {
         targetLocation = new MapLocation(-1,-1);
         healMode = false;  
         removePatterMode = false;
+        defendMode = false;
+        attackMode = false;
     }
 
     void listenMessage(){
@@ -296,7 +306,7 @@ public class Robot {
             int command = m.getBytes() >> 12;
             //.out.println("command " + command + " received");
 
-            if (command == OptCode.PUTSTATE || command == 4){
+            if (command == OptCode.PUTSTATE){
                 stayPut = true;
             }
             else if (command == OptCode.EXPLORE){
@@ -314,6 +324,11 @@ public class Robot {
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 defendMode = true;
+                targetLocation = new MapLocation(x,y);   
+            }else if (command == OptCode.ATTACKTOWER){
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                attackMode = true;
                 targetLocation = new MapLocation(x,y);   
             }
         }

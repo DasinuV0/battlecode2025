@@ -281,8 +281,7 @@ public class Soldier extends Robot {
             }
         }
         
-
-       if (removePatterMode){
+        if (removePatterMode){
             if (tryToReachTargetLocation()){
                 //paint while traveling
                 MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
@@ -404,5 +403,28 @@ public class Soldier extends Robot {
                 rc.move(dir);
             }
         }
+
+        if (attackMode){
+            if (tryToReachTargetLocation()){
+                //paint while traveling
+                MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
+                if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
+                    boolean useSecondaryColor = rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.ALLY_SECONDARY;
+                    rc.attack(rc.getLocation(), useSecondaryColor);
+                }
+
+                rc.setIndicatorString("attack mode: move to  " + targetLocation.x + " " + targetLocation.y);
+                return;
+            }
+            
+            Team enemy = rc.getTeam().opponent();
+            RobotInfo[] enemyTowers = rc.senseNearbyRobots(-1, enemy)
+
+            for (RobotInfo tower : enemyTowers)
+                if (rc.canAttack(tower)) 
+                    rc.attack(tower);
+
+        }
+
     }
 }
