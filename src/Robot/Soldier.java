@@ -183,9 +183,6 @@ public class Soldier extends Robot {
                     tryToRebuildTower();
                     return;
                 }
-                //reset the target location
-                targetLocation = new MapLocation(-1,-1);
-                //go to the nearest ally tower 
                 Navigation.Bug1.moveTo(nearestAllyTower);
                 rc.setIndicatorString("damaged pattern find: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
@@ -264,7 +261,6 @@ public class Soldier extends Robot {
                             ruinWithPatternDamaged.add(curRuin.getMapLocation());
                             rc.setIndicatorDot(patternTile.getMapLocation(), 25,14,24); //TODO: find a way to avoid multiple bot find the same enemy tile and all go back to the tower
                             rc.setIndicatorString("pattern damaged, enemy paint found."); //TODO: find a way to avoid multiple bot find the same enemy tile and all go back to the tower
-                            return;
                         }
                     }
 

@@ -4,51 +4,42 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import static Util.Globals.*;
+
 import java.util.HashSet;
 
-
 public class Bug2 {
-    static MapLocation prevDest = new MapLocation(-1, -1);
-    static HashSet<MapLocation> line = null, visited = new HashSet<MapLocation>();;
+    static MapLocation prevDest;
+    static HashSet<MapLocation> line = null;
     static boolean isTracing = false;
     static Direction wallDirection = null;
     static int obstacleDist = 0;
 
     public static void move(MapLocation dest) throws GameActionException{
-        MapLocation curPos = rc.getLocation();
-        if (curPos.equals(dest)) return;
-        if (!dest.equals(prevDest) || visited.contains(curPos)){
+        if (!dest.equals(prevDest)){
             prevDest = dest;
             line = createLine(dest, rc.getLocation());
-            reset();
-        }
-
-        for (MapLocation l: line){
-            rc.setIndicatorDot(l, 255,0,0);
         }
 
         if (!isTracing){
-            Direction dir = curPos.directionTo(dest);
-            if (rc.canMove(dir)) {
-                visited.add(curPos);
-                rc.move(dir);
-            }
+            Direction dir = rc.getLocation().directionTo(dest);
+            if (rc.canMove(dir)) rc.move(dir);
             else {
                 isTracing = true;
                 wallDirection = dir;
-                obstacleDist = curPos.distanceSquaredTo(dest);
+                obstacleDist = rc.getLocation().distanceSquaredTo(dest);
             }
             return;
         }
 
         // on the line && is closer to dest -> stop tracing
-        if (line.contains(curPos) && curPos.distanceSquaredTo(dest) < obstacleDist) {
-            reset();
+        if (line.contains(rc.getLocation()) && rc.getLocation().distanceSquaredTo(dest) < obstacleDist) {
+            isTracing = false;
+            wallDirection = null;
+            obstacleDist = 0;
             return;
         }
 
         if (rc.canMove(wallDirection)){
-            visited.add(curPos);
             rc.move(wallDirection);
             wallDirection = wallDirection.rotateRight();
             wallDirection = wallDirection.rotateRight();
@@ -59,7 +50,6 @@ public class Bug2 {
         for (int i = 0; i < 8; i++){
             wallDirection = wallDirection.rotateLeft();
             if (rc.canMove(wallDirection)){
-                visited.add(curPos);
                 rc.move(wallDirection);
                 wallDirection = wallDirection.rotateRight();
                 wallDirection = wallDirection.rotateRight();
@@ -67,14 +57,6 @@ public class Bug2 {
             }
         }
     }
-
-    private static void reset(){
-        isTracing = false;
-        wallDirection = null;
-        obstacleDist = 0;
-        visited.clear();
-    }
-
 
     private static HashSet<MapLocation> createLine(MapLocation a, MapLocation b){
         HashSet<MapLocation> locs = new HashSet<>();
@@ -110,7 +92,4 @@ public class Bug2 {
         locs.add(new MapLocation(x, y));
         return locs;
     }
-
-
 }
-
