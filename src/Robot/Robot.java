@@ -1,7 +1,7 @@
-package Iteration3;
-
+package Robot;
 
 import battlecode.common.*;
+import Navigation.Bug1.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,17 +84,17 @@ public class Robot {
     }
 
     //instructions run at the beginning of each turn
-    void beginTurn() throws GameActionException {
+    public void beginTurn() throws GameActionException {
 
     }
 
     //Instructions at the end of each turn
-    void endTurn() throws GameActionException {
+    public void endTurn() throws GameActionException {
        
     }
 
     //Core turn method
-    void runTurn() throws GameActionException {
+    public void runTurn() throws GameActionException {
 
     }
 
@@ -203,7 +203,7 @@ public class Robot {
     //return true when we moved
     boolean tryToReachTargetLocation() throws GameActionException{
         if (targetLocation.x != (-1)){
-            BugNavigator.moveTo(targetLocation);
+            Navigation.Bug1.moveTo(targetLocation);
             if (rc.getLocation().distanceSquaredTo(targetLocation) < 4 )
                 targetLocation = new MapLocation(-1,-1);
             return true;
@@ -262,7 +262,7 @@ public class Robot {
         // if (ruinsFound.size() > 0){
         //     Iterator<MapInfo> iterator = ruinsFound.iterator();
         //     MapInfo curr =  iterator.next();
-        //     BugNavigator.moveTo(curr.getMapLocation());
+        //     Navigation.Bug1.msoveTos(curr.getMapLocation());
         // }
     }
 
