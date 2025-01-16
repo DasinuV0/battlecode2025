@@ -132,10 +132,14 @@ public class TowerLogic {
             isDefendTower = true;
             isDefault = false;
             isDamagedPatternFound = false;
+            isEnemyTowerFound = false;
+            saveTurn = 0;
         }
         else{ // switch back to default command
             isDefendTower = false;
             isDamagedPatternFound = false;
+            isEnemyTowerFound = false;
+            saveTurn = 0;
             isDefault = true;
         }
 
@@ -159,9 +163,10 @@ public class TowerLogic {
                 return;
             }
 
-            if (soldierCount >= 1){
+            if (soldierCount >= 2){
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                saveTurn = 3;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
             else{
@@ -255,9 +260,11 @@ public class TowerLogic {
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
             }
 
-            sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
-            System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
-            if (mopperCount < 2){ // try to have 2 moppers defend, if not enough, spawn if can
+            if (mopperCount >= 2){
+                sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
+                System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
+            }
+            else{ // try to have 2 moppers defend, if not enough, spawn if can
                 System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                     System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
@@ -275,6 +282,8 @@ public class TowerLogic {
                 System.out.println("Sending out 2 soldiers to attack enemy tower!");
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, 2);
                 isEnemyTowerFound = false;
+                isDefault = true;
+                saveTurn = 5;
             }
             else{
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
@@ -298,6 +307,7 @@ public class TowerLogic {
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 2);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 attackNearbyEnemies(rc);
+                saveTurn = 5;
                 return;
             }
 
@@ -328,7 +338,10 @@ public class TowerLogic {
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, 2);
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 System.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
-                isDamagedPatternFound = false; calledSoldierStayPutYet = false; isDefault = true;
+                isDamagedPatternFound = false;
+                calledSoldierStayPutYet = false;
+                calledMoppersStayPutYet = false;
+                isDefault = true;
                 saveTurn = 5;
             }
 
