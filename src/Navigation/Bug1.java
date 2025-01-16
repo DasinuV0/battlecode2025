@@ -177,15 +177,16 @@ public class Bug1 {
 
     // can move in this direction and mark this tile
     private static boolean canMoveWithMark(Direction direction) {
-        return rc.canMove(direction) && rc.canMark(rc.adjacentLocation(direction));
+        // return rc.canMove(direction) && rc.canMark(rc.adjacentLocation(direction));
+        return rc.canMove(direction);
     }
 
     // move in this direction and mark this tile
     private static void moveWithMark(Direction direction) throws GameActionException {
         MapLocation fillLocation = rc.adjacentLocation(direction);
-        if (rc.canMark(fillLocation)) {
-            rc.mark(fillLocation, false);
-        }
+        // if (rc.canMark(fillLocation)) {
+        //     rc.mark(fillLocation, false);
+        // }
 
         if (rc.canMove(direction)) {
             rc.move(direction);
