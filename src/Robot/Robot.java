@@ -382,7 +382,7 @@ public class Robot {
 
                 if (overlapCount > maxOverlap) {
                     maxOverlap = overlapCount;
-                    bestLocation = new MapLocation(rc.getLocation().x + (j - center), rc.getLocation().y + (i - center));
+                    bestLocation = new MapLocation(rc.getLocation().x + (j - center), rc.getLocation().y - (i - center));
                 }
             }
         return bestLocation != null ? bestLocation : new MapLocation(-1, -1);
