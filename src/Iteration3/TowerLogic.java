@@ -129,7 +129,6 @@ public class TowerLogic {
 
         MapLocation enemyLoc = detectEnemyOnDamage(rc);
         if (enemyLoc != null){
-            saveTurn = 5; // save resources after defending
             isDefendTower = true;
             isDefault = false;
             isDamagedPatternFound = false;
