@@ -22,7 +22,7 @@ public class Robot {
         static final int EXPLORE = 3;
         static final int GOTODEFEND = 4;
         static final int ATTACKTOWER = 5;
-        static final int ENEMYTOWERFOUND = 6;
+        static final int ENEMYTOWERFOUND = 5;
         static final int RUINFOUND = 7;
         
         // static final int MOVETOSPECIFICLOC = 6;
@@ -59,12 +59,12 @@ public class Robot {
 
     static Set<MapLocation> paintTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> moneyTowersPos = new  LinkedHashSet<>();
+    static Set<MapLocation> enemyTowersPos = new LinkedHashSet<>();
     
     //general flags
     static boolean lowPaintFlag;
     static boolean friendMopperFound;
-    static boolean enemyTowerFound;
-    Set<MapInfo> ruinsFound;
+    static Set<MapInfo> ruinsFound;
     static MapLocation emptyTile;
     static Set<MapLocation> ruinWithPatternDamaged;
    
@@ -101,7 +101,6 @@ public class Robot {
     void resetFlags(){
         lowPaintFlag = false;
         ruinsFound = new HashSet<>();
-        enemyTowerFound = false;
         emptyTile = new MapLocation(-1,-1);
         friendMopperFound = false;
     }

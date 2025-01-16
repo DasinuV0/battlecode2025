@@ -44,11 +44,13 @@ public class Soldier extends Robot {
         for (RobotInfo robot : nearbyRobots)
             //check if our paint/money tower is found
             if (isPaintTower(robot.type) && robot.team == rc.getTeam())
-                    paintTowersPos.add(robot.location);
+                paintTowersPos.add(robot.location);
             else if (isMoneyTower(robot.type) && robot.team == rc.getTeam())
-                    moneyTowersPos.add(robot.location);
+                moneyTowersPos.add(robot.location);
             else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
+            else if (robot.team != rc.getTeam() && robot.type.isTowerType())
+                enemyTowersPos.add(robot.location);
 
 
         // Sense information about all visible nearby tiles.
@@ -207,6 +209,40 @@ public class Soldier extends Robot {
                 return;
             }
 
+            if (enemyTowersPos.size() > 0){
+                //DONE: what to do once an enemy tower is found
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x == -1){
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
+                    return;
+                }
+                //reset the target location
+                targetLocation = new MapLocation(-1,-1);
+                //go to the nearest ally tower 
+                Navigation.Bug1.moveTo(nearestAllyTower);
+                rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+                System.out.println("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+
+
+                if (rc.canSendMessage(nearestAllyTower)){
+                    MapLocation firstElement = new MapLocation(0, 0);
+                    // Get an iterator
+                    Iterator<MapLocation> iterator = enemyTowersPos.iterator();
+                    if (iterator.hasNext()) {
+                        firstElement = iterator.next();
+                        // Remove the first element
+                        iterator.remove();
+                    }
+                    rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.ENEMYTOWERFOUND,firstElement)); // DONE: add first firstElement to the messag
+                    //.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
+                    
+                    rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                    rc.setIndicatorString("message sent: enemy tower found");
+                }
+                return;
+            }
+
             if (lowPaintFlag){
                 rc.setIndicatorString("need healing");
                 MapLocation nearestAllyTower = getNearestAllyTower();
@@ -231,11 +267,6 @@ public class Soldier extends Robot {
                         // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
                     rc.setIndicatorString("move to get healed");
                 }
-                return;
-            }
-
-            if (enemyTowerFound){
-            //TODO: what to do once an enemy tower is found
                 return;
             }
 
@@ -362,10 +393,10 @@ public class Soldier extends Robot {
                 return;
             }
 
-            if (enemyTowerFound){
-            //TODO: what to do once an enemy tower is found
-                return;
-            }
+            // if (enemyTowerFound){//don't do anything when enemytower is found
+            //     //TODO: what to do once an enemy tower is found
+            //     return;
+            // 
 
             if (ruinsFound.size() > 0){
                 for (MapInfo curRuin : ruinsFound){
