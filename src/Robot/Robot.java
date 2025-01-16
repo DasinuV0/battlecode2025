@@ -67,6 +67,8 @@ public class Robot {
     Set<MapInfo> ruinsFound;
     static MapLocation emptyTile;
     static Set<MapLocation> ruinWithPatternDamaged;
+    static boolean isAttackSplasher;
+    static boolean isDefenseSplasher;
    
    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
@@ -343,6 +345,49 @@ public class Robot {
         return messageContent;
     }
 
+    public static MapLocation getEnemyPaintZone(RobotController rc) {
+        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
+        int size = 9, center = 4;
+        int[][] visionArea = new int[size][size];
+        MapLocation bestLocation = null;
+        for (MapInfo mapInfo : surrMapInfos) {
+            MapLocation location = mapInfo.getMapLocation();
+
+            // Calculate relative position of the mapInfo to the robot's location
+            int relativeX = location.x - rc.getLocation().x;
+            int relativeY = location.y - rc.getLocation().y;
+
+            // Map relative position to visionArea indices
+            int matrixX = center + relativeX;
+            int matrixY = center + relativeY;
+
+            if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY)
+                visionArea[matrixY][matrixX] = 1;
+        }
+
+        int kernelRadius = 1, maxOverlap = 0;
+
+        for (int i = 1; i < size-1; i++)
+            for (int j = 1; j < size-1; j++) {
+                int overlapCount = 0;
+
+                for (int dy = -kernelRadius; dy <= kernelRadius; dy++)
+                    for (int dx = -kernelRadius; dx <= kernelRadius; dx++) {
+                        int x = j + dx;
+                        int y = i + dy;
+
+                        if (x >= 0 && y >= 0)
+                            overlapCount += visionArea[y][x];
+                    }
+
+                if (overlapCount > maxOverlap) {
+                    maxOverlap = overlapCount;
+                    bestLocation = new MapLocation(rc.getLocation().x + (j - center), rc.getLocation().y - (i - center));
+                }
+            }
+        return bestLocation != null ? bestLocation : new MapLocation(-1, -1);
+    }
+    
     boolean isPaintTower(UnitType tower){
         return tower == UnitType.LEVEL_ONE_PAINT_TOWER || tower == UnitType.LEVEL_TWO_PAINT_TOWER || tower == UnitType.LEVEL_THREE_PAINT_TOWER;
     }
