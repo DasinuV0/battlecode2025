@@ -176,16 +176,15 @@ public class Mopper extends Robot {
             Team enemy = rc.getTeam().opponent();
             // sense and attack enemy robots
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, enemy);
-            boolean mopperAttacked = false;
-            for (RobotInfo robot : nearbyRobots)
+            for (RobotInfo robot : nearbyRobots){
+                rc.setIndicatorDot(robot.location, 0,255,0);
                 if (rc.canAttack(robot.location) && robot.paintAmount > 0){
                     rc.attack(robot.location);
-                    mopperAttacked = true;
-                    System.out.println("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y);
+                    rc.setIndicatorString("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y + " with paint amount = " + robot.paintAmount);
+                    return;
                 }
-
-            if (!mopperAttacked && nearbyRobots.length > 0)
-                Navigation.Bug1.moveTo(nearbyRobots[0].location);
+                    // Navigation.Bug1.moveTo(nearbyRobots[0].location);
+            }
 
             //if no command received
             if (targetLocation.x == -1){
@@ -212,21 +211,24 @@ public class Mopper extends Robot {
         }
 
         if (stayPut){
-            rc.setIndicatorString("stay put");
             //if i can get paint from nearestAllyPaintTower
             MapLocation nearestAllyTower = getNearestAllyTower();
+            rc.setIndicatorString("stay put near the tower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
             if (nearestAllyTower.x == -1){
                 // resetMessageFlag();
                 // exploreMode = true;
                 rc.setIndicatorString("tower is destroyed, try to re-build the tower");
                 tryToRebuildTower();
-                return;
+
+                //find a new ally tower
+                nearestAllyTower = getNearestAllyTower();
+                // return; just try to build the tower once, so if it's not possible, go to the nearset one
             }
             int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
             if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
                 rc.transferPaint(nearestAllyTower, localPaintToTake);
-            // else
-            //     Navigation.Bug1.moveTo(nearestAllyTower);
+            else if (nearestAllyTower.x != -1)
+                Navigation.Bug1.moveTo(nearestAllyTower);
         }
 
 
