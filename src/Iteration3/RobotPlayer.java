@@ -2,6 +2,8 @@ package Iteration3;
 
 import battlecode.common.*;
 import Iteration3.*;
+import Robot.*;
+import Util.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,7 +60,7 @@ public class RobotPlayer {
         MapLocation[] ends = Symmetry.getLineEnds(rc, symm);
         
 
-        Globals.init(rc); // Initialize globals for shared usage
+        Util.Globals.init(rc); // Initialize globals for shared usage
         if (rc.getType().isTowerType()){
             while(true){
                 try {
