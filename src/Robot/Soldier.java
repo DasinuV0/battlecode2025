@@ -443,7 +443,7 @@ public class Soldier extends Robot {
         }
 
         if (attackMode){
-            if (tryToReachTargetLocation()){
+            if (tryToReachTargetLocation(10)){
                 //paint while traveling
                 MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
                 if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
@@ -451,18 +451,36 @@ public class Soldier extends Robot {
                     rc.attack(rc.getLocation(), useSecondaryColor);
                 }
 
-                rc.setIndicatorString("attack mode: move to  " + targetLocation.x + " " + targetLocation.y);
-                return;
+                rc.setIndicatorString("attack mode: move to  " + targetLocation.x + " " + targetLocation.y + " with distance: " + rc.getLocation().distanceSquaredTo(targetLocation));
+            }else{
+                // RobotInfo enemyTower = rc.senseRobotAtLocation(targetLocation);
+
+                //attack -> move, next turn move -> attack (attack twice faster than towers)
+                if (rc.canAttack(targetLocation)){
+                    rc.setIndicatorString("attack mode: attack enemy tower (" + targetLocation.x + " " + targetLocation.y + ")" + " then move out");
+                    rc.attack(targetLocation);
+                    Direction dir = rc.getLocation().directionTo(targetLocation);
+                    if (rc.canMove(dir))
+                        rc.move(dir);
+                }else{
+                    rc.setIndicatorString("attack mode: move ine then attack enemy tower (" + targetLocation.x + " " + targetLocation.y + ")");
+                    Direction dir = rc.getLocation().directionTo(targetLocation).opposite();
+                    if (rc.canMove(dir))
+                        rc.move(dir);
+                    
+                    if (rc.canAttack(targetLocation))
+                        rc.attack(targetLocation);
+                }
+
+                //if enemy tower is destroyed
+                if (rc.canSenseRobotAtLocation(targetLocation) == false){
+                    rc.setIndicatorString("Tower destroyed, go to explore mode");
+                    resetMessageFlag();
+                    exploreMode = true;
+                }
+                
             }
             
-            Team enemy = rc.getTeam().opponent();
-            RobotInfo[] enemyTowers = rc.senseNearbyRobots(-1, enemy);
-
-            for (RobotInfo tower : enemyTowers)
-                if (rc.canAttack(tower.location)){
-                    rc.setIndicatorString("attack mode: attack enemy tower (" + tower.location.x + " " + tower.location.y + ")");
-                    rc.attack(tower.location);
-                }
 
         }
 

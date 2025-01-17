@@ -68,13 +68,13 @@ public class RobotPlayer {
                     // Oh no! It looks like we did something illegal in the Battlecode world. You should
                     // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                     // world. Remember, uncaught exceptions cause your robot to explode!
-                    // System.out.println("GameActionException");
+                    // //.out.println("GameActionException");
                     e.printStackTrace();
 
                 } catch (Exception e) {
                     // Oh no! It looks like our code tried to do something bad. This isn't a
                     // GameActionException, so it's more likely to be a bug in our code.
-                    // System.out.println("Exception");
+                    // //.out.println("Exception");
                     e.printStackTrace();
 
                 } finally {
@@ -110,13 +110,13 @@ public class RobotPlayer {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
-                // System.out.println("GameActionException");
+                // //.out.println("GameActionException");
                 e.printStackTrace();
 
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
-                // System.out.println("Exception");
+                // //.out.println("Exception");
                 e.printStackTrace();
 
             } finally {
@@ -192,7 +192,7 @@ public class RobotPlayer {
     //     if (closestTower != null) {
     //         Direction dirToEnemy = myLocation.directionTo(closestTower);
     //         rc.setIndicatorString("Direction: " + dirToEnemy);
-    //         System.out.println("Direction: " + dirToEnemy);
+    //         //.out.println("Direction: " + dirToEnemy);
     //         // Move towards the enemy tower
     //         if (rc.canMove(dirToEnemy)) {
     //             rc.move(dirToEnemy);

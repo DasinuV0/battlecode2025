@@ -193,7 +193,7 @@ public class Mopper extends Robot {
             for (RobotInfo robot : nearbyRobots)
                 if (rc.canAttack(robot.location)){
                     rc.attack(robot.location);
-                    System.out.println("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y);
+                    //.out.println("defend tower: attack enemy bot at: " + robot.location.x + " " + robot.location.y);
                 }
         }
 

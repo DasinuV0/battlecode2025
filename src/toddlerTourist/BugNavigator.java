@@ -33,7 +33,7 @@ public class BugNavigator extends Globals {
         }
 
         if (!hasOptions){
-            //System.out.println("bot has no options, just return");
+            ///.out.println("bot has no options, just return");
             return; // do nothing
         }
 
@@ -43,7 +43,7 @@ public class BugNavigator extends Globals {
         // it resets the state and updates minDistanceToTarget.
         int distanceToTarget = distance1d(myLocation, target);
         if (distanceToTarget < minDistanceToTarget) {
-            //System.out.println("A new minDistance is found, resetting to update");
+            ///.out.println("A new minDistance is found, resetting to update");
             reset();
             minDistanceToTarget = distanceToTarget;
         }
@@ -57,7 +57,7 @@ public class BugNavigator extends Globals {
 
         // check if previously visited the same state
         if (!visitedStates.add(getState(target))) {
-            //System.out.println("state has been visited before, resetting");
+            ////.out.println("state has been visited before, resetting");
             reset();
         }
 
@@ -143,21 +143,21 @@ public class BugNavigator extends Globals {
         for (int i = 8; --i >= 0; ) {
             direction = obstacleOnRight ? direction.rotateLeft() : direction.rotateRight();
             if (canMove(direction)) {
-                //System.out.println("Moving with mark in " + direction);
+                ////.out.println("Moving with mark in " + direction);
                 move(direction);
                 return;
             }
 
             MapLocation location = rc.adjacentLocation(direction);
             if (canRotate && !rc.onTheMap(location)) {
-                //System.out.println("can rotate and rc not on map");
+                ////.out.println("can rotate and rc not on map");
                 obstacleOnRight = !obstacleOnRight;
                 followWall(false);
                 return;
             }
 
             if (rc.onTheMap(location) && !rc.sensePassability(location)) {
-                //System.out.println("rc on the map, but this location is an obstacle");
+                ////.out.println("rc on the map, but this location is an obstacle");
                 currentObstacle = location;
             }
         }

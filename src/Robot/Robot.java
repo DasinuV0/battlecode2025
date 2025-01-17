@@ -203,8 +203,21 @@ public class Robot {
     boolean tryToReachTargetLocation() throws GameActionException{
         if (targetLocation.x != (-1)){
             Navigation.Bug1.moveTo(targetLocation);
-            if (rc.getLocation().distanceSquaredTo(targetLocation) < 4 )
+            if (rc.getLocation().distanceSquaredTo(targetLocation) <= 4 )
                 targetLocation = new MapLocation(-1,-1);
+            return true;
+        }
+
+        return false;
+    }
+
+    //override tryToReachTargetLocation, specify the distance to stop 
+    boolean tryToReachTargetLocation(int dist) throws GameActionException{
+        if (rc.getLocation().distanceSquaredTo(targetLocation) > dist){
+            Navigation.Bug1.moveTo(targetLocation);
+            //don't remove targetLocation
+            // if (rc.getLocation().distanceSquaredTo(targetLocation) <= dist)
+                // targetLocation = new MapLocation(-1,-1);
             return true;
         }
 

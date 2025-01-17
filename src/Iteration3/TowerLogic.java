@@ -48,7 +48,7 @@ public class TowerLogic {
 
     public static void run(RobotController rc) throws GameActionException {
         int currentTurn = rc.getRoundNum(); // Get the current game turn
-        //System.out.println("Current Turn: " + currentTurn);
+        ////.out.println("Current Turn: " + currentTurn);
 
         // Determine the game phase
         String gamePhase = determineGamePhase(currentTurn);
@@ -89,7 +89,7 @@ public class TowerLogic {
 
 
     private static void runEarlyGame(RobotController rc) throws GameActionException{
-        //System.out.println("Running Early Game Logic");
+        ////.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
 //        MapLocation nextLoc = rc.getLocation().add(dir);
         int currentTurn = rc.getRoundNum();
@@ -124,7 +124,7 @@ public class TowerLogic {
 //            }
 //
 //        }
-        // System.out.println(rc.getMoney());
+        // //.out.println(rc.getMoney());
         // always spawn a soldier at a random tile first
 
         MapLocation enemyLoc = detectEnemyOnDamage(rc);
@@ -134,6 +134,7 @@ public class TowerLogic {
             isDamagedPatternFound = false;
             isEnemyTowerFound = false;
             saveTurn = 0;
+            rc.setIndicatorString("Defend mode");
         }
         else{ // switch back to default command
             isDefendTower = false;
@@ -147,7 +148,7 @@ public class TowerLogic {
 
 
         if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
-            System.out.println("Currently is a saving turn: " + saveTurn);
+            //.out.println("Currently is a saving turn: " + saveTurn);
             saveTurn--;
             attackNearbyEnemies(rc);
             return;
@@ -157,7 +158,7 @@ public class TowerLogic {
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
-                System.out.println("Spawned Soldier on a random tile");
+                //.out.println("Spawned Soldier on a random tile");
                 randomSoldierSpawnedYet = true;
                 attackNearbyEnemies(rc);
                 return;
@@ -167,31 +168,31 @@ public class TowerLogic {
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 saveTurn = 3;
-                System.out.println("Sent a soldier out to explore: " + targetLoc);
+                //.out.println("Sent a soldier out to explore: " + targetLoc);
             }
             else{
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                    System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
+                    //.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     attackNearbyEnemies(rc);
                     return; // Exit early to avoid setting flag to true
                 }
 
                 // Command the Soldier to stay put
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
-                System.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
+                //.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
                 // return; // Exit early to avoid spawning Soldier in the same turn
             }
 
 
 //            if (!randomSoldierSpawnedYet){
 //                buildRobotOnRandomTile(rc, UnitType.SOLDIER);
-//                System.out.println("Spawned Soldier on a random tile");
+//                //.out.println("Spawned Soldier on a random tile");
 //                randomSoldierSpawnedYet = true;
 //                attackNearbyEnemies(rc);
 //                return;
 //            }
 //
-//            //System.out.println("BACK IN DEFAULT CMD");
+//            ////.out.println("BACK IN DEFAULT CMD");
 //            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
 //            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 //
@@ -207,28 +208,28 @@ public class TowerLogic {
 //            // Spawn Soldier if it hasn't been spawned yet
 //            if (soldierCount < 2){
 //                if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-//                    System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
+//                    //.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
 //                    attackNearbyEnemies(rc);
 //                    return; // Exit early to avoid setting flag to true
 //                }
 //
 //                // Command the Soldier to stay put
 //                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
-//                System.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
+//                //.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
 //                // return; // Exit early to avoid spawning Soldier in the same turn
 //            }
 //
 //            // Spawn Mopper if it hasn't been spawned yet
 //            else if (mopperCount < 1){
 //                if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-//                    System.out.println("No paint tile detected, not spawning mopper dddd");
+//                    //.out.println("No paint tile detected, not spawning mopper dddd");
 //                    attackNearbyEnemies(rc);
 //                    return;
 //                }
 //
 //                // Command the Mopper to stay put
 //                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 1);
-//                System.out.println("Spawned Mopper on a paint tile and commanded it to stay put.");
+//                //.out.println("Spawned Mopper on a paint tile and commanded it to stay put.");
 //                //return; // Exit early to avoid sending movement commands prematurely
 //            }
 //
@@ -236,7 +237,7 @@ public class TowerLogic {
 //            else{
 //                //MapLocation target = new MapLocation(29, 29); // Example target location
 //                sendToLocation(rc); // create random destination to explore using probability
-//                //System.out.println("new randOM loc created");
+//                ////.out.println("new randOM loc created");
 //                // sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, target, UnitType.MOPPER, 1);
 //                //sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
 //                // TODO: add a function to check for how many soldiers
@@ -245,7 +246,7 @@ public class TowerLogic {
 //                if (soldierCount > 1){
 //                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
 //                }
-//                System.out.println("Commanded robots to move to target location:" + targetLoc);
+//                //.out.println("Commanded robots to move to target location:" + targetLoc);
 //            }
         }
         else if (isDefendTower){ // defend mode
@@ -262,24 +263,25 @@ public class TowerLogic {
 
             if (mopperCount >= 2){
                 sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
-                System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
+                //.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
             }
             else{ // try to have 2 moppers defend, if not enough, spawn if can
-                System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
+                //.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                    System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
+                    //.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
                     attackNearbyEnemies(rc);
                     return;
                 }
-                System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
+                //.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
             }
         }
         else if (isEnemyTowerFound){ // attack tower mode
-            System.out.println("Enemy tower found, now preparing robots to attack");
+            //.out.println("Enemy tower found, now preparing robots to attack");
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
             if (soldierCount >= 2){ // send 2 soldiers out
-                System.out.println("Sending out 2 soldiers to attack enemy tower!");
+                //.out.println("Sending out 2 soldiers to attack enemy tower!");
+                rc.setIndicatorString(targetLoc.x + " " + targetLoc.y);
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, 2);
                 isEnemyTowerFound = false;
                 isDefault = true;
@@ -287,17 +289,17 @@ public class TowerLogic {
             }
             else{
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                    System.out.println("No paint tile detected, not spawning soldier");
+                    //.out.println("No paint tile detected, not spawning soldier");
                     attackNearbyEnemies(rc);
                     return;
                 }
 
-                System.out.println("1 Soldier spawned on paint tile, preparing more soldiers...");
+                //.out.println("1 Soldier spawned on paint tile, preparing more soldiers...");
             }
 
         }
         else if (isDamagedPatternFound){ // damage pattern found mode
-            System.out.println("Oh no! Damaged pattern is found!");
+            //.out.println("Oh no! Damaged pattern is found!");
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
@@ -313,7 +315,7 @@ public class TowerLogic {
 
             if (!calledSoldierStayPutYet){
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
-                System.out.println("One soldier is stayed put now");
+                //.out.println("One soldier is stayed put now");
                 calledSoldierStayPutYet = true;
             }
 
@@ -326,18 +328,18 @@ public class TowerLogic {
                 }
 
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                    System.out.println("Not enough paint, not spawning MOPPER");
+                    //.out.println("Not enough paint, not spawning MOPPER");
                     attackNearbyEnemies(rc);
                     return; // Exit early to avoid sending wrong mopper message
                 }
-                System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
+                //.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
                 int currentMopperCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, currentMopperCountAfterSpawn);
             }
             else if (mopperCount >= 2){
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, 2);
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, 1);
-                System.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
+                //.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
                 isDamagedPatternFound = false;
                 calledSoldierStayPutYet = false;
                 calledMoppersStayPutYet = false;
@@ -352,7 +354,7 @@ public class TowerLogic {
 
 
     private static void runMidGame(RobotController rc) throws GameActionException {
-        //System.out.println("Running Mid Game Logic");
+        ////.out.println("Running Mid Game Logic");
 
         // Balance between attacking and expanding
 //        if (rng.nextBoolean()) {
@@ -363,7 +365,7 @@ public class TowerLogic {
     }
 
     private static void runLateGame(RobotController rc) throws GameActionException {
-        //System.out.println("Running Late Game Logic");
+        ////.out.println("Running Late Game Logic");
 
         // Focus on strong units and defending
 //        buildRobot(rc, UnitType.SPLASHER); // Example: Build splashers for AoE attacks
@@ -376,34 +378,34 @@ public class TowerLogic {
 
         if (rc.canBuildRobot(unitType, nextLoc)) {
             rc.buildRobot(unitType, nextLoc);
-            //System.out.println("BUILT A " + unitType);
+            ////.out.println("BUILT A " + unitType);
         }
     }
 
     private static boolean buildRobotOnPaintTile(RobotController rc, UnitType unitType) throws GameActionException {
         for (Direction dir : directions) {
             MapLocation nextLoc = rc.getLocation().add(dir);
-            // System.out.println(nextLoc);
+            // //.out.println(nextLoc);
             // Check if the location is valid for building a robot
             if (rc.canBuildRobot(unitType, nextLoc)){
                 PaintType paintType = rc.senseMapInfo(nextLoc).getPaint();
-                // System.out.println(paintType);
+                // //.out.println(paintType);
                 if (paintType == PaintType.ALLY_PRIMARY){
                     // Ensure the tile is painted with ALLY_PRIMARY
                     rc.buildRobot(unitType, nextLoc);
-                    //System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_PRIMARY + ") at " + nextLoc);
+                    ////.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_PRIMARY + ") at " + nextLoc);
                     return true; // Exit after successfully building the robot
                 }
                 else if (paintType == PaintType.ALLY_SECONDARY){
                     rc.buildRobot(unitType, nextLoc);
-                    //System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_SECONDARY + ") at " + nextLoc);
+                    ////.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_SECONDARY + ") at " + nextLoc);
                     return true; // Exit after successfully building the robot
                 }
             }
         }
 
         // If no valid paint tile is found
-        //System.out.println("FAILED to build " + unitType + ": No valid friendly paint tiles nearby.");
+        ////.out.println("FAILED to build " + unitType + ": No valid friendly paint tiles nearby.");
         return false;
     }
 
@@ -416,7 +418,7 @@ public class TowerLogic {
             MapLocation enemyLoc = enemyRobot.getLocation();
             if (rc.canAttack(enemyLoc)) {
                 rc.attack(enemyLoc); // Attack the enemy.
-                System.out.println("Tower attacked enemy at " + enemyLoc);
+                //.out.println("Tower attacked enemy at " + enemyLoc);
                 break; // Attack one enemy per turn.
             }
         }
@@ -476,7 +478,7 @@ public class TowerLogic {
             if (rc.canSendMessage(allyLoc, messageContent)) {
                 rc.sendMessage(allyLoc, messageContent);
                 sentCount++;
-                System.out.println("Sent message to " + allyLoc + ": " + messageContent);
+                //.out.println("Sent message to " + allyLoc + ": " + messageContent);
 
                 // Stop if we've reached the maximum number of robots
                 if (sentCount >= maxRobots) {
@@ -503,16 +505,16 @@ public class TowerLogic {
             int y = messageContent & 63;       // Extract y-coordinate (bits 0-5)
             int command = (messageContent >> 12); // Extract command (bits 12+)
 
-            System.out.println("Received command: " + command + " for location: (" + x + ", " + y + ")");
-            //System.out.println(targetLoc);
+            //.out.println("Received command: " + command + " for location: (" + x + ", " + y + ")");
+            ////.out.println(targetLoc);
             // Execute actions based on command
             switch (command) {
                 case 9: //
                     break;
                 case 5: // attack tower
-                    System.out.println("Received attack command, checking if tower is free...");
+                    //.out.println("Received attack command, checking if tower is free...");
                     if (isDefault){
-                        System.out.println("Attack tower command received. Now forming the required formation of troops");
+                        //.out.println("Attack tower command received. Now forming the required formation of troops");
                         targetLoc = new MapLocation(x, y);
                         // send 2 soldier : early game
                         isDefault = false;
