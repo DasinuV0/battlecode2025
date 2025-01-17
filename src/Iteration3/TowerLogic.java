@@ -6,6 +6,8 @@ import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 
+import Util.*;
+
 // commands:
 // 1 = stay put
 // 2 = damaged pattern found
