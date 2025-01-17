@@ -6,6 +6,8 @@
 /matches/
 **/build/
 !src/**/build/
+client_version.txt
+engine_version.txt
 
 # Ignore Gradle GUI config
 gradle-app.setting
