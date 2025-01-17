@@ -252,20 +252,25 @@ public class Robot {
         }
     }
 
-    void tryToBuildTower(MapInfo curRuin) throws GameActionException{
+    boolean tryToBuildTower(MapInfo curRuin) throws GameActionException{
         MapLocation targetLoc = curRuin.getMapLocation();
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
+
+        return false;
     }
 
     void tryToRebuildTower() throws GameActionException{
