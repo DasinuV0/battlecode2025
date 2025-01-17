@@ -82,6 +82,8 @@ public class Symmetry {
                 return null;
         }
     }
+
+    
     public static MapLocation[] getLines(RobotController rc, int symmetryType) {
         MapLocation[] symm = getLineEnds(rc, symmetryType);
         MapLocation[] points = new MapLocation[6];
@@ -159,5 +161,16 @@ public class Symmetry {
         if(regionType == 2)
             return new int[]{0, 3};
         return new int[]{1, 2};
+    }
+
+    public static MapLocation getRegionCenter(RobotController rc, int region) {
+        int half_width = rc.getMapWidth() / 2, half_height = rc.getMapHeight() / 2;
+        if(region == 0)
+            return new MapLocation(half_width / 2, half_height + half_height / 2);
+        if(region == 1)
+            return new MapLocation(half_width + half_width / 2, half_height + half_height / 2);
+        if(region == 2)
+            return new MapLocation(half_width / 2, half_height / 2);
+        return new MapLocation(half_width + half_width / 2, half_height / 2);
     }
 }
