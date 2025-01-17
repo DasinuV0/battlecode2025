@@ -45,7 +45,7 @@ public class MidGameLogic extends TowerLogic{
 
         if (isDefault){ // exploration mode
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-            int mopperCount = countUnitInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
 
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
@@ -123,7 +123,7 @@ public class MidGameLogic extends TowerLogic{
                 System.out.println("1 Splasher spawned on paint tile...");
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, targetLoc, UnitType.SPLASHER, 1);
             }
-            else if (soldierCount < 2){
+            if (soldierCount < 2){
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No paint tile detected, not spawning soldier");
                     attackNearbyEnemies(rc);
@@ -133,7 +133,7 @@ public class MidGameLogic extends TowerLogic{
                 System.out.println("1 Soldier spawned on paint tile, preparing more soldiers...");
                 sendMessageToRobots(rc, STAY_PUT_COMMAND, targetLoc, UnitType.SOLDIER, 2);
             }
-            else{ // send 2 soldiers + 1 splasher out
+            if (soldierCount >= 2 && splasherCount >= 1){ // send 2 soldiers + 1 splasher out
                 System.out.println("Sending out 2 soldiers + 1 splasher to attack enemy tower!");
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, 2);
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SPLASHER, 1);
