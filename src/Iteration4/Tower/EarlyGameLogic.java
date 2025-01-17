@@ -41,7 +41,7 @@ public class EarlyGameLogic extends TowerLogic{
 
         if (isDefault){ // exploration mode
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-            int mopperCount = countUnitInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
 
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
