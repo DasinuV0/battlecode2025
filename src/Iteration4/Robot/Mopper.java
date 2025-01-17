@@ -6,6 +6,7 @@ import Navigation.Bug1.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -21,6 +22,7 @@ public class Mopper extends Robot {
     Direction dirToEnemy;
     MapLocation targetTower;
     boolean enemyFound = false;
+    MapLocation tileToclean;
 
     public Mopper(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -75,6 +77,8 @@ public class Mopper extends Robot {
         for (MapInfo tile : nearbyTiles)
             if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null)
                 ruinsFound.add(tile);
+            else if (tileToclean == null && tile.getPaint().isEnemy())
+                tileToclean = tile.getMapLocation();
 
         // someoneNeedPaint();
 
@@ -226,23 +230,37 @@ public class Mopper extends Robot {
                 nearestAllyTower = getNearestAllyTower();
                 // return; just try to build the tower once, so if it's not possible, go to the nearset one
             }
-            int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
-            if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
-                rc.transferPaint(nearestAllyTower, localPaintToTake);
-            else if (nearestAllyTower.x != -1)
+        
+            // int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
+            // if (localPaintToTake != 0 && rc.canTransferPaint(nearestAllyTower, localPaintToTake))
+            //     rc.transferPaint(nearestAllyTower, localPaintToTake);
+            // else if (nearestAllyTower.x != -1)
+            //     Navigation.Bug1.moveTo(nearestAllyTower);
+        
+                     //try to clean enemy tile
+            if (tileToclean != null){
+                    Navigation.Bug1.moveTo(tileToclean);
+                    rc.setIndicatorDot(tileToclean, 0,0,255);
+                    if (tryToPaintAtLoc(tileToclean, PaintType.ENEMY_PRIMARY) || tryToPaintAtLoc(tileToclean, PaintType.ENEMY_SECONDARY))
+                        tileToclean = null;
+            }
+
+            if (!rc.canSendMessage(nearestAllyTower))
                 Navigation.Bug1.moveTo(nearestAllyTower);
+
         }
 
 
         if (exploreMode){
             //if he is not at the destination yet, don't do anything else
-            if (ruinsFound.size() == 0 && tryToReachTargetLocation()){
+            if (tryToReachTargetLocation()){
                 rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
-                return;
             }
             
             //once reached the target loc
             if (lowPaintFlag){
+                //reset target location 
+                targetLocation = new MapLocation(-1,-1);
                 MapLocation nearestAllyPaintTower = getNearestAllyPaintTower();
                 if (nearestAllyPaintTower.x == -1){
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
@@ -260,32 +278,10 @@ public class Mopper extends Robot {
                 return;
             }
 
-            if (ruinsFound.size() > 0){
-                for (MapInfo curRuin : ruinsFound){
-                    tryToMarkPattern(curRuin);
-                    tryToBuildTower(curRuin);
-
-                    //if eneny paint found near the ruin
-                    for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
-                        if (patternTile.getPaint().isEnemy()){
-                            MapLocation newLoc = patternTile.getMapLocation();
-                            Navigation.Bug1.moveTo(newLoc);
-                            rc.setIndicatorDot(newLoc, 0,0,255);
-                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY);
-                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY);
-                        }
-                    }
-                
-                }
-            }
-
-
-            if (enemyTowersPos.size() > 0){
-            //TODO: what to do once an enemy tower is found
-            }
-
             //if there is any robot to heal
             if (!robotToHealQueue.isEmpty()){
+                //reset target location 
+                targetLocation = new MapLocation(-1,-1);
                 MapLocation curr = robotToHealQueue.peek();
                 //if curr is within the vision range && if at curr the robot is gone
                 while(rc.canSenseLocation(curr) && rc.canSenseRobotAtLocation(curr) == false && !robotToHealQueue.isEmpty()){ 
@@ -307,6 +303,73 @@ public class Mopper extends Robot {
                     }
                 }
             }
+
+            if (ruinsFound.size() > 0){
+                //reset target location
+                targetLocation = new MapLocation(-1,-1);
+
+                for (MapInfo curRuin : ruinsFound){
+                    tryToMarkPattern(curRuin);
+                    tryToBuildTower(curRuin);
+
+                    //if eneny paint found near the ruin
+                    for (MapInfo patternTile : rc.senseNearbyMapInfos(curRuin.getMapLocation(), 8)){
+                        if (patternTile.getPaint().isEnemy()){
+                            MapLocation newLoc = patternTile.getMapLocation();
+                            Navigation.Bug1.moveTo(newLoc);
+                            rc.setIndicatorDot(newLoc, 0,0,255);
+                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_PRIMARY);
+                            tryToPaintAtLoc(newLoc, PaintType.ENEMY_SECONDARY);
+                        }
+                    }
+                
+                }
+            }
+
+                            //try to clean enemy tile
+            if (tileToclean != null){
+                //reset target location 
+                targetLocation = new MapLocation(-1,-1);
+                Navigation.Bug1.moveTo(tileToclean);
+                rc.setIndicatorDot(tileToclean, 0,0,255);
+                if (tryToPaintAtLoc(tileToclean, PaintType.ENEMY_PRIMARY) || tryToPaintAtLoc(tileToclean, PaintType.ENEMY_SECONDARY))
+                    tileToclean = null;
+            }
+
+            if (enemyTowersPos.size() > 0){
+                //Done: what to do once an enemy tower is found
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x == -1){
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
+                    return;
+                }
+                //reset the target location
+                targetLocation = new MapLocation(-1,-1);
+                //go to the nearest ally tower 
+                Navigation.Bug1.moveTo(nearestAllyTower);
+                rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+                System.out.println("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+
+
+                if (rc.canSendMessage(nearestAllyTower)){
+                    MapLocation firstElement = new MapLocation(0, 0);
+                    // Get an iterator
+                    Iterator<MapLocation> iterator = enemyTowersPos.iterator();
+                    if (iterator.hasNext()) {
+                        firstElement = iterator.next();
+                        // Remove the first element
+                        iterator.remove();
+                    }
+                    rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.ENEMYTOWERFOUND,firstElement)); // DONE: add first firstElement to the messag
+                    //.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
+                    
+                    rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                    rc.setIndicatorString("message sent: enemy tower found");
+                }
+                return;
+            }
+
 
             // Move randomly if no objective.
             Direction dir = directions[rng.nextInt(directions.length)];
