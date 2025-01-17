@@ -22,7 +22,7 @@ public class Robot {
         static final int EXPLORE = 3;
         static final int GOTODEFEND = 4;
         static final int ATTACKTOWER = 5;
-        static final int ENEMYTOWERFOUND = 6;
+        static final int ENEMYTOWERFOUND = 5;
         static final int RUINFOUND = 7;
         
         // static final int MOVETOSPECIFICLOC = 6;
@@ -59,17 +59,17 @@ public class Robot {
 
     static Set<MapLocation> paintTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> moneyTowersPos = new  LinkedHashSet<>();
+    static Set<MapLocation> enemyTowersPos = new LinkedHashSet<>();
     
     //general flags
     static boolean lowPaintFlag;
     static boolean friendMopperFound;
-    static boolean enemyTowerFound;
-    Set<MapInfo> ruinsFound;
+    static Set<MapInfo> ruinsFound;
     static MapLocation emptyTile;
     static Set<MapLocation> ruinWithPatternDamaged;
     static boolean isAttackSplasher;
     static boolean isDefenseSplasher;
-   
+
    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
     static boolean exploreMode;
@@ -103,7 +103,6 @@ public class Robot {
     void resetFlags(){
         lowPaintFlag = false;
         ruinsFound = new HashSet<>();
-        enemyTowerFound = false;
         emptyTile = new MapLocation(-1,-1);
         friendMopperFound = false;
     }
@@ -206,8 +205,21 @@ public class Robot {
     boolean tryToReachTargetLocation() throws GameActionException{
         if (targetLocation.x != (-1)){
             Navigation.Bug1.moveTo(targetLocation);
-            if (rc.getLocation().distanceSquaredTo(targetLocation) < 4 )
+            if (rc.getLocation().distanceSquaredTo(targetLocation) <= 4 )
                 targetLocation = new MapLocation(-1,-1);
+            return true;
+        }
+
+        return false;
+    }
+
+    //override tryToReachTargetLocation, specify the distance to stop 
+    boolean tryToReachTargetLocation(int dist) throws GameActionException{
+        if (rc.getLocation().distanceSquaredTo(targetLocation) > dist){
+            Navigation.Bug1.moveTo(targetLocation);
+            //don't remove targetLocation
+            // if (rc.getLocation().distanceSquaredTo(targetLocation) <= dist)
+                // targetLocation = new MapLocation(-1,-1);
             return true;
         }
 
@@ -387,7 +399,7 @@ public class Robot {
             }
         return bestLocation != null ? bestLocation : new MapLocation(-1, -1);
     }
-    
+
     boolean isPaintTower(UnitType tower){
         return tower == UnitType.LEVEL_ONE_PAINT_TOWER || tower == UnitType.LEVEL_TWO_PAINT_TOWER || tower == UnitType.LEVEL_THREE_PAINT_TOWER;
     }
