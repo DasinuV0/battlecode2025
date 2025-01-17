@@ -60,7 +60,9 @@ public class Robot {
     static Set<MapLocation> paintTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> moneyTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> enemyTowersPos = new LinkedHashSet<>();
+
     MapLocation originPos; //this saves the position before lowpaintFlag == true
+    MapLocation buildingTower; //this saves the position of the tower that we are currently building
 
     //general flags
     static boolean lowPaintFlag;
@@ -252,9 +254,37 @@ public class Robot {
             rc.markTowerPattern(towerToBuild, targetLoc);
         }
     }
+    //override
+    void tryToMarkPattern(MapLocation targetLoc) throws GameActionException{
+        Direction dir = rc.getLocation().directionTo(targetLoc);
+
+        // Mark the pattern we need to draw to build a tower here if we haven't already.
+        MapLocation shouldBeMarked = targetLoc.subtract(dir);
+        UnitType towerToBuild = getTowerToBuild();
+        //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
+        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, targetLoc)){
+            //DONE: which tower should the bot build?
+            rc.markTowerPattern(towerToBuild, targetLoc);
+        }
+    }
 
     void tryToBuildTower(MapInfo curRuin) throws GameActionException{
         MapLocation targetLoc = curRuin.getMapLocation();
+        if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
+            rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
+            rc.setTimelineMarker("Tower built", 0, 255, 0);
+        }
+        if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc)){
+            rc.completeTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc);
+            rc.setTimelineMarker("Tower built", 0, 255, 0);
+        }
+        if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc)){
+            rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
+            rc.setTimelineMarker("Tower built", 0, 255, 0);
+        }
+    }
+    //override  
+    void tryToBuildTower(MapLocation targetLoc) throws GameActionException{
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
@@ -334,6 +364,7 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 removePatterMode = true;
                 targetLocation = new MapLocation(x,y); 
+                buildingTower = new MapLocation(x,y);
             }
             else if (command == OptCode.GOTODEFEND){
                 int y = m.getBytes() & 63;
