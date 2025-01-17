@@ -65,6 +65,8 @@ public class Mopper extends Robot {
                 robotToHealQueue.add(robot.location);
                 robotToHealSet.add(robot.location);
             }
+            if (robot.team != rc.getTeam() && robot.type.isTowerType())
+                enemyTowersPos.add(robot.location);
         }
         
         // Sense information about all visible nearby tiles.
@@ -278,7 +280,7 @@ public class Mopper extends Robot {
             }
 
 
-            if (enemyTowerFound){
+            if (enemyTowersPos.size() > 0){
             //TODO: what to do once an enemy tower is found
             }
 
