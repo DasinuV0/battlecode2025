@@ -45,6 +45,8 @@ public class LateGameLogic extends TowerLogic{
 
         if (isDefault){ // exploration mode
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+            int mopperCount = countUnitInTowerRangeOnPaint(rc, UnitType.MOPPER);
+
             if (!randomSoldierSpawnedYet){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
                 System.out.println("Spawned Soldier on a random tile");
@@ -53,13 +55,21 @@ public class LateGameLogic extends TowerLogic{
                 return;
             }
 
-            if (soldierCount >= 2){
+            if (mopperCount >= 2){ // send them out, but keep one
+                sendToLocation(rc);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
+                saveTurn = 3;
+                System.out.println("Sent a soldier out to explore: " + targetLoc);
+            }
+
+            if (soldierCount >= 2){ // send them out, but keep one
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 saveTurn = 3;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
-            else{
+
+            if (soldierCount < 1){ // send them out, but keep one
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     attackNearbyEnemies(rc);
