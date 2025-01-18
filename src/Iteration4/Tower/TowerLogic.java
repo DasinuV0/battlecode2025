@@ -41,7 +41,8 @@ public class TowerLogic {
     static final int MOVE_TO_DEFEND_TOWER_COMMAND = 4;
     static final int MOVE_TO_ATTACK_TOWER_COMMAND = 5;
     static final int MOVE_TO_ATTACK_USING_SPLASHER_COMMAND = 8;
-    static final int MOVE_TO_DEFEND_USING_SPLASHER_COMAMND = 9;
+    static final int MOVE_TO_DEFEND_USING_SPLASHER_COMMAND = 9;
+    //static final int MOVE_TO_PAINT_LARGE_REGION_USING_SPLASHER_COMMAND = 10;
 
     static boolean isDefault = true;
     static boolean isRuinFound = false;
@@ -52,6 +53,7 @@ public class TowerLogic {
     static boolean isNeedMopper = false;
     static boolean isAttackSplasherNeeded = false;
     static boolean isDefendSplasherNeeded = false;
+    static boolean isLargeRegionWithEnemyPaint = false;
     static int saveTurn = 0;
 
     public static void run(RobotController rc) throws GameActionException {
@@ -460,6 +462,14 @@ public class TowerLogic {
             //System.out.println(targetLoc);
             // Execute actions based on command
             switch (command) {
+                case 10: // attack region with large amount of paint
+                    if (determineGamePhase(currentTurn) != "EARLY_GAME" && isDefault){
+                        System.out.println("Large region with paint command received. Now forming the required formation of troops");
+                        targetLoc = new MapLocation(x, y);
+                        // send 2 soldier : early game
+                        isDefault = false;
+                        isLargeRegionWithEnemyPaint = true;
+                    }
                 case 8: // attack Splasher
                     if (determineGamePhase(currentTurn) != "EARLY_GAME" && isDefault){
                         System.out.println("Attack splasher command received. Now forming the required formation of troops");
