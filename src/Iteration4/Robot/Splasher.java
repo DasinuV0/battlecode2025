@@ -31,7 +31,7 @@ public class Splasher extends Robot {
 
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots)
+        for (RobotInfo robot : nearbyRobots) {
             //check if our paint/money tower is found
             if (isPaintTower(robot.type) && robot.team == rc.getTeam())
                     paintTowersPos.add(robot.location);
@@ -39,6 +39,7 @@ public class Splasher extends Robot {
                     moneyTowersPos.add(robot.location);
             else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
+        }
     }
 
     public void endTurn() throws GameActionException {
@@ -80,8 +81,7 @@ public class Splasher extends Robot {
                     rc.move(dir);
                 }                
             }
-        }
-        
+        }        
         
         // if more than 3 tiles empty -> attack
         int emptyTiles = calculateEmptyTiles(rc);
@@ -119,8 +119,7 @@ public class Splasher extends Robot {
                     rc.move(dir);
                 }                
             }
-        }
-        
+        }        
         
         // if more than 3 tiles empty -> attack
         int emptyTiles = calculateEmptyTiles(rc);

@@ -73,7 +73,7 @@
          switch (rc.getType()){
              case SOLDIER: rb = new Soldier(rc); break;
              case MOPPER: rb = new Mopper(rc); break;
-             case SPLASHER: rb = new Soldier(rc); break;
+             case SPLASHER: rb = new Splasher(rc); break;
          }
       
          while(true){
