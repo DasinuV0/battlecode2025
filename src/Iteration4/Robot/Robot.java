@@ -27,6 +27,9 @@ public class Robot {
         
         // static final int MOVETOSPECIFICLOC = 6;
         // static final int ENGAGEMENT = 7;
+
+        static final int ATTACKSPLASHER = 8;
+        static final int DEFENCESPLASHER = 9;
     }   
 
     /**
@@ -376,7 +379,17 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 attackMode = true;
                 targetLocation = new MapLocation(x,y);   
-            }
+            }else if (command == OptCode.ATTACKSPLASHER) {
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                isAttackSplasher = true;
+                targetLocation = new MapLocation(x,y);
+            } else if (command == OptCode.DEFENCESPLASHER) {
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                isDefenseSplasher = true;
+                targetLocation = new MapLocation(x,y);
+            } 
         }
     }
 
