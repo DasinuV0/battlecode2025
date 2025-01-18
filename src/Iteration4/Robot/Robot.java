@@ -30,6 +30,7 @@ public class Robot {
 
         static final int ATTACKSPLASHER = 8;
         static final int DEFENCESPLASHER = 9;
+        static final int SENDPAINTZONE = 10;
     }   
 
     /**
@@ -46,6 +47,11 @@ public class Robot {
     static final int PAINTTOTAKE = -60;
     static final int PAINTTOGIVE = 60;
     static final Random rng = new Random(6147);
+
+    /*
+     * Game phases
+     */
+    static final int EARLY_GAME_TURNS = 200;
 
     static final Direction[] directions = {
             Direction.NORTH,
