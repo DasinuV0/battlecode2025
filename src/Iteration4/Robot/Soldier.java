@@ -96,10 +96,15 @@ public class Soldier extends Robot {
     }
 
     public static void paintSRP(RobotController rc, MapLocation center) throws GameActionException {
-        if (rc.canAttack(center))
-            rc.attack(center, true);
-        else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY)
+        if (rc.canAttack(center)) {
+            if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
+                rc.attack(center, true);
+        }
+        else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
             Navigation.Bug2.move(center);
+            if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
+                rc.attack(center, true);
+        }
 
         int[][] attackPositions = {
                 {2, 2, 1}, {1, 2, 1}, {2, 1, 1},  // Quadrant 1
@@ -112,10 +117,25 @@ public class Soldier extends Robot {
         };
         for (int[] pos : attackPositions) {
             MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
-            if (rc.canAttack(target))
-                rc.attack(target, pos[2] == 1);
-            else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY )
+            if (rc.canAttack(target)) {
+                boolean paintType = false;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
+                    paintType = true;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                    paintType = false;
+                if(paintType != (pos[2] == 1))
+                    rc.attack(target, pos[2] == 1);
+            }
+            else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
                 Navigation.Bug2.move(target);
+                boolean paintType = false;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
+                    paintType = true;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                    paintType = false;
+                if(paintType != (pos[2] == 1))
+                    rc.attack(target, pos[2] == 1);
+            }
         }
     }
 
