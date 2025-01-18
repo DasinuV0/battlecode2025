@@ -364,9 +364,9 @@ public class Soldier extends Robot {
             // if Middle game, look for enemy paint zone and send message to tower
             if (rc.getRoundNum() > EARLY_GAME_TURNS) {
                 MapLocation enemyPaintZone = getEnemyPaintZone(rc);
-                if (enemyPaintZone.x != -1) {
+                if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1) {
                     MapLocation nearestAllyTower = getNearestAllyTower();
-                    if (nearestAllyTower.x != -1) {
+                    if (nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
                         Navigation.Bug2.move(nearestAllyTower);
 
                         int messageContent = encodeMessage(10, enemyPaintZone);
