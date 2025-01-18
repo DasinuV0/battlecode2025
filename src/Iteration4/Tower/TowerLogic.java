@@ -357,6 +357,46 @@ public class TowerLogic {
         return unitCount;
     }
 
+    public static void checkAndUpgradeTowers(RobotController rc, int chipThreshold) throws GameActionException {
+        // Ensure this robot is a tower
+        if (!rc.getType().isTowerType()){
+            return; // Exit if not a tower
+        }
+
+        // Get the current money of the team
+        int currentMoney = rc.getMoney();
+
+        // Check if the chip threshold is met
+        if (currentMoney < chipThreshold){
+            return; // Not enough money, so exit
+        }
+
+        // Get the current tower's location
+        MapLocation myLocation = rc.getLocation();
+
+        // Get the next level for this tower
+        UnitType nextTowerType = rc.getType().getNextLevel();
+
+        // Prioritize paint towers
+        if (isPaintTower(nextTowerType) && rc.canUpgradeTower(myLocation)){
+            rc.upgradeTower(myLocation);
+            System.out.println("Paint Tower upgraded to: " + nextTowerType + " at " + myLocation);
+            return;
+        }
+
+        // Upgrade the tower if it's not a paint tower or the next level isn't paint-related
+        if (rc.canUpgradeTower(myLocation)){
+            rc.upgradeTower(myLocation);
+            System.out.println("Tower upgraded to: " + nextTowerType + " at " + myLocation);
+        }
+    }
+
+    // Helper function to check if a UnitType is a paint tower
+    private static boolean isPaintTower(UnitType type){
+        return type.toString().contains("PAINT_TOWER");
+    }
+
+
 
     public static int sendMessageToRobots(RobotController rc, int command, MapLocation targetLoc, UnitType robotType, int maxRobots) throws GameActionException {
         int x = targetLoc != null ? targetLoc.x : 63; // Default x-coordinate if no target (out of bounds value)
