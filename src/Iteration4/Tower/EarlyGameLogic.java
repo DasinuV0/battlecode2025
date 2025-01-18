@@ -58,14 +58,14 @@ public class EarlyGameLogic extends TowerLogic{
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
-            if (soldierCount >= 2){ // send them out, but keep one
+            else if (soldierCount >= 2){ // send them out, but keep one
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 saveTurn = 3;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
-            if (soldierCount < 1){ // if none, spawn one
+            else { // if none, spawn one
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     attackNearbyEnemies(rc);
