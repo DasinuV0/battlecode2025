@@ -95,6 +95,26 @@ public class Soldier extends Robot {
        
     }
 
+    public static void paintSRP(RobotController rc, MapLocation center) throws GameActionException {
+        if (rc.canAttack(center))
+            rc.attack(center, true);
+
+        int[][] attackPositions = {
+                {2, 2, 1}, {1, 2, 1}, {2, 1, 1},  // Quadrant 1
+                {-2, 2, 1}, {-1, 2, 1}, {-2, 1, 1}, // Quadrant 2
+                {-2, -2, 1}, {-1, -2, 1}, {-2, -1, 1}, // Quadrant 3
+                {2, -2, 1}, {1, -2, 1}, {2, -1, 1}, // Quadrant 4
+                {-1, 0, 0}, {-2, 0, 0}, {1, 0, 0}, {2, 0, 0}, // Horizontal
+                {0, -1, 0}, {0, -2, 0}, {0, 1, 0}, {0, 2, 0}, // Vertical
+                {1, 1, 0}, {-1, 1, 0}, {-1, -1, 0}, {1, -1, 0} // Diagonal
+        };
+        for (int[] pos : attackPositions) {
+            MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
+            if (rc.canAttack(target))
+                rc.attack(target, pos[2] == 1);
+        }
+    }
+
     //Core turn method
     public void runTurn() throws GameActionException {  
         // if (isSuicideRobot == 1) {
