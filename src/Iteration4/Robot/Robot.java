@@ -240,7 +240,7 @@ public class Robot {
 
     UnitType getTowerToBuild() throws GameActionException{
         if (true){//TODO: if i'm in the region 0,1
-            if (rc.getNumberTowers() % 2 == 0)
+            if (rc.getNumberTowers() % 2 == 1)
                 return UnitType.LEVEL_ONE_MONEY_TOWER;
             else
                 return UnitType.LEVEL_ONE_PAINT_TOWER;
@@ -258,7 +258,7 @@ public class Robot {
         MapLocation shouldBeMarked = curRuin.getMapLocation().subtract(dir);
         UnitType towerToBuild = getTowerToBuild();
         //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
-        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, targetLoc)){
+        if (rc.canSenseLocation(shouldBeMarked) && rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, targetLoc)){
             //DONE: which tower should the bot build?
             rc.markTowerPattern(towerToBuild, targetLoc);
         }
@@ -271,7 +271,7 @@ public class Robot {
         MapLocation shouldBeMarked = targetLoc.subtract(dir);
         UnitType towerToBuild = getTowerToBuild();
         //if ruin is found, but pattern is not marked                    && just double check we can mark the tower pattern
-        if (rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, targetLoc)){
+        if (rc.canSenseLocation(shouldBeMarked) && rc.senseMapInfo(shouldBeMarked).getMark() == PaintType.EMPTY && rc.canMarkTowerPattern(towerToBuild, targetLoc)){
             //DONE: which tower should the bot build?
             rc.markTowerPattern(towerToBuild, targetLoc);
         }

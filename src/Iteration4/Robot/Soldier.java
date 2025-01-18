@@ -169,7 +169,7 @@ public class Soldier extends Robot {
 
         else if (exploreMode){
             rc.setIndicatorString("explore mode");
-            if ((rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
+            if (lowPaintFlag && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
                 //paint while traveling
                 MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
                 if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
@@ -178,6 +178,41 @@ public class Soldier extends Robot {
                 }
                 rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
 
+            }
+
+            if (lowPaintFlag){
+                if (originPos == null)
+                    originPos = rc.getLocation();
+                rc.setIndicatorString("need healing");
+                MapLocation nearestAllyTower = getNearestAllyPaintTower();
+                if (nearestAllyTower.x == -1)
+                    nearestAllyTower = getNearestAllyTower();
+
+                if (nearestAllyTower.x == -1){
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
+                    return;
+                }                
+
+
+                //if i can get paint from nearestAllyTower
+                int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
+                if (rc.canTransferPaint(nearestAllyTower, localPaintToTake)){
+                    rc.transferPaint(nearestAllyTower, localPaintToTake);
+                    targetLocation = originPos;
+                    originPos = null;
+                }
+                // if bot is not in the vision range and a mopper is nearby
+                else if (!rc.canSenseLocation(nearestAllyTower) && friendMopperFound){
+                    return;//stop here and wait for the mopper to give paint
+                }
+                else{
+                    Navigation.Bug2.move(nearestAllyTower);
+                    // if (rc.canSendMessage(nearestAllyTower))
+                        // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
+                    rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
+                }
+                return;
             }
 
             //if in past round the bot found some tiles (which is part of a pattern) are paint by enemy
@@ -245,40 +280,7 @@ public class Soldier extends Robot {
                 return;
             }
 
-            if (lowPaintFlag){
-                if (originPos == null)
-                    originPos = rc.getLocation();
-                rc.setIndicatorString("need healing");
-                MapLocation nearestAllyTower = getNearestAllyPaintTower();
-                if (nearestAllyTower.x == -1)
-                    nearestAllyTower = getNearestAllyTower();
-
-                if (nearestAllyTower.x == -1){
-                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
-                    tryToRebuildTower();
-                    return;
-                }                
-
-
-                //if i can get paint from nearestAllyTower
-                int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
-                if (rc.canTransferPaint(nearestAllyTower, localPaintToTake)){
-                    rc.transferPaint(nearestAllyTower, localPaintToTake);
-                    targetLocation = originPos;
-                    originPos = null;
-                }
-                // if bot is not in the vision range and a mopper is nearby
-                else if (!rc.canSenseLocation(nearestAllyTower) && friendMopperFound){
-                    return;//stop here and wait for the mopper to give paint
-                }
-                else{
-                    Navigation.Bug2.move(nearestAllyTower);
-                    // if (rc.canSendMessage(nearestAllyTower))
-                        // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
-                    rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
-                }
-                return;
-            }
+        
 
             //if bot already started to build a tower, try to complete that first
             if (buildingTower != null){
@@ -287,7 +289,8 @@ public class Soldier extends Robot {
                 tryToMarkPattern(buildingTower);
 
                 // Fill in any spots in the pattern with the appropriate paint.
-                for (MapInfo patternTile : rc.senseNearbyMapInfos(buildingTower, 8)){
+                MapInfo[] nearbyTiles = rc.senseNearbyMapInfos(buildingTower, 8);
+                for (MapInfo patternTile : nearbyTiles){
                         rc.setIndicatorDot(patternTile.getMapLocation(), 25,14,24);
                     //if there is a pattern and it's paint by enemy
                     if (patternTile.getPaint().isEnemy()){
@@ -361,9 +364,9 @@ public class Soldier extends Robot {
             // if Middle game, look for enemy paint zone and send message to tower
             if (rc.getRoundNum() > EARLY_GAME_TURNS) {
                 MapLocation enemyPaintZone = getEnemyPaintZone(rc);
-                if (enemyPaintZone != new MapLocation(-1, -1)) {
+                if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1) {
                     MapLocation nearestAllyTower = getNearestAllyTower();
-                    if (nearestAllyTower != new MapLocation(-1, -1)) {
+                    if (nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
                         Navigation.Bug2.move(nearestAllyTower);
 
                         int messageContent = encodeMessage(10, enemyPaintZone);
