@@ -30,12 +30,13 @@ public class EarlyGameLogic extends TowerLogic{
         }
 
         if (!isDefendTower) handleMessages(rc);
+        attackNearbyEnemies(rc);
 
 
         if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
             System.out.println("Currently is a saving turn: " + saveTurn);
             saveTurn--;
-            attackNearbyEnemies(rc);
+            //attackNearbyEnemies(rc);
             return;
         }
 
@@ -43,24 +44,24 @@ public class EarlyGameLogic extends TowerLogic{
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
 
-            if (!randomSoldierSpawnedYet){
+            if (!randomSoldierSpawnedYet && currentTurn < 10){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
                 System.out.println("Spawned Soldier on a random tile");
                 randomSoldierSpawnedYet = true;
-                attackNearbyEnemies(rc);
+                //attackNearbyEnemies(rc);
                 return;
             }
 
-            if (mopperCount >= 2){ // send them out, but keep one
+            if (mopperCount >= 1){ // send them out
                 sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
                 saveTurn = 3;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
-            else if (soldierCount >= 2){ // send them out, but keep one
+            else if (soldierCount >= 1){ // send them out, but keep one
                 sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
                 saveTurn = 3;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
@@ -68,12 +69,14 @@ public class EarlyGameLogic extends TowerLogic{
             else { // if none, spawn one
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
-                    attackNearbyEnemies(rc);
+                    //attackNearbyEnemies(rc);
                     return; // Exit early to avoid setting flag to true
                 }
 
                 // Command the Soldier to stay put
-                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
+                sendToLocation(rc);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                saveTurn = 3;
                 System.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
                 // return; // Exit early to avoid spawning Soldier in the same turn
             }
@@ -85,9 +88,9 @@ public class EarlyGameLogic extends TowerLogic{
             // while defending, if i have so many soldiers, just send them out
             // since they are pointless in defending, but leave some for other tasks when
             // defending is completed
-            if (soldierCount >= 2){
+            if (soldierCount >= 1){
                 sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
             }
 
             if (mopperCount >= 2){
@@ -98,7 +101,7 @@ public class EarlyGameLogic extends TowerLogic{
                 System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                     System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
-                    attackNearbyEnemies(rc);
+                    //attackNearbyEnemies(rc);
                     return;
                 }
                 System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
@@ -108,9 +111,9 @@ public class EarlyGameLogic extends TowerLogic{
             System.out.println("Enemy tower found, now preparing robots to attack");
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
-            if (soldierCount >= 2){ // send 2 soldiers out
+            if (soldierCount >= 1){ // send at least 1 soldier out
                 System.out.println("Sending out 2 soldiers to attack enemy tower!");
-                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, 2);
+                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
                 isEnemyTowerFound = false;
                 isDefault = true;
                 saveTurn = 5;
@@ -118,11 +121,15 @@ public class EarlyGameLogic extends TowerLogic{
             else{
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No paint tile detected, not spawning soldier");
-                    attackNearbyEnemies(rc);
+                    //attackNearbyEnemies(rc);
                     return;
                 }
 
-                System.out.println("1 Soldier spawned on paint tile, preparing more soldiers...");
+                System.out.println("1 Soldier spawned on paint tile, sending out to attack");
+                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
+                isEnemyTowerFound = false;
+                isDefault = true;
+                saveTurn = 5;
             }
 
         }
@@ -132,51 +139,57 @@ public class EarlyGameLogic extends TowerLogic{
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
             // save resources if i have the unit already
-            if (mopperCount >= 2 && soldierCount >= 1){ // dont spawn any if we have the bots already
-                sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, 2);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
-                attackNearbyEnemies(rc);
+            if (mopperCount >= 1 && soldierCount >= 1){ // dont spawn any if we have the bots already
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
+                isDamagedPatternFound = false;
+                isDefault = true;
+                //attackNearbyEnemies(rc);
                 saveTurn = 5;
                 return;
             }
-
-            if (!calledSoldierStayPutYet){
-                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
-                System.out.println("One soldier is stayed put now");
-                calledSoldierStayPutYet = true;
+            else if (soldierCount >= 1){
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, soldierCount);
             }
+
+//            if (!calledSoldierStayPutYet){
+//                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
+//                System.out.println("One soldier is stayed put now");
+//                calledSoldierStayPutYet = true;
+//            }
 
 //            int mopperCount = sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, 2);
 
-            if (mopperCount < 2){
-                if (!calledMoppersStayPutYet){
-                    sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, mopperCount);
-                    if (mopperCount > 0) calledMoppersStayPutYet = true;
-                }
+            if (mopperCount < 1){
+//                if (!calledMoppersStayPutYet){
+//                    sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, mopperCount);
+//                    if (mopperCount > 0) calledMoppersStayPutYet = true;
+//                }
 
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                     System.out.println("Not enough paint, not spawning MOPPER");
-                    attackNearbyEnemies(rc);
+                    //attackNearbyEnemies(rc);
                     return; // Exit early to avoid sending wrong mopper message
                 }
                 System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
                 int currentMopperCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.MOPPER, currentMopperCountAfterSpawn);
-            }
-            else if (mopperCount >= 2){
-                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, 2);
-                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, 1);
-                System.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
-                isDamagedPatternFound = false;
-                calledSoldierStayPutYet = false;
-                calledMoppersStayPutYet = false;
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, currentMopperCountAfterSpawn);
                 isDefault = true;
+                isDamagedPatternFound = false;
                 saveTurn = 5;
             }
+//            else if (mopperCount >= 2){
+//                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, 2);
+//                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, 1);
+//                System.out.println("soldier + 2 moppers combo ready, sending out to " + targetLoc);
+//                isDamagedPatternFound = false;
+//                calledSoldierStayPutYet = false;
+//                calledMoppersStayPutYet = false;
+//                isDefault = true;
+//                saveTurn = 5;
+//            }
 
         }
 
-        attackNearbyEnemies(rc);
     }
 }
