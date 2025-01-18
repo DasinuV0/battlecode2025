@@ -18,6 +18,8 @@ import battlecode.common.*;
 
 public class Splasher extends Robot {
 
+    static boolean locationReached = false;
+
     public Splasher(RobotController _rc) throws GameActionException {
         super(_rc);
 
@@ -45,32 +47,39 @@ public class Splasher extends Robot {
 
     public void runTurn() throws GameActionException {
         // isAttackSplasher | isDefenseSplasher | lowPaintFlag
-        if (isAttackSplasher) {
+         if (lowPaintFlag) {
+            runLowPaintSplasher();
+        } else if (isAttackSplasher) {
             runAttackSplasher();
         } else if (isDefenseSplasher) {
             runDefenseSplasher();
-        } else if (lowPaintFlag) {
-            runLowPaintSplasher();
         }
 
         
     }
 
     void runAttackSplasher() throws GameActionException {
-        // A=0,B=1,C=2,D=3
-        int zone = Symmetry.getRegion(rc, rc.getLocation());
-        int[] adjacentRegions = Symmetry.getAdjacentRegions(rc, rc.getLocation());
-
-        Navigation.Bug2.move(targetLocation);
-        // go to other regions
+        // A=0,B=1,C=2,D=3       
+        if (!locationReached) {            
+            if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
+                locationReached = true;
+            }
+            Navigation.Bug2.move(targetLocation);
+        } else {
+            // stay in the same region
+            int zone = Symmetry.getRegion(rc, targetLocation);
+            int currZone = Symmetry.getRegion(rc, rc.getLocation());
+            if (currZone != zone) {
+                Navigation.Bug2.move(targetLocation);
+            }
+        }
         
-        MapLocation center = Symmetry.getRegionCenter(rc, adjacentRegions[0]);            
-        Navigation.Bug2.move(center);
         
         // if more than 3 tiles empty -> attack
         int emptyTiles = calculateEmptyTiles(rc);
 
         if (emptyTiles > 3) {
+
             // attack
             if (rc.canAttack(rc.getLocation())) {
                 rc.attack(rc.getLocation());
@@ -82,12 +91,31 @@ public class Splasher extends Robot {
 
     void runDefenseSplasher() throws GameActionException {
         // A=0,B=1,C=2,D=3
-        int zone = Symmetry.getRegion(rc, rc.getLocation());
-        int[] adjacentRegions = Symmetry.getAdjacentRegions(rc, rc.getLocation());
-
+        if (!locationReached) {            
+            if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
+                locationReached = true;
+            }
+            Navigation.Bug2.move(targetLocation);
+        } else {
+            // stay in the same region
+            int zone = Symmetry.getRegion(rc, targetLocation);
+            int currZone = Symmetry.getRegion(rc, rc.getLocation());
+            if (currZone != zone) {
+                Navigation.Bug2.move(targetLocation);
+            }
+        }
         
-        // stay in the same region
+        
         // if more than 3 tiles empty -> attack
+        int emptyTiles = calculateEmptyTiles(rc);
+
+        if (emptyTiles > 3) {
+            
+            // attack
+            if (rc.canAttack(rc.getLocation())) {
+                rc.attack(rc.getLocation());
+            }
+        }
     }
 
     void runLowPaintSplasher() throws GameActionException {
