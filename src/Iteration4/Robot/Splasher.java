@@ -169,7 +169,7 @@ public class Splasher extends Robot {
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(4);
         int emptyTiles = 0;
         for (MapInfo mapInfo : surrMapInfos) {
-            if (mapInfo.getPaint().isEnemy()) {
+            if (!mapInfo.getPaint().isAlly()) {
                 rc.setIndicatorDot(mapInfo.getMapLocation(), 255, 255, 0);
                 emptyTiles++;
             }
