@@ -165,7 +165,7 @@ public class Splasher extends Robot {
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
         int emptyTiles = 0;
         for (MapInfo mapInfo : surrMapInfos) {
-            if (mapInfo.getPaint() != PaintType.ALLY_PRIMARY && mapInfo.getPaint() != PaintType.ALLY_SECONDARY) {
+            if (!mapInfo.getPaint().isAlly()) {
                 emptyTiles++;
             }
         }
