@@ -98,7 +98,7 @@ public class Soldier extends Robot {
     public static void paintSRP(RobotController rc, MapLocation center) throws GameActionException {
         if (rc.canAttack(center))
             rc.attack(center, true);
-        else
+        else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY)
             Navigation.Bug2.move(center);
 
         int[][] attackPositions = {
@@ -114,7 +114,7 @@ public class Soldier extends Robot {
             MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
             if (rc.canAttack(target))
                 rc.attack(target, pos[2] == 1);
-            else
+            else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY )
                 Navigation.Bug2.move(target);
         }
     }
