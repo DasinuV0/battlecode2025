@@ -113,12 +113,16 @@ public class Splasher extends Robot {
                 Navigation.Bug2.move(targetLocation);
             } else {
                 // move randomly within the region
-                Random rand = new Random();
+                Random rand = new Random(6147);
                 Direction[] directions = Direction.values();
                 Direction dir = directions[rand.nextInt(directions.length)];
                 if (rc.canMove(dir)) {
                     rc.move(dir);
-                }                
+                } else if (rc.canMove(dir.rotateLeft())) {
+                    rc.move(dir.rotateLeft());
+                } else if (rc.canMove(dir.rotateRight())) {
+                    rc.move(dir.rotateRight());
+                }
             }
         }        
         
@@ -162,10 +166,11 @@ public class Splasher extends Robot {
     }
 
     int calculateEmptyTiles(RobotController rc) throws GameActionException {
-        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
+        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(4);
         int emptyTiles = 0;
         for (MapInfo mapInfo : surrMapInfos) {
-            if (!mapInfo.getPaint().isAlly()) {
+            if (mapInfo.getPaint().isEnemy()) {
+                rc.setIndicatorDot(mapInfo.getMapLocation(), 255, 255, 0);
                 emptyTiles++;
             }
         }
