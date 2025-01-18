@@ -98,6 +98,8 @@ public class Soldier extends Robot {
     public static void paintSRP(RobotController rc, MapLocation center) throws GameActionException {
         if (rc.canAttack(center))
             rc.attack(center, true);
+        else
+            Navigation.Bug2.move(center);
 
         int[][] attackPositions = {
                 {2, 2, 1}, {1, 2, 1}, {2, 1, 1},  // Quadrant 1
@@ -112,6 +114,8 @@ public class Soldier extends Robot {
             MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
             if (rc.canAttack(target))
                 rc.attack(target, pos[2] == 1);
+            else
+                Navigation.Bug2.move(target);
         }
     }
 
