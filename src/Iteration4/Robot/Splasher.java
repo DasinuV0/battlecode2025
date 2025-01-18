@@ -71,6 +71,14 @@ public class Splasher extends Robot {
             int currZone = Symmetry.getRegion(rc, rc.getLocation());
             if (currZone != zone) {
                 Navigation.Bug2.move(targetLocation);
+            } else {
+                // move randomly within the region
+                Random rand = new Random();
+                Direction[] directions = Direction.values();
+                Direction dir = directions[rand.nextInt(directions.length)];
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }                
             }
         }
         
@@ -102,6 +110,14 @@ public class Splasher extends Robot {
             int currZone = Symmetry.getRegion(rc, rc.getLocation());
             if (currZone != zone) {
                 Navigation.Bug2.move(targetLocation);
+            } else {
+                // move randomly within the region
+                Random rand = new Random();
+                Direction[] directions = Direction.values();
+                Direction dir = directions[rand.nextInt(directions.length)];
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }                
             }
         }
         
