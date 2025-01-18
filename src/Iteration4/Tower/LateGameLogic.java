@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 public class LateGameLogic extends TowerLogic{
 
+    private static final int CHIP_TRESHOLD = 500;
     static void runLateGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
@@ -44,6 +45,7 @@ public class LateGameLogic extends TowerLogic{
         }
 
         if (isDefault){ // exploration mode
+            checkAndUpgradeTowers(rc, CHIP_TRESHOLD);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
 
@@ -62,14 +64,14 @@ public class LateGameLogic extends TowerLogic{
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
-            if (soldierCount >= 2){ // send them out, but keep one
+            else if (soldierCount >= 2){ // send them out, but keep one
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
                 saveTurn = 3;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
-            if (soldierCount < 1){ // send them out, but keep one
+            else{ // spawn soldiers
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     attackNearbyEnemies(rc);
