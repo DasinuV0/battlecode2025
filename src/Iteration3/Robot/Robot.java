@@ -1,4 +1,4 @@
-package Robot;
+package oldRobot;
 
 import battlecode.common.*;
 import Navigation.Bug1.*;

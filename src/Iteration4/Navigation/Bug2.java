@@ -3,28 +3,28 @@ package Navigation;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+
 import static Util.Globals.*;
 import java.util.HashSet;
 
 
 public class Bug2 {
     static MapLocation prevDest = new MapLocation(-1, -1);
-    static HashSet<MapLocation> line = null, visited = new HashSet<MapLocation>();;
+    static MapLocation lineStart = new MapLocation(-1,-1);
+    static MapLocation lineEnd = new MapLocation(-1,-1);
+    static HashSet<MapLocation> visited = new HashSet<>();;
     static boolean isTracing = false;
     static Direction wallDirection = null;
-    static int obstacleDist = 0;
+    static int obstacleDist = 0, dx, dy, sx, sy;
+    static double m;
 
     public static void move(MapLocation dest) throws GameActionException{
         MapLocation curPos = rc.getLocation();
         if (curPos.equals(dest)) return;
         if (!dest.equals(prevDest) || visited.contains(curPos)){
             prevDest = dest;
-            line = createLine(dest, rc.getLocation());
+            setLine(dest, rc.getLocation());
             reset();
-        }
-
-        for (MapLocation l: line){
-            rc.setIndicatorDot(l, 255,0,0);
         }
 
         if (!isTracing){
@@ -42,7 +42,7 @@ public class Bug2 {
         }
 
         // on the line && is closer to dest -> stop tracing
-        if (line.contains(curPos) && curPos.distanceSquaredTo(dest) < obstacleDist) {
+        if (isOnLine(curPos) && curPos.distanceSquaredTo(dest) < obstacleDist) {
             reset();
             return;
         }
@@ -68,6 +68,20 @@ public class Bug2 {
         }
     }
 
+    private static boolean isOnLine(MapLocation loc){
+        int diffx = loc.x - lineStart.x;
+        int diffy = loc.y - lineStart.y;
+        if (sx != (int) Math.signum(diffx) || Math.abs(diffx) > Math.abs(dx)) return false;
+        if (sy != (int) Math.signum(diffy) || Math.abs(diffy) > Math.abs(dy)) return false;
+
+        if (lineStart.x == lineEnd.x) return true;
+
+        int step = Math.abs(diffx);
+        double y_float = lineStart.y + Math.abs(m) * step * sy;
+        int y = (int) (Math.ceil(y_float)-1);
+        return Math.abs(loc.y - y) <= 3;
+    }
+
     private static void reset(){
         isTracing = false;
         wallDirection = null;
@@ -75,42 +89,12 @@ public class Bug2 {
         visited.clear();
     }
 
-
-    private static HashSet<MapLocation> createLine(MapLocation a, MapLocation b){
-        HashSet<MapLocation> locs = new HashSet<>();
-        int x = a.x, y = a.y;
-        int dx = b.x - a.x, dy = b.y - a.y;
-        int sx = (int) Math.signum(dx), sy = (int) Math.signum(dy);
-        dx = Math.abs(dx);
-        dy = Math.abs(dy);
-        int d = Math.max(dx, dy);
-        int r = d/2;
-
-        if (dx > dy){
-            for (int i = 0; i < d; i++){
-                locs.add(new MapLocation(x, y));
-                x += sx; r += dy;
-                if (r >= dx){
-                    locs.add(new MapLocation(x, y));
-                    y += sy;
-                    r -= dx;
-                }
-            }
-        } else {
-            for (int i = 0; i < d; i++){
-                locs.add(new MapLocation(x, y));
-                y += sy; r += dx;
-                if (r >= dy){
-                    locs.add(new MapLocation(x, y));
-                    x += sx;
-                    r -= dy;
-                }
-            }
-        }
-        locs.add(new MapLocation(x, y));
-        return locs;
+    private static void setLine(MapLocation a, MapLocation b){
+        lineStart = a; lineEnd = b;
+        dx = lineEnd.x - lineStart.x;
+        dy = lineEnd.y - lineStart.y;
+        sx = (int) Math.signum(dx);
+        sy = (int) Math.signum(dy);
+        if (a.x != b.x) m = (double)(lineEnd.y - lineStart.y) / (lineEnd.x - lineStart.x);
     }
-
-
 }
-

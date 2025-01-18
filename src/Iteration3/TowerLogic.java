@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 
-import Util.*;
+import oldUtil.*;
 
 // commands:
 // 1 = stay put

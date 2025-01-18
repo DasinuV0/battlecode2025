@@ -2,8 +2,8 @@ package Iteration3;
 
 import battlecode.common.*;
 import Iteration3.*;
-import Robot.*;
-import Util.*;
+import oldRobot.*;
+import oldUtil.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
