@@ -26,6 +26,7 @@ public class Splasher extends Robot {
     }
 
     public void beginTurn() throws GameActionException {
+        resetFlags();
         updateLowPaintFlag();
         listenMessage();
 
@@ -87,7 +88,7 @@ public class Splasher extends Robot {
         int emptyTiles = calculateEmptyTiles(rc);
 
         if (emptyTiles > 3) {
-
+            rc.setIndicatorString("Attacking with splash");
             // attack
             if (rc.canAttack(rc.getLocation())) {
                 rc.attack(rc.getLocation());
