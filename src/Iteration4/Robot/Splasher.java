@@ -27,9 +27,9 @@ public class Splasher extends Robot {
 
     public void beginTurn() throws GameActionException {
         resetFlags();
+        listenMessage();
         updateLowPaintFlag();
         // updateLowHealthFlag();
-        listenMessage();
 
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
