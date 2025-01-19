@@ -71,8 +71,8 @@ public class Robot {
     static Set<MapLocation> moneyTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> enemyTowersPos = new LinkedHashSet<>();
 
-    MapLocation originPos; //this saves the position before lowpaintFlag == true
-    MapLocation buildingTower; //this saves the position of the tower that we are currently building
+    MapLocation originPos = new MapLocation(-1,-1); //this saves the position before lowpaintFlag == true
+    MapLocation buildingTower = new MapLocation(-1,-1); //this saves the position of the tower that we are currently building
 
     //general flags
     static boolean lowPaintFlag;
@@ -389,7 +389,8 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 exploreMode = true;
                 targetLocation = new MapLocation(x,y);
-                if (originPos != null)
+                //ignore command, if we have a valid origin pos
+                if (originPos.x != -1)
                     targetLocation = originPos;
             }else if (command == OptCode.DAMAGEDPATTERN){
                 int y = m.getBytes() & 63;
