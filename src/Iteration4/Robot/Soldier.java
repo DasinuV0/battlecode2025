@@ -155,6 +155,8 @@ public class Soldier extends Robot {
         }
     }
 
+    MapLocation NearestAllyTower = rc.getLocation();
+    MapLocation resourceCenter = new MapLocation(-1,-1);
     //Core turn method
     public void runTurn() throws GameActionException {  
         // if (isSuicideRobot == 1) {
@@ -237,21 +239,30 @@ public class Soldier extends Robot {
                             originPos = new MapLocation(-1,-1);
                 }
 
+                if(rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < rc.getLocation().distanceSquaredTo(NearestAllyTower))
+                    NearestAllyTower = getNearestAllyTower();
                 //paint while traveling
                 MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
                 for (MapInfo mapInfo : surrMapInfos) {
                     MapLocation currentTile = mapInfo.getMapLocation();
-                    if(currentTile.x % 5 == 2 && currentTile.y % 5 == 2)
+                    if(currentTile.x % 5 == 2 && currentTile.y % 5 == 2) {
                         paintSRP(rc, currentTile);
+                        resourceCenter = currentTile;
+                    }
                 }
+                if(resourceCenter.x != -1)
+                    rc.setIndicatorString("Trying to complete RSP");
+                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(NearestAllyTower) < 200)
+                    rc.completeResourcePattern(resourceCenter);
                 rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
             }
 
             if (lowPaintFlag){
                 //save origin pos when i'm building the tower and runs out of paint
-                if (originPos.x == -1 && buildingTower.x != -1){
+                if (originPos.x == -1 && (buildingTower.x != -1 || resourceCenter.x != -1)){
                     //reset building tower
                     buildingTower = new MapLocation(-1,-1);
+                    resourceCenter = new MapLocation(-1,-1);
                     originPos = rc.getLocation();
                 }
                 rc.setIndicatorString("need healing");
