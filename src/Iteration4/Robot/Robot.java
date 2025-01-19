@@ -86,7 +86,7 @@ public class Robot {
    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
     static boolean exploreMode;
-    static MapLocation targetLocation; 
+    static MapLocation targetLocation = new MapLocation(-1,-1);  
     static boolean healMode;  //specific to mopper
     static boolean removePatterMode; //specific to mopper
     static boolean defendMode; //specific to mopper 
@@ -362,7 +362,7 @@ public class Robot {
     void resetMessageFlag(){
         stayPut = false;
         exploreMode = false;
-        targetLocation = new MapLocation(-1,-1);
+        // targetLocation = new MapLocation(-1,-1);
         healMode = false;  
         removePatterMode = false;
         defendMode = false;
@@ -388,7 +388,8 @@ public class Robot {
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 exploreMode = true;
-                targetLocation = new MapLocation(x,y);
+                if (targetLocation.x == -1)
+                    targetLocation = new MapLocation(x,y);
                 //ignore command, if we have a valid origin pos
                 if (originPos.x != -1)
                     targetLocation = originPos;

@@ -230,8 +230,9 @@ public class Soldier extends Robot {
         }
 
         else if (exploreMode){
-            rc.setIndicatorString("explore mode");
-            if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
+            rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
+
+           if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
                 //reset origin pos, if the bot is close enough to origin pos
                 if (originPos.x != -1){
                     rc.setIndicatorDot(originPos, 0,0,244);
@@ -487,16 +488,18 @@ public class Soldier extends Robot {
                 }
             }
         
-            // Move and attack randomly if no objective.
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)){
-                rc.setIndicatorString("move randomly");
-                rc.move(dir);
+            //if it still didn't move, bugnav to a random pos
+            if (rc.isMovementReady() && targetLocation.x == -1){
+                int x = rng.nextInt(rc.getMapWidth());
+                int y = rng.nextInt(rc.getMapHeight());
+                targetLocation = new MapLocation(x,y);
+                rc.setIndicatorString("move to" + x + " " + y);
+                Navigation.Bug2.move(targetLocation);
             }
         }
         
         else if (removePatterMode){
-            rc.setIndicatorString("explore mode");
+            rc.setIndicatorString("remove pattern mode");
             if (tryToReachTargetLocation()){
                 //paint while traveling
                 MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
@@ -622,11 +625,13 @@ public class Soldier extends Robot {
                 tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
             }
         
-            // Move and attack randomly if no objective.
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)){
-                rc.setIndicatorString("move randomly");
-                rc.move(dir);
+            //if it still didn't move, bugnav to a random pos
+            if (rc.isMovementReady() && targetLocation.x == -1){
+                int x = rng.nextInt(rc.getMapWidth());
+                int y = rng.nextInt(rc.getMapHeight());
+                targetLocation = new MapLocation(x,y);
+                rc.setIndicatorString("move to" + x + " " + y);
+                Navigation.Bug2.move(targetLocation);
             }
         }
 
