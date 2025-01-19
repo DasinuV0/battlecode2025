@@ -66,7 +66,7 @@ public class Soldier extends Robot {
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyTiles)
             // Search all nearby ruins
-            if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null && lastRuinWithPatternDamagedFoundPos.x != tile.getMapLocation().x && lastRuinWithPatternDamagedFoundPos.y != tile.getMapLocation().y && originPos.x == -1){
+            if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null && (lastRuinWithPatternDamagedFoundPos.x != tile.getMapLocation().x || lastRuinWithPatternDamagedFoundPos.y != tile.getMapLocation().y) && originPos.x == -1){
                 rc.setIndicatorDot(tile.getMapLocation(), 1,23,42);
                 ruinsFound.add(tile);
             }
@@ -262,7 +262,7 @@ public class Soldier extends Robot {
                 //save origin pos when i'm building the tower and runs out of paint
                 if (originPos.x == -1 && (buildingTower.x != -1 || resourceCenter.x != -1)){
                     //reset building tower
-                    buildingTower = new MapLocation(-1,-1);
+                    // buildingTower = new MapLocation(-1,-1);
                     resourceCenter = new MapLocation(-1,-1);
                     originPos = rc.getLocation();
                 }
@@ -362,13 +362,14 @@ public class Soldier extends Robot {
                 return;
             }
 
-            //if the tower i'm trying to build is a damagePatter, skip it
-            // if (buildingTower.x == lastRuinWithPatternDamagedFoundPos.x && buildingTower.y != lastRuinWithPatternDamagedFoundPos.y){
-                // buildingTower = new MapLocation(-1,-1);
+            // if more than 2 bot are building this tower, skip it
+            if (buildingTower.x != -1 && rc.senseNearbyRobots(buildingTower, 8,rc.getTeam()).length >= 2)
+                buildingTower = new MapLocation(-1,-1);
             //if bot already started to build a tower, try to complete that first
             if (buildingTower.x != -1){
-                
+                //reset target location
                 targetLocation = new MapLocation(-1,-1);
+
                 rc.setIndicatorString("try to build the tower at (" + buildingTower.x + " " + buildingTower.y + ")");
                 Navigation.Bug2.move(buildingTower);
                 tryToMarkPattern(buildingTower);
@@ -421,11 +422,15 @@ public class Soldier extends Robot {
                 Iterator<MapInfo> iterator = ruinsFound.iterator();
                 targetLocation = new MapLocation(-1,-1);
                 // targetLocation = new MapLocation(-1,-1);
-                rc.setIndicatorString("test1"); //passed
                 while (iterator.hasNext()) {
                     MapInfo curRuin = iterator.next();
                     //ignore curRuin if it is the lastRuinWithPatternDamagedFound
                     if (curRuin.getMapLocation().x == lastRuinWithPatternDamagedFoundPos.x && curRuin.getMapLocation().y == lastRuinWithPatternDamagedFoundPos.y){
+                        iterator.remove();
+                        continue;
+                    }
+
+                    if (rc.senseNearbyRobots(curRuin.getMapLocation(), 8,rc.getTeam()).length >= 2){
                         iterator.remove();
                         continue;
                     }
@@ -589,6 +594,10 @@ public class Soldier extends Robot {
                         iterator.remove();
                         continue;
                     }
+
+                    if (rc.senseNearbyRobots(curRuin.getMapLocation(), 8,rc.getTeam()).length >= 2)
+                        continue;
+
                     tryToMarkPattern(curRuin);
 
                     // Fill in any spots in the pattern with the appropriate paint.
