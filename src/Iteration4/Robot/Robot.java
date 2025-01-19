@@ -248,14 +248,14 @@ public class Robot {
     }
 
     UnitType getTowerToBuild() throws GameActionException{
-        if (true){//TODO: if i'm in the region 0,1
-            if (rc.getNumberTowers() % 2 == 1)
-                return UnitType.LEVEL_ONE_MONEY_TOWER;
-            else
-                return UnitType.LEVEL_ONE_PAINT_TOWER;
-        }
-        //if i'm in the region 2
-        return UnitType.LEVEL_ONE_DEFENSE_TOWER;    
+        int temp = rng.nextInt(2);
+        if (temp % 2 == 1)
+            return UnitType.LEVEL_ONE_MONEY_TOWER;
+        else
+            return UnitType.LEVEL_ONE_PAINT_TOWER;
+        
+        //TODO: use defence tower
+        // return UnitType.LEVEL_ONE_DEFENSE_TOWER;    
         
     }
 
