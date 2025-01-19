@@ -238,9 +238,12 @@ public class Soldier extends Robot {
                 }
 
                 //paint while traveling
-                MapLocation currentTile = rc.getLocation();
-                if(currentTile.x % 5 == 2 && currentTile.y % 5 == 2)
-                    paintSRP(rc, currentTile);
+                MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
+                for (MapInfo mapInfo : surrMapInfos) {
+                    MapLocation currentTile = mapInfo.getMapLocation();
+                    if(currentTile.x % 5 == 2 && currentTile.y % 5 == 2)
+                        paintSRP(rc, currentTile);
+                }
                 rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
             }
 

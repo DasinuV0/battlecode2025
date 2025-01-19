@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class LateGameLogic extends TowerLogic{
 
-    private static final int CHIP_TRESHOLD = 500;
+    private static final int CHIP_SAVE_AMOUNT = 5200;
     static void runLateGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
@@ -47,7 +47,7 @@ public class LateGameLogic extends TowerLogic{
         }
 
         if (isDefault){ // exploration mode
-            if (rc.canUpgradeTower(rc.getLocation())) checkAndUpgradeTowers(rc, CHIP_TRESHOLD);
+            if (rc.canUpgradeTower(rc.getLocation())) checkAndUpgradeTowers(rc, CHIP_SAVE_AMOUNT);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
@@ -81,6 +81,10 @@ public class LateGameLogic extends TowerLogic{
             }
 
             else { // if none, spawn one
+                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){
+                    System.out.println("Saving ruins");
+                    return;
+                }
                 int randomInt = rand.nextInt(3) + 1;
 
                 if (randomInt == 1) { // spawn splasher
@@ -124,6 +128,10 @@ public class LateGameLogic extends TowerLogic{
                 }
             }
             if (rc.getPaint() >= 450){ // in case a bot stop moving in tower range, but isnt healed
+                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){
+                    System.out.println("Saving ruins");
+                    return;
+                }
                 int randomInt = rand.nextInt(3) + 1;
 
                 if (randomInt == 1) { // spawn splasher
