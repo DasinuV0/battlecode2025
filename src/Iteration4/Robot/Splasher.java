@@ -28,6 +28,7 @@ public class Splasher extends Robot {
     public void beginTurn() throws GameActionException {
         resetFlags();
         updateLowPaintFlag();
+        // updateLowHealthFlag();
         listenMessage();
 
         //check if any tower is found
@@ -69,19 +70,25 @@ public class Splasher extends Robot {
             Navigation.Bug2.move(targetLocation);
         } else {
             // stay in the same region
-            int zone = Symmetry.getRegion(rc, targetLocation);
-            int currZone = Symmetry.getRegion(rc, rc.getLocation());
-            if (currZone != zone) {
-                Navigation.Bug2.move(targetLocation);
-            } else {
+            // int zone = Symmetry.getRegion(rc, targetLocation);
+            // int currZone = Symmetry.getRegion(rc, rc.getLocation());
+            // if (currZone != zone) {
+            //     Navigation.Bug2.move(Symmetry.getRegionCenter(rc, zone));
+            // } else {
                 // move randomly within the region
                 Random rand = new Random();
                 Direction[] directions = Direction.values();
                 Direction dir = directions[rand.nextInt(directions.length)];
                 if (rc.canMove(dir)) {
                     rc.move(dir);
-                }                
-            }
+                } else if (rc.canMove(dir.rotateLeft())) {
+                    rc.move(dir.rotateLeft());
+                } else if (rc.canMove(dir.rotateRight())) {
+                    rc.move(dir.rotateRight());
+                } else if (rc.canMove(dir.opposite())) {
+                    rc.move(dir.opposite());
+                }               
+            // }
         }        
         
         // if more than 3 tiles empty -> attack
@@ -89,9 +96,14 @@ public class Splasher extends Robot {
 
         if (emptyTiles > 3) {
             rc.setIndicatorString("Attacking with splash");
+            MapLocation attackLocation = getEnemyPaintZone(rc);
             // attack
-            if (rc.canAttack(rc.getLocation())) {
-                rc.attack(rc.getLocation());
+            if (rc.canAttack(attackLocation)) {
+                rc.attack(attackLocation);
+            }
+            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30) {
+                targetLocation = attackLocation;
+                locationReached = false;
             }
         }
     }
@@ -166,7 +178,7 @@ public class Splasher extends Robot {
     }
 
     int calculateEmptyTiles(RobotController rc) throws GameActionException {
-        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(4);
+        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(-1);
         int emptyTiles = 0;
         for (MapInfo mapInfo : surrMapInfos) {
             if (!mapInfo.getPaint().isAlly() && mapInfo.isPassable() && !mapInfo.isWall()) {

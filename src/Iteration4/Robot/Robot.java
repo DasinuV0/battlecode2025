@@ -47,6 +47,7 @@ public class Robot {
     static final int PAINTTOTAKE = -60;
     static final int PAINTTOGIVE = 60;
     static final Random rng = new Random(6147);
+    static final int LOWHEALTHTHRESHOLD = 20;
 
     /*
      * Game phases
@@ -124,6 +125,14 @@ public class Robot {
         int remainPaint = calculatePaintPercentage(rc.senseRobotAtLocation(rc.getLocation()));
         //check if it is low paint
         if (remainPaint <= LOWPAINTTRESHHOLD)
+            lowPaintFlag = true;
+    }
+
+    void updateLowHealthFlag() throws GameActionException{
+        //get the robotInfo of rc and then calculate the percetange of the remain paint 
+        int remainHealth = calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation()));
+        //check if it is low paint
+        if (remainHealth <= LOWHEALTHTHRESHOLD)
             lowPaintFlag = true;
     }
 
@@ -336,6 +345,18 @@ public class Robot {
 
     int calculatePaintPercentage(RobotInfo robot) {
         return (int)(((double)robot.paintAmount / robot.type.paintCapacity) * 100);
+    }
+
+    int calculateHealthPercentage(RobotInfo robot) {
+        double maxHealth = 0;
+        if (robot.type == UnitType.SOLDIER) {
+            maxHealth = 250;
+        } else if (robot.type == UnitType.MOPPER) {
+            maxHealth = 50;
+        } else if (robot.type == UnitType.SPLASHER) {
+            maxHealth = 150;
+        }
+        return (int)(((double)robot.health / maxHealth) * 100);
     }
 
     void resetMessageFlag(){

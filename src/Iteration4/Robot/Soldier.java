@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import Iteration3.TowerLogic;
 
 import java.util.LinkedHashSet;
 
