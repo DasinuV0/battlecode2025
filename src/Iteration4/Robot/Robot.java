@@ -389,6 +389,8 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 exploreMode = true;
                 targetLocation = new MapLocation(x,y);
+                if (originPos != null)
+                    targetLocation = originPos;
             }else if (command == OptCode.DAMAGEDPATTERN){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
