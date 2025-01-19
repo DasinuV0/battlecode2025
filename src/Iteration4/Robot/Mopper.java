@@ -49,6 +49,7 @@ public class Mopper extends Robot {
         robotToHealSet = new HashSet<>();
         listenMessage();
         updateLowPaintFlag();
+        tileToclean = null;
 
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots){
@@ -464,7 +465,7 @@ public class Mopper extends Robot {
                     return;
                 }
                 Navigation.Bug2.move(nearestAllyTower);
-                rc.setIndicatorString("enemy paint not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+                rc.setIndicatorString("ruins not found, go to the nearestAllyTower (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
             }
         }
         
