@@ -4,8 +4,7 @@ import battlecode.common.*;
 
 public class MidGameLogic extends TowerLogic{
 
-    private static final int CHIP_TRESHOLD = 250;
-    private static final int CHIP_SAVE_AMOUNT = 1500;
+    private static final int CHIP_SAVE_AMOUNT = 2700;
 
     static void runMidGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
@@ -49,7 +48,7 @@ public class MidGameLogic extends TowerLogic{
         }
 
         if (isDefault){ // exploration mode
-            if (rc.canUpgradeTower(rc.getLocation())) checkAndUpgradeTowers(rc, CHIP_TRESHOLD);
+            if (rc.canUpgradeTower(rc.getLocation())) checkAndUpgradeTowers(rc, CHIP_SAVE_AMOUNT);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
