@@ -238,11 +238,9 @@ public class Soldier extends Robot {
                 }
 
                 //paint while traveling
-                MapInfo currentTile = rc.senseMapInfo(rc.getLocation());
-                if (currentTile.getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation())){
-                    boolean useSecondaryColor = rc.senseMapInfo(rc.getLocation()).getMark() == PaintType.ALLY_SECONDARY;
-                    rc.attack(rc.getLocation(), useSecondaryColor);
-                }
+                MapLocation currentTile = rc.getLocation();
+                if(currentTile.x % 5 == 2 && currentTile.y % 5 == 2)
+                    paintSRP(rc, currentTile);
                 rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
             }
 
