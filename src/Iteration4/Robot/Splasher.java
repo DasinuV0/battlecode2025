@@ -19,6 +19,7 @@ import battlecode.common.*;
 public class Splasher extends Robot {
 
     static boolean locationReached = false;
+    private LinkedList<MapLocation> recentLocations = new LinkedList<MapLocation>();
 
     public Splasher(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -70,44 +71,51 @@ public class Splasher extends Robot {
             Navigation.Bug2.move(targetLocation);
         } else {
             // stay in the same region
-            // int zone = Symmetry.getRegion(rc, targetLocation);
-            // int currZone = Symmetry.getRegion(rc, rc.getLocation());
-            // if (currZone != zone) {
-            //     Navigation.Bug2.move(Symmetry.getRegionCenter(rc, zone));
-            // } else {
-                // move randomly within the region
-                Random rand = new Random();
-                Direction[] directions = Direction.values();
-                Direction dir = directions[rand.nextInt(directions.length)];
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                } else if (rc.canMove(dir.rotateLeft())) {
-                    rc.move(dir.rotateLeft());
-                } else if (rc.canMove(dir.rotateRight())) {
-                    rc.move(dir.rotateRight());
-                } else if (rc.canMove(dir.opposite())) {
-                    rc.move(dir.opposite());
-                }               
-            // }
+            moveRandomly(rc, recentLocations);             
         }        
-        
+    
         // if more than 3 tiles empty -> attack
         int emptyTiles = calculateEmptyTiles(rc);
-
+    
         if (emptyTiles > 3) {
             rc.setIndicatorString("Attacking with splash");
             MapLocation attackLocation = getEnemyPaintZone(rc);
             // attack
+            Navigation.Bug2.move(attackLocation);
+            rc.setIndicatorString("Moving towards" + attackLocation);
             if (rc.canAttack(attackLocation)) {
                 rc.attack(attackLocation);
             }
-            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30) {
+            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                 targetLocation = attackLocation;
+                locationReached = false;
+            } else {
+                targetLocation = attackLocation.add(rc.getLocation().directionTo(attackLocation).opposite());
                 locationReached = false;
             }
         }
+    
+        // Update recent locations
+        recentLocations.add(rc.getLocation());
+        if (recentLocations.size() > 5) {
+            recentLocations.removeFirst();
+        }
     }
 
+    void moveRandomly(RobotController rc, LinkedList<MapLocation> recentLocations) throws GameActionException {
+        Random rand = new Random();
+        Direction[] directions = Direction.values();
+        Direction dir = directions[rand.nextInt(directions.length)];
+        if (rc.canMove(dir) && !recentLocations.contains(rc.adjacentLocation(dir))) {
+            rc.move(dir);
+        } else if (rc.canMove(dir.rotateLeft()) && !recentLocations.contains(rc.adjacentLocation(dir.rotateLeft()))) {
+            rc.move(dir.rotateLeft());
+        } else if (rc.canMove(dir.rotateRight()) && !recentLocations.contains(rc.adjacentLocation(dir.rotateRight()))) {
+            rc.move(dir.rotateRight());
+        } else if (rc.canMove(dir.opposite()) && !recentLocations.contains(rc.adjacentLocation(dir.opposite()))) {
+            rc.move(dir.opposite());
+        }
+    }
     
 
     void runDefenseSplasher() throws GameActionException {
@@ -178,7 +186,7 @@ public class Splasher extends Robot {
     }
 
     int calculateEmptyTiles(RobotController rc) throws GameActionException {
-        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(-1);
+        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(4);
         int emptyTiles = 0;
         for (MapInfo mapInfo : surrMapInfos) {
             if (!mapInfo.getPaint().isAlly() && mapInfo.isPassable() && !mapInfo.isWall()) {
