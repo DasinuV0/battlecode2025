@@ -3,6 +3,7 @@ package Tower;
 import battlecode.common.*;
 
 public class EarlyGameLogic extends TowerLogic{
+    private static final int CHIP_SAVE_AMOUNT = 1200;
 
     static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
@@ -55,18 +56,22 @@ public class EarlyGameLogic extends TowerLogic{
             if (mopperCount >= 1){ // send them out
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
-                saveTurn = 3;
+                saveTurn = 5;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
             else if (soldierCount >= 1){ // send them out, but keep one
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
-                saveTurn = 3;
+                saveTurn = 5;
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
             else { // if none, spawn one
+                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){ // prioritize building towers
+                    System.out.println("Saving ruins");
+                    return;
+                }
                 if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
                     System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
                     //attackNearbyEnemies(rc);
@@ -76,7 +81,7 @@ public class EarlyGameLogic extends TowerLogic{
                 // Command the Soldier to stay put
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, 1);
-                saveTurn = 3;
+                saveTurn = 5;
                 System.out.println("Spawned Soldier on a paint tile and commanded it to stay put.");
                 // return; // Exit early to avoid spawning Soldier in the same turn
             }
@@ -140,8 +145,8 @@ public class EarlyGameLogic extends TowerLogic{
 
             // save resources if i have the unit already
             if (mopperCount >= 1 && soldierCount >= 1){ // dont spawn any if we have the bots already
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
+                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
+                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
                 isDamagedPatternFound = false;
                 isDefault = true;
                 //attackNearbyEnemies(rc);
@@ -149,7 +154,7 @@ public class EarlyGameLogic extends TowerLogic{
                 return;
             }
             else if (soldierCount >= 1){
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, soldierCount);
+                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, soldierCount);
             }
 
 //            if (!calledSoldierStayPutYet){
@@ -173,7 +178,7 @@ public class EarlyGameLogic extends TowerLogic{
                 }
                 System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
                 int currentMopperCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, currentMopperCountAfterSpawn);
+                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, currentMopperCountAfterSpawn);
                 isDefault = true;
                 isDamagedPatternFound = false;
                 saveTurn = 5;
