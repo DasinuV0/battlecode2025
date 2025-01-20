@@ -154,6 +154,10 @@ public class TowerLogic {
                     //System.out.println("BUILT A " + unitType + " on a paint tile (" + PaintType.ALLY_SECONDARY + ") at " + nextLoc);
                     return true; // Exit after successfully building the robot
                 }
+                else if (paintType == PaintType.EMPTY){
+                    return true;
+                }
+
             }
         }
 
