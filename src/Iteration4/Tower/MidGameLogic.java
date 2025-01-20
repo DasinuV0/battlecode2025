@@ -57,8 +57,8 @@ public class MidGameLogic extends TowerLogic{
 
             if (!canBuildRobotOnPaintTile(rc)){
                 buildRobotOnRandomTile(rc, UnitType.SPLASHER);
-                System.out.println("Spawned Splasher on a random tile");
-                saveTurn = 5;
+                System.out.println("Spawned Splasher on a random tile to paint surrounding enemy paint on friendly tower");
+                saveTurn = 3;
                 return;
             }
 
@@ -167,6 +167,11 @@ public class MidGameLogic extends TowerLogic{
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile to clear enemy paint surrounding tower");
+            }
+
             // while defending, if i have so many soldiers, just send them out
             // since they are pointless in defending, but leave some for other tasks when
             // defending is completed
@@ -196,6 +201,14 @@ public class MidGameLogic extends TowerLogic{
         }
         else if (isEnemyTowerFound){ // attack tower mode
             System.out.println("Enemy tower found, now preparing robots to attack");
+
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
@@ -225,6 +238,14 @@ public class MidGameLogic extends TowerLogic{
         }
         else if (isDamagedPatternFound){ // damage pattern found mode
             System.out.println("Oh no! Damaged pattern is found!");
+
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
@@ -283,6 +304,13 @@ public class MidGameLogic extends TowerLogic{
         else if (isAttackSplasherNeeded){
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             if (splasherCount >= 1) {
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCount);
                 System.out.println("Sending an attack splasher to: " + targetLoc);
@@ -307,6 +335,13 @@ public class MidGameLogic extends TowerLogic{
         else if (isDefendSplasherNeeded){
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             if (splasherCount >= 1) {
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCount);
                 System.out.println("Sending a defend splasher to: " + targetLoc);
@@ -329,6 +364,13 @@ public class MidGameLogic extends TowerLogic{
             }
         }
         else if (isLargeRegionWithEnemyPaint){
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
             if (splasherCount >= 1) {
