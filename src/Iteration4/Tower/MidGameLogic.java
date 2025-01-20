@@ -6,7 +6,7 @@ import battlecode.common.*;
 
 public class MidGameLogic extends TowerLogic{
 
-    private static final int CHIP_SAVE_AMOUNT = 2700;
+    private static final int CHIP_SAVE_AMOUNT = 2600;
 
     static void runMidGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
