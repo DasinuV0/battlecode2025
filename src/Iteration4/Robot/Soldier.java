@@ -46,7 +46,7 @@ public class Soldier extends Robot {
         resetFlags();
         listenMessage();
         updateLowPaintFlag();
-
+        tryToSendPaintPos(); //send nearest paint location to money tower when it's possible
 
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -232,7 +232,7 @@ public class Soldier extends Robot {
         else if (exploreMode){
             rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
 
-           if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
+            if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
                 //reset origin pos, if the bot is close enough to origin pos
                 if (originPos.x != -1){
                     rc.setIndicatorDot(originPos, 0,0,244);
@@ -259,7 +259,8 @@ public class Soldier extends Robot {
                     rc.mark(resourceCenter, false);
                     targetLocation = new MapLocation(-1,-1);
                 }
-           }
+            }
+
             if (lowPaintFlag){
                 //save origin pos when i'm building the tower and runs out of paint
                 if (originPos.x == -1 && (buildingTower.x != -1 || resourceCenter.x != -1)){
@@ -292,6 +293,11 @@ public class Soldier extends Robot {
                 }
                 else{
                     Navigation.Bug2.move(nearestAllyTower);
+                    if (rc.canSendMessage(nearestAllyTower)){
+                        rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
+                        System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
+                        rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                    }
                     // if (rc.canSendMessage(nearestAllyTower))
                         // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
                     rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
@@ -575,6 +581,11 @@ public class Soldier extends Robot {
                 }
                 else{
                     Navigation.Bug2.move(nearestAllyTower);
+                    if (rc.canSendMessage(nearestAllyTower)){
+                        rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
+                        System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
+                        rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                    }
                     // if (rc.canSendMessage(nearestAllyTower))
                         // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
                     rc.setIndicatorString("move to get healed");

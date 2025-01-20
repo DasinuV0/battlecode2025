@@ -47,9 +47,10 @@ public class Mopper extends Robot {
         resetFlags();
         robotToHealQueue = new LinkedList<>();
         robotToHealSet = new HashSet<>();
+        tileToclean = null;
         listenMessage();
         updateLowPaintFlag();
-        tileToclean = null;
+        tryToSendPaintPos(); //send nearest paint location to money tower when it's possible
 
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots){
@@ -476,9 +477,4 @@ public class Mopper extends Robot {
         if (rc.getPaint() <= 60)
             lowPaintFlag = true;
     }
-
-
-    // void someoneNeedPaint(int x, int y){
-
-    // }
 }

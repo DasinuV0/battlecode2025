@@ -24,7 +24,7 @@ public class Robot {
         static final int ATTACKTOWER = 5;
         static final int ENEMYTOWERFOUND = 5;
         static final int SENDPAINTTOWERINFO = 6;
-        static final int GOPAINTTOWER = 6;
+        static final int NEWPAINTTOWERPOSRECEIVED = 6;
         static final int OUTTOWERDESTROYED = 7;
         
         // static final int RUINFOUND = 7;
@@ -215,6 +215,19 @@ public class Robot {
         return nearestTower;
     }
 
+    void tryToSendPaintPos() throws GameActionException{
+        MapLocation nearestAllyMoneyTower = getNearestAllyMoneyTower();
+        if (nearestAllyMoneyTower.x != -1 && rc.canSendMessage(nearestAllyMoneyTower)){
+            MapLocation nearestAllyPaintTower = getNearestAllyPaintTower();
+            if (nearestAllyPaintTower.x != -1){
+                rc.sendMessage(nearestAllyMoneyTower, encodeMessage(OptCode.SENDPAINTTOWERINFO,nearestAllyPaintTower)); 
+                rc.setIndicatorDot(nearestAllyMoneyTower,0,255,0);
+                System.out.println("paint tower at " + nearestAllyPaintTower.x + " " + nearestAllyPaintTower.y + " is sent to " + nearestAllyMoneyTower.x + " " + nearestAllyMoneyTower.y);
+            }
+            
+        }
+    }
+
     boolean towerExists(MapLocation tower) throws GameActionException {
         //if nearestAllyTower is within the vision range && if nearestAllyTower is not destroyed
         if (rc.canSenseRobotAtLocation(tower) == false){
@@ -251,14 +264,15 @@ public class Robot {
     }
 
     UnitType getTowerToBuild() throws GameActionException{
-        int temp = rng.nextInt(2);
-        if (temp % 2 == 1)
-            return UnitType.LEVEL_ONE_MONEY_TOWER;
-        else
-            return UnitType.LEVEL_ONE_PAINT_TOWER;
-        
-        //TODO: use defence tower
-        // return UnitType.LEVEL_ONE_DEFENSE_TOWER;    
+       return UnitType.LEVEL_ONE_MONEY_TOWER;
+    //    if (true){//TODO: if i'm in the region 0,1
+    //         if (rc.getNumberTowers() % 2 == 0)
+    //             return UnitType.LEVEL_ONE_MONEY_TOWER;
+    //         else
+    //             return UnitType.LEVEL_ONE_PAINT_TOWER;
+    //     }
+    //     //if i'm in the region 2
+    //     return UnitType.LEVEL_ONE_DEFENSE_TOWER;  
         
     }
 
@@ -423,13 +437,28 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 isDefenseSplasher = true;
                 targetLocation = new MapLocation(x,y);
-            } 
+            }else if (command == OptCode.NEWPAINTTOWERPOSRECEIVED){
+                int y = m.getBytes() & 63;
+                int x = (m.getBytes() >> 6) & 63;
+                paintTowersPos.add(new MapLocation(x,y));
+                System.out.println("new paint tower received, it is at " + x + " " + y);
+            }
         }
     }
 
     int encodeMessage(int command, MapLocation targetLoc){
-        int x = targetLoc != null ? targetLoc.x : 0; // Default x-coordinate if no target
-        int y = targetLoc != null ? targetLoc.y : 0; // Default y-coordinate if no target
+        int x = targetLoc != null ? targetLoc.x : 63; // Default x-coordinate if no target
+        int y = targetLoc != null ? targetLoc.y : 63; // Default y-coordinate if no target
+
+        // Encode coordinates and command into messageContent
+        int messageContent = (x << 6) | y | (command << 12);
+        return messageContent;
+    }
+
+    //override
+    int encodeMessage(int command){
+        int x = 63; // Default x-coordinate if no target
+        int y = 63; // Default y-coordinate if no target
 
         // Encode coordinates and command into messageContent
         int messageContent = (x << 6) | y | (command << 12);
@@ -437,7 +466,7 @@ public class Robot {
     }
 
     // 6031 bytecode
-    public static MapLocation getEnemyPaintZone(RobotController rc) {
+  public static MapLocation getEnemyPaintZone(RobotController rc) {
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
         int size = 9, center = 4;
         int[][] visionArea = new int[size][size];
