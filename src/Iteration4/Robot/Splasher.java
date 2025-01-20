@@ -46,7 +46,22 @@ public class Splasher extends Robot {
     }
 
     public void endTurn() throws GameActionException {
-       
+        // if current location is in recent locations, move randomly
+        if (recentLocations.contains(rc.getLocation())) {
+             moveRandomly();
+        }
+
+        // if current location paint type is enemy, move away
+        MapInfo mapInfo = rc.senseMapInfo(rc.getLocation());
+        if (mapInfo.getPaint().isEnemy()) {
+            moveRandomly();
+        }
+
+        recentLocations.add(rc.getLocation());
+        if (recentLocations.size() > 5) {
+            recentLocations.removeFirst();
+        }
+
     }
 
     public void runTurn() throws GameActionException {
@@ -59,7 +74,6 @@ public class Splasher extends Robot {
             runDefenseSplasher();
         }
 
-        
     }
 
     void runAttackSplasher() throws GameActionException {
@@ -71,7 +85,11 @@ public class Splasher extends Robot {
             Navigation.Bug2.move(targetLocation);
         } else {
             // stay in the same region
-            moveRandomly(rc, recentLocations);             
+            int x = rng.nextInt(rc.getMapWidth());
+            int y = rng.nextInt(rc.getMapHeight());
+            targetLocation = new MapLocation(x,y);
+            rc.setIndicatorString("move to" + x + " " + y);
+            Navigation.Bug2.move(targetLocation);           
         }        
     
         // if more than 3 tiles empty -> attack
@@ -81,17 +99,19 @@ public class Splasher extends Robot {
             rc.setIndicatorString("Attacking with splash");
             MapLocation attackLocation = getEnemyPaintZone(rc);
             // attack
-            Navigation.Bug2.move(attackLocation);
-            rc.setIndicatorString("Moving towards" + attackLocation);
-            if (rc.canAttack(attackLocation)) {
-                rc.attack(attackLocation);
+            // Navigation.Bug2.move(attackLocation);
+            // rc.setIndicatorString("Moving towards" + attackLocation);
+            if (rc.canAttack(rc.getLocation())) {
+                rc.attack(rc.getLocation());
             }
             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                 targetLocation = attackLocation;
                 locationReached = false;
+                rc.setIndicatorString("Moving towards" + attackLocation);
             } else {
                 targetLocation = attackLocation.add(rc.getLocation().directionTo(attackLocation).opposite());
                 locationReached = false;
+                rc.setIndicatorString("Moving towards" + attackLocation.add(rc.getLocation().directionTo(attackLocation).opposite()));
             }
         }
     
@@ -102,7 +122,7 @@ public class Splasher extends Robot {
         }
     }
 
-    void moveRandomly(RobotController rc, LinkedList<MapLocation> recentLocations) throws GameActionException {
+    void moveRandomly() throws GameActionException {
         Random rand = new Random();
         Direction[] directions = Direction.values();
         Direction dir = directions[rand.nextInt(directions.length)];
