@@ -2,6 +2,8 @@ package Tower;
 
 import battlecode.common.*;
 
+// add splashers for default command as well.
+
 public class MidGameLogic extends TowerLogic{
 
     private static final int CHIP_SAVE_AMOUNT = 2700;
@@ -52,6 +54,13 @@ public class MidGameLogic extends TowerLogic{
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
+
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 5;
+                return;
+            }
 
             if (!randomSoldierSpawnedYet && currentTurn < 10){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
