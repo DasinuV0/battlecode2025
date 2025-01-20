@@ -23,8 +23,11 @@ public class Robot {
         static final int GOTODEFEND = 4;
         static final int ATTACKTOWER = 5;
         static final int ENEMYTOWERFOUND = 5;
-        static final int RUINFOUND = 7;
+        static final int SENDPAINTTOWERINFO = 6;
+        static final int GOPAINTTOWER = 6;
+        static final int OUTTOWERDESTROYED = 7;
         
+        // static final int RUINFOUND = 7;
         // static final int MOVETOSPECIFICLOC = 6;
         // static final int ENGAGEMENT = 7;
 
