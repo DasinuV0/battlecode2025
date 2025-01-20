@@ -442,316 +442,412 @@ public class Robot {
         int size = 9, center = 4;
         int[][] visionArea = new int[size][size];
         MapLocation bestLocation = null;
-
         for (MapInfo mapInfo : surrMapInfos) {
             MapLocation location = mapInfo.getMapLocation();
             int relativeX = location.x - rc.getLocation().x;
             int relativeY = location.y - rc.getLocation().y;
             int matrixX = center + relativeX;
             int matrixY = center + relativeY;
-
             if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY)
                 visionArea[matrixY][matrixX] = 1;
+            if(mapInfo.getPaint() == PaintType.ALLY_PRIMARY || mapInfo.getPaint() == PaintType.ALLY_SECONDARY)
+                visionArea[matrixY][matrixX] = -1;
         }
 
         int maxOverlap = 0;
-        int overlapCount;
+        int overlapCount = 0;
 
-        overlapCount = visionArea[0][0] + visionArea[0][1] + visionArea[0][2] + visionArea[1][0] + visionArea[1][1] + visionArea[1][2] + visionArea[2][0] + visionArea[2][1] + visionArea[2][2];
+        overlapCount = visionArea[0][0] + visionArea[0][1] + visionArea[0][2] +
+                visionArea[1][0] + visionArea[1][1] + visionArea[1][2] +
+                visionArea[2][0] + visionArea[2][1] + visionArea[2][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[0][1] + visionArea[0][2] + visionArea[0][3] + visionArea[1][1] + visionArea[1][2] + visionArea[1][3] + visionArea[2][1] + visionArea[2][2] + visionArea[2][3];
+        overlapCount = visionArea[0][1] + visionArea[0][2] + visionArea[0][3] +
+                visionArea[1][1] + visionArea[1][2] + visionArea[1][3] +
+                visionArea[2][1] + visionArea[2][2] + visionArea[2][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[0][2] + visionArea[0][3] + visionArea[0][4] + visionArea[1][2] + visionArea[1][3] + visionArea[1][4] + visionArea[2][2] + visionArea[2][3] + visionArea[2][4];
+        overlapCount = visionArea[0][2] + visionArea[0][3] + visionArea[0][4] +
+                visionArea[1][2] + visionArea[1][3] + visionArea[1][4] +
+                visionArea[2][2] + visionArea[2][3] + visionArea[2][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[0][3] + visionArea[0][4] + visionArea[0][5] + visionArea[1][3] + visionArea[1][4] + visionArea[1][5] + visionArea[2][3] + visionArea[2][4] + visionArea[2][5];
+        overlapCount = visionArea[0][3] + visionArea[0][4] + visionArea[0][5] +
+                visionArea[1][3] + visionArea[1][4] + visionArea[1][5] +
+                visionArea[2][3] + visionArea[2][4] + visionArea[2][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[0][4] + visionArea[0][5] + visionArea[0][6] + visionArea[1][4] + visionArea[1][5] + visionArea[1][6] + visionArea[2][4] + visionArea[2][5] + visionArea[2][6];
+        overlapCount = visionArea[0][4] + visionArea[0][5] + visionArea[0][6] +
+                visionArea[1][4] + visionArea[1][5] + visionArea[1][6] +
+                visionArea[2][4] + visionArea[2][5] + visionArea[2][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[0][5] + visionArea[0][6] + visionArea[0][7] + visionArea[1][5] + visionArea[1][6] + visionArea[1][7] + visionArea[2][5] + visionArea[2][6] + visionArea[2][7];
+        overlapCount = visionArea[0][5] + visionArea[0][6] + visionArea[0][7] +
+                visionArea[1][5] + visionArea[1][6] + visionArea[1][7] +
+                visionArea[2][5] + visionArea[2][6] + visionArea[2][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[0][6] + visionArea[0][7] + visionArea[0][8] + visionArea[1][6] + visionArea[1][7] + visionArea[1][8] + visionArea[2][6] + visionArea[2][7] + visionArea[2][8];
+        overlapCount = visionArea[0][6] + visionArea[0][7] + visionArea[0][8] +
+                visionArea[1][6] + visionArea[1][7] + visionArea[1][8] +
+                visionArea[2][6] + visionArea[2][7] + visionArea[2][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y - 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (1 - center));
         }
 
-        overlapCount = visionArea[1][0] + visionArea[1][1] + visionArea[1][2] + visionArea[2][0] + visionArea[2][1] + visionArea[2][2] + visionArea[3][0] + visionArea[3][1] + visionArea[3][2];
+        overlapCount = visionArea[1][0] + visionArea[1][1] + visionArea[1][2] +
+                visionArea[2][0] + visionArea[2][1] + visionArea[2][2] +
+                visionArea[3][0] + visionArea[3][1] + visionArea[3][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[1][1] + visionArea[1][2] + visionArea[1][3] + visionArea[2][1] + visionArea[2][2] + visionArea[2][3] + visionArea[3][1] + visionArea[3][2] + visionArea[3][3];
+        overlapCount = visionArea[1][1] + visionArea[1][2] + visionArea[1][3] +
+                visionArea[2][1] + visionArea[2][2] + visionArea[2][3] +
+                visionArea[3][1] + visionArea[3][2] + visionArea[3][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[1][2] + visionArea[1][3] + visionArea[1][4] + visionArea[2][2] + visionArea[2][3] + visionArea[2][4] + visionArea[3][2] + visionArea[3][3] + visionArea[3][4];
+        overlapCount = visionArea[1][2] + visionArea[1][3] + visionArea[1][4] +
+                visionArea[2][2] + visionArea[2][3] + visionArea[2][4] +
+                visionArea[3][2] + visionArea[3][3] + visionArea[3][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[1][3] + visionArea[1][4] + visionArea[1][5] + visionArea[2][3] + visionArea[2][4] + visionArea[2][5] + visionArea[3][3] + visionArea[3][4] + visionArea[3][5];
+        overlapCount = visionArea[1][3] + visionArea[1][4] + visionArea[1][5] +
+                visionArea[2][3] + visionArea[2][4] + visionArea[2][5] +
+                visionArea[3][3] + visionArea[3][4] + visionArea[3][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[1][4] + visionArea[1][5] + visionArea[1][6] + visionArea[2][4] + visionArea[2][5] + visionArea[2][6] + visionArea[3][4] + visionArea[3][5] + visionArea[3][6];
+        overlapCount = visionArea[1][4] + visionArea[1][5] + visionArea[1][6] +
+                visionArea[2][4] + visionArea[2][5] + visionArea[2][6] +
+                visionArea[3][4] + visionArea[3][5] + visionArea[3][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[1][5] + visionArea[1][6] + visionArea[1][7] + visionArea[2][5] + visionArea[2][6] + visionArea[2][7] + visionArea[3][5] + visionArea[3][6] + visionArea[3][7];
+        overlapCount = visionArea[1][5] + visionArea[1][6] + visionArea[1][7] +
+                visionArea[2][5] + visionArea[2][6] + visionArea[2][7] +
+                visionArea[3][5] + visionArea[3][6] + visionArea[3][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[1][6] + visionArea[1][7] + visionArea[1][8] + visionArea[2][6] + visionArea[2][7] + visionArea[2][8] + visionArea[3][6] + visionArea[3][7] + visionArea[3][8];
+        overlapCount = visionArea[1][6] + visionArea[1][7] + visionArea[1][8] +
+                visionArea[2][6] + visionArea[2][7] + visionArea[2][8] +
+                visionArea[3][6] + visionArea[3][7] + visionArea[3][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y - 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (2 - center));
         }
 
-        overlapCount = visionArea[2][0] + visionArea[2][1] + visionArea[2][2] + visionArea[3][0] + visionArea[3][1] + visionArea[3][2] + visionArea[4][0] + visionArea[4][1] + visionArea[4][2];
+        // Row 3 (i=3)
+        overlapCount = visionArea[2][0] + visionArea[2][1] + visionArea[2][2] +
+                visionArea[3][0] + visionArea[3][1] + visionArea[3][2] +
+                visionArea[4][0] + visionArea[4][1] + visionArea[4][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[2][1] + visionArea[2][2] + visionArea[2][3] + visionArea[3][1] + visionArea[3][2] + visionArea[3][3] + visionArea[4][1] + visionArea[4][2] + visionArea[4][3];
+        overlapCount = visionArea[2][1] + visionArea[2][2] + visionArea[2][3] +
+                visionArea[3][1] + visionArea[3][2] + visionArea[3][3] +
+                visionArea[4][1] + visionArea[4][2] + visionArea[4][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[2][2] + visionArea[2][3] + visionArea[2][4] + visionArea[3][2] + visionArea[3][3] + visionArea[3][4] + visionArea[4][2] + visionArea[4][3] + visionArea[4][4];
+        overlapCount = visionArea[2][2] + visionArea[2][3] + visionArea[2][4] +
+                visionArea[3][2] + visionArea[3][3] + visionArea[3][4] +
+                visionArea[4][2] + visionArea[4][3] + visionArea[4][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[2][3] + visionArea[2][4] + visionArea[2][5] + visionArea[3][3] + visionArea[3][4] + visionArea[3][5] + visionArea[4][3] + visionArea[4][4] + visionArea[4][5];
+        overlapCount = visionArea[2][3] + visionArea[2][4] + visionArea[2][5] +
+                visionArea[3][3] + visionArea[3][4] + visionArea[3][5] +
+                visionArea[4][3] + visionArea[4][4] + visionArea[4][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[2][4] + visionArea[2][5] + visionArea[2][6] + visionArea[3][4] + visionArea[3][5] + visionArea[3][6] + visionArea[4][4] + visionArea[4][5] + visionArea[4][6];
+        overlapCount = visionArea[2][4] + visionArea[2][5] + visionArea[2][6] +
+                visionArea[3][4] + visionArea[3][5] + visionArea[3][6] +
+                visionArea[4][4] + visionArea[4][5] + visionArea[4][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[2][5] + visionArea[2][6] + visionArea[2][7] + visionArea[3][5] + visionArea[3][6] + visionArea[3][7] + visionArea[4][5] + visionArea[4][6] + visionArea[4][7];
+        overlapCount = visionArea[2][5] + visionArea[2][6] + visionArea[2][7] +
+                visionArea[3][5] + visionArea[3][6] + visionArea[3][7] +
+                visionArea[4][5] + visionArea[4][6] + visionArea[4][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[2][6] + visionArea[2][7] + visionArea[2][8] + visionArea[3][6] + visionArea[3][7] + visionArea[3][8] + visionArea[4][6] + visionArea[4][7] + visionArea[4][8];
+        overlapCount = visionArea[2][6] + visionArea[2][7] + visionArea[2][8] +
+                visionArea[3][6] + visionArea[3][7] + visionArea[3][8] +
+                visionArea[4][6] + visionArea[4][7] + visionArea[4][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y - 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (3 - center));
         }
 
-        overlapCount = visionArea[3][0] + visionArea[3][1] + visionArea[3][2] + visionArea[4][0] + visionArea[4][1] + visionArea[4][2] + visionArea[5][0] + visionArea[5][1] + visionArea[5][2];
+        overlapCount = visionArea[3][0] + visionArea[3][1] + visionArea[3][2] +
+                visionArea[4][0] + visionArea[4][1] + visionArea[4][2] +
+                visionArea[5][0] + visionArea[5][1] + visionArea[5][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (4 - center));
         }
 
-        overlapCount = visionArea[3][1] + visionArea[3][2] + visionArea[3][3] + visionArea[4][1] + visionArea[4][2] + visionArea[4][3] + visionArea[5][1] + visionArea[5][2] + visionArea[5][3];
+        overlapCount = visionArea[3][2] + visionArea[3][3] + visionArea[3][4] +
+                visionArea[4][2] + visionArea[4][3] + visionArea[4][4] +
+                visionArea[5][2] + visionArea[5][3] + visionArea[5][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (4 - center));
         }
 
-        overlapCount = visionArea[3][2] + visionArea[3][3] + visionArea[3][4] + visionArea[4][2] + visionArea[4][3] + visionArea[4][4] + visionArea[5][2] + visionArea[5][3] + visionArea[5][4];
+        overlapCount = visionArea[3][3] + visionArea[3][4] + visionArea[3][5] +
+                visionArea[4][3] + visionArea[4][4] + visionArea[4][5] +
+                visionArea[5][3] + visionArea[5][4] + visionArea[5][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (4 - center));
         }
 
-        overlapCount = visionArea[3][3] + visionArea[3][4] + visionArea[3][5] + visionArea[4][3] + visionArea[4][4] + visionArea[4][5] + visionArea[5][3] + visionArea[5][4] + visionArea[5][5];
+        overlapCount = visionArea[3][4] + visionArea[3][5] + visionArea[3][6] +
+                visionArea[4][4] + visionArea[4][5] + visionArea[4][6] +
+                visionArea[5][4] + visionArea[5][5] + visionArea[5][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (4 - center));
         }
 
-        overlapCount = visionArea[3][4] + visionArea[3][5] + visionArea[3][6] + visionArea[4][4] + visionArea[4][5] + visionArea[4][6] + visionArea[5][4] + visionArea[5][5] + visionArea[5][6];
+        overlapCount = visionArea[3][5] + visionArea[3][6] + visionArea[3][7] +
+                visionArea[4][5] + visionArea[4][6] + visionArea[4][7] +
+                visionArea[5][5] + visionArea[5][6] + visionArea[5][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (4 - center));
         }
 
-        overlapCount = visionArea[3][5] + visionArea[3][6] + visionArea[3][7] + visionArea[4][5] + visionArea[4][6] + visionArea[4][7] + visionArea[5][5] + visionArea[5][6] + visionArea[5][7];
+        overlapCount = visionArea[3][6] + visionArea[3][7] + visionArea[3][8] +
+                visionArea[4][6] + visionArea[4][7] + visionArea[4][8] +
+                visionArea[5][6] + visionArea[5][7] + visionArea[5][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (4 - center));
         }
 
-        overlapCount = visionArea[3][6] + visionArea[3][7] + visionArea[3][8] + visionArea[4][6] + visionArea[4][7] + visionArea[4][8] + visionArea[5][6] + visionArea[5][7] + visionArea[5][8];
+        // Row 5 (i=5)
+        overlapCount = visionArea[4][0] + visionArea[4][1] + visionArea[4][2] +
+                visionArea[5][0] + visionArea[5][1] + visionArea[5][2] +
+                visionArea[6][0] + visionArea[6][1] + visionArea[6][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][0] + visionArea[4][1] + visionArea[4][2] + visionArea[5][0] + visionArea[5][1] + visionArea[5][2] + visionArea[6][0] + visionArea[6][1] + visionArea[6][2];
+        overlapCount = visionArea[4][1] + visionArea[4][2] + visionArea[4][3] +
+                visionArea[5][1] + visionArea[5][2] + visionArea[5][3] +
+                visionArea[6][1] + visionArea[6][2] + visionArea[6][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][1] + visionArea[4][2] + visionArea[4][3] + visionArea[5][1] + visionArea[5][2] + visionArea[5][3] + visionArea[6][1] + visionArea[6][2] + visionArea[6][3];
+        overlapCount = visionArea[4][2] + visionArea[4][3] + visionArea[4][4] +
+                visionArea[5][2] + visionArea[5][3] + visionArea[5][4] +
+                visionArea[6][2] + visionArea[6][3] + visionArea[6][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][2] + visionArea[4][3] + visionArea[4][4] + visionArea[5][2] + visionArea[5][3] + visionArea[5][4] + visionArea[6][2] + visionArea[6][3] + visionArea[6][4];
+        overlapCount = visionArea[4][3] + visionArea[4][4] + visionArea[4][5] +
+                visionArea[5][3] + visionArea[5][4] + visionArea[5][5] +
+                visionArea[6][3] + visionArea[6][4] + visionArea[6][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][3] + visionArea[4][4] + visionArea[4][5] + visionArea[5][3] + visionArea[5][4] + visionArea[5][5] + visionArea[6][3] + visionArea[6][4] + visionArea[6][5];
+        overlapCount = visionArea[4][4] + visionArea[4][5] + visionArea[4][6] +
+                visionArea[5][4] + visionArea[5][5] + visionArea[5][6] +
+                visionArea[6][4] + visionArea[6][5] + visionArea[6][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][4] + visionArea[4][5] + visionArea[4][6] + visionArea[5][4] + visionArea[5][5] + visionArea[5][6] + visionArea[6][4] + visionArea[6][5] + visionArea[6][6];
+        overlapCount = visionArea[4][5] + visionArea[4][6] + visionArea[4][7] +
+                visionArea[5][5] + visionArea[5][6] + visionArea[5][7] +
+                visionArea[6][5] + visionArea[6][6] + visionArea[6][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][5] + visionArea[4][6] + visionArea[4][7] + visionArea[5][5] + visionArea[5][6] + visionArea[5][7] + visionArea[6][5] + visionArea[6][6] + visionArea[6][7];
+        overlapCount = visionArea[4][6] + visionArea[4][7] + visionArea[4][8] +
+                visionArea[5][6] + visionArea[5][7] + visionArea[5][8] +
+                visionArea[6][6] + visionArea[6][7] + visionArea[6][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (5 - center));
         }
 
-        overlapCount = visionArea[4][6] + visionArea[4][7] + visionArea[4][8] + visionArea[5][6] + visionArea[5][7] + visionArea[5][8] + visionArea[6][6] + visionArea[6][7] + visionArea[6][8];
+        // Row 6 (i=6)
+        overlapCount = visionArea[5][0] + visionArea[5][1] + visionArea[5][2] +
+                visionArea[6][0] + visionArea[6][1] + visionArea[6][2] +
+                visionArea[7][0] + visionArea[7][1] + visionArea[7][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y + 1);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][0] + visionArea[5][1] + visionArea[5][2] + visionArea[6][0] + visionArea[6][1] + visionArea[6][2] + visionArea[7][0] + visionArea[7][1] + visionArea[7][2];
+        overlapCount = visionArea[5][1] + visionArea[5][2] + visionArea[5][3] +
+                visionArea[6][1] + visionArea[6][2] + visionArea[6][3] +
+                visionArea[7][1] + visionArea[7][2] + visionArea[7][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][1] + visionArea[5][2] + visionArea[5][3] + visionArea[6][1] + visionArea[6][2] + visionArea[6][3] + visionArea[7][1] + visionArea[7][2] + visionArea[7][3];
+        overlapCount = visionArea[5][2] + visionArea[5][3] + visionArea[5][4] +
+                visionArea[6][2] + visionArea[6][3] + visionArea[6][4] +
+                visionArea[7][2] + visionArea[7][3] + visionArea[7][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][2] + visionArea[5][3] + visionArea[5][4] + visionArea[6][2] + visionArea[6][3] + visionArea[6][4] + visionArea[7][2] + visionArea[7][3] + visionArea[7][4];
+        overlapCount = visionArea[5][3] + visionArea[5][4] + visionArea[5][5] +
+                visionArea[6][3] + visionArea[6][4] + visionArea[6][5] +
+                visionArea[7][3] + visionArea[7][4] + visionArea[7][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][3] + visionArea[5][4] + visionArea[5][5] + visionArea[6][3] + visionArea[6][4] + visionArea[6][5] + visionArea[7][3] + visionArea[7][4] + visionArea[7][5];
+        overlapCount = visionArea[5][4] + visionArea[5][5] + visionArea[5][6] +
+                visionArea[6][4] + visionArea[6][5] + visionArea[6][6] +
+                visionArea[7][4] + visionArea[7][5] + visionArea[7][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][4] + visionArea[5][5] + visionArea[5][6] + visionArea[6][4] + visionArea[6][5] + visionArea[6][6] + visionArea[7][4] + visionArea[7][5] + visionArea[7][6];
+        overlapCount = visionArea[5][5] + visionArea[5][6] + visionArea[5][7] +
+                visionArea[6][5] + visionArea[6][6] + visionArea[6][7] +
+                visionArea[7][5] + visionArea[7][6] + visionArea[7][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][5] + visionArea[5][6] + visionArea[5][7] + visionArea[6][5] + visionArea[6][6] + visionArea[6][7] + visionArea[7][5] + visionArea[7][6] + visionArea[7][7];
+        overlapCount = visionArea[5][6] + visionArea[5][7] + visionArea[5][8] +
+                visionArea[6][6] + visionArea[6][7] + visionArea[6][8] +
+                visionArea[7][6] + visionArea[7][7] + visionArea[7][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (6 - center));
         }
 
-        overlapCount = visionArea[5][6] + visionArea[5][7] + visionArea[5][8] + visionArea[6][6] + visionArea[6][7] + visionArea[6][8] + visionArea[7][6] + visionArea[7][7] + visionArea[7][8];
+        // Row 7 (i=7)
+        overlapCount = visionArea[6][0] + visionArea[6][1] + visionArea[6][2] +
+                visionArea[7][0] + visionArea[7][1] + visionArea[7][2] +
+                visionArea[8][0] + visionArea[8][1] + visionArea[8][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y + 2);
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][0] + visionArea[6][1] + visionArea[6][2] + visionArea[7][0] + visionArea[7][1] + visionArea[7][2] + visionArea[8][0] + visionArea[8][1] + visionArea[8][2];
+        overlapCount = visionArea[6][1] + visionArea[6][2] + visionArea[6][3] +
+                visionArea[7][1] + visionArea[7][2] + visionArea[7][3] +
+                visionArea[8][1] + visionArea[8][2] + visionArea[8][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 3, rc.getLocation().y + 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][1] + visionArea[6][2] + visionArea[6][3] + visionArea[7][1] + visionArea[7][2] + visionArea[7][3] + visionArea[8][1] + visionArea[8][2] + visionArea[8][3];
+        overlapCount = visionArea[6][2] + visionArea[6][3] + visionArea[6][4] +
+                visionArea[7][2] + visionArea[7][3] + visionArea[7][4] +
+                visionArea[8][2] + visionArea[8][3] + visionArea[8][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 2, rc.getLocation().y + 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][2] + visionArea[6][3] + visionArea[6][4] + visionArea[7][2] + visionArea[7][3] + visionArea[7][4] + visionArea[8][2] + visionArea[8][3] + visionArea[8][4];
+        overlapCount = visionArea[6][3] + visionArea[6][4] + visionArea[6][5] +
+                visionArea[7][3] + visionArea[7][4] + visionArea[7][5] +
+                visionArea[8][3] + visionArea[8][4] + visionArea[8][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y + 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][3] + visionArea[6][4] + visionArea[6][5] + visionArea[7][3] + visionArea[7][4] + visionArea[7][5] + visionArea[8][3] + visionArea[8][4] + visionArea[8][5];
+        overlapCount = visionArea[6][4] + visionArea[6][5] + visionArea[6][6] +
+                visionArea[7][4] + visionArea[7][5] + visionArea[7][6] +
+                visionArea[8][4] + visionArea[8][5] + visionArea[8][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y + 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][4] + visionArea[6][5] + visionArea[6][6] + visionArea[7][4] + visionArea[7][5] + visionArea[7][6] + visionArea[8][4] + visionArea[8][5] + visionArea[8][6];
+        overlapCount = visionArea[6][5] + visionArea[6][6] + visionArea[6][7] +
+                visionArea[7][5] + visionArea[7][6] + visionArea[7][7] +
+                visionArea[8][5] + visionArea[8][6] + visionArea[8][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y + 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][5] + visionArea[6][6] + visionArea[6][7] + visionArea[7][5] + visionArea[7][6] + visionArea[7][7] + visionArea[8][5] + visionArea[8][6] + visionArea[8][7];
+        overlapCount = visionArea[6][6] + visionArea[6][7] + visionArea[6][8] +
+                visionArea[7][6] + visionArea[7][7] + visionArea[7][8] +
+                visionArea[8][6] + visionArea[8][7] + visionArea[8][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 2, rc.getLocation().y + 3);
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (7 - center));
         }
 
-        overlapCount = visionArea[6][6] + visionArea[6][7] + visionArea[6][8] + visionArea[7][6] + visionArea[7][7] + visionArea[7][8] + visionArea[8][6] + visionArea[8][7] + visionArea[8][8];
-        if (overlapCount > maxOverlap) {
-            maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + 3, rc.getLocation().y + 3);
-        }
-
-        return bestLocation != null ? bestLocation : new MapLocation(-1, -1);
+        if(maxOverlap > 3)
+            return bestLocation;
+        return new MapLocation(-1, -1);
     }
 
     boolean isPaintTower(UnitType tower){
