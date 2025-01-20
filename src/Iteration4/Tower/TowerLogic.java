@@ -311,7 +311,8 @@ public class TowerLogic {
                     // Send the message back to the robot at its location
                     rc.sendMessage(robotLocation, messageContent);
                 }
-            } else {
+            }
+            else {
                 // Get the RobotInfo for the robot with the given senderID
                 RobotInfo robotInfo = rc.senseRobot(senderID);
 
@@ -357,6 +358,9 @@ public class TowerLogic {
                 case 7: // tower destroyed, remove from set.
                     MapLocation destroyedTowerLocation = new MapLocation(x, y);
                     TowerUtils.removeDestroyedPaintTower(destroyedTowerLocation);
+                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
+                    break;
+                case 3: // give robot paint command
                     checkIsChipTowerAndSendToPaintTower(rc, senderID);
                     break;
 
