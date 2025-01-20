@@ -54,8 +54,8 @@ public class LateGameLogic extends TowerLogic{
 
             if (!canBuildRobotOnPaintTile(rc)){
                 buildRobotOnRandomTile(rc, UnitType.SPLASHER);
-                System.out.println("Spawned Splasher on a random tile");
-                saveTurn = 5;
+                System.out.println("Spawned Splasher on a random tile to paint surrounding paint on friendly tower");
+                saveTurn = 3;
                 return;
             }
 
@@ -187,6 +187,11 @@ public class LateGameLogic extends TowerLogic{
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+            }
+
             // while defending, if i have so many soldiers, just send them out
             // since they are pointless in defending, but leave some for other tasks when
             // defending is completed
@@ -216,6 +221,14 @@ public class LateGameLogic extends TowerLogic{
         }
         else if (isEnemyTowerFound){ // attack tower mode
             System.out.println("Enemy tower found, now preparing robots to attack");
+
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
@@ -245,6 +258,14 @@ public class LateGameLogic extends TowerLogic{
         }
         else if (isDamagedPatternFound){ // damage pattern found mode
             System.out.println("Oh no! Damaged pattern is found!");
+
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
 
@@ -301,6 +322,13 @@ public class LateGameLogic extends TowerLogic{
 
         }
         else if (isAttackSplasherNeeded){
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
             if (splasherCount >= 1) {
@@ -325,6 +353,13 @@ public class LateGameLogic extends TowerLogic{
             }
         }
         else if (isDefendSplasherNeeded){
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
             if (splasherCount >= 1) {
@@ -349,6 +384,13 @@ public class LateGameLogic extends TowerLogic{
             }
         }
         else if (isLargeRegionWithEnemyPaint){
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 3;
+                return;
+            }
+
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
             if (splasherCount >= 1) {
