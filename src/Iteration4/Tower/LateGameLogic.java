@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class LateGameLogic extends TowerLogic{
 
-    private static final int CHIP_SAVE_AMOUNT = 5200;
+    private static final int CHIP_SAVE_AMOUNT = 5300;
     static void runLateGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
@@ -52,9 +52,16 @@ public class LateGameLogic extends TowerLogic{
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
             int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
+            if (!canBuildRobotOnPaintTile(rc)){
+                buildRobotOnRandomTile(rc, UnitType.SPLASHER);
+                System.out.println("Spawned Splasher on a random tile");
+                saveTurn = 5;
+                return;
+            }
+
             if (!randomSoldierSpawnedYet && currentTurn < 10){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
-                System.out.println("Spawned Soldier on a random tile");
+                System.out.println("Spawned Splasher on a random tile");
                 randomSoldierSpawnedYet = true;
                 //attackNearbyEnemies(rc);
                 return;
