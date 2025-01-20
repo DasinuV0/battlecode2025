@@ -246,7 +246,7 @@ public class Soldier extends Robot {
                 MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
                 for (MapInfo mapInfo : surrMapInfos) {
                     MapLocation currentTile = mapInfo.getMapLocation();
-                    if(currentTile.x % 5 == 2 && currentTile.y % 5 == 2) {
+                    if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2) {
                         paintSRP(rc, currentTile);
                         resourceCenter = currentTile;
                     }
