@@ -112,7 +112,7 @@ public class Soldier extends Robot {
     }
 
     public static void paintSRP(RobotController rc, MapLocation center) throws GameActionException {
-        if (rc.canAttack(center)) {
+        if (rc.canPaint(center)) {
             if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
                 rc.attack(center, true);
         }
