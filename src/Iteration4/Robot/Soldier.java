@@ -246,18 +246,20 @@ public class Soldier extends Robot {
                 MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
                 for (MapInfo mapInfo : surrMapInfos) {
                     MapLocation currentTile = mapInfo.getMapLocation();
-                    if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2) {
+                    if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2 && mapInfo.getMark() == PaintType.EMPTY) {
                         paintSRP(rc, currentTile);
                         resourceCenter = currentTile;
+                        break;
                     }
                 }
                 if(resourceCenter.x != -1)
                     rc.setIndicatorString("Trying to complete RSP");
-                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(NearestAllyTower) < 200)
+                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(NearestAllyTower) < 200) {
                     rc.completeResourcePattern(resourceCenter);
-                rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
-            }
-
+                    rc.mark(resourceCenter, false);
+                    targetLocation = new MapLocation(-1,-1);
+                }
+           }
             if (lowPaintFlag){
                 //save origin pos when i'm building the tower and runs out of paint
                 if (originPos.x == -1 && (buildingTower.x != -1 || resourceCenter.x != -1)){
