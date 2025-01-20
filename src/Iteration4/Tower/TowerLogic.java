@@ -42,6 +42,7 @@ public class TowerLogic {
     static final int MOVE_TO_ATTACK_TOWER_COMMAND = 5;
     static final int MOVE_TO_ATTACK_USING_SPLASHER_COMMAND = 8;
     static final int MOVE_TO_DEFEND_USING_SPLASHER_COMMAND = 9;
+    static final int MOVE_TO_CLOSEST_PAINT_TOWER_COMMAND = 6;
     //static final int MOVE_TO_PAINT_LARGE_REGION_USING_SPLASHER_COMMAND = 10;
 
     static boolean isDefault = true;
@@ -55,6 +56,8 @@ public class TowerLogic {
     static boolean isDefendSplasherNeeded = false;
     static boolean isLargeRegionWithEnemyPaint = false;
     static int saveTurn = 0;
+
+    private static MapLocation lastClosestTower = null;
 
     public static void run(RobotController rc) throws GameActionException {
         int currentTurn = rc.getRoundNum(); // Get the current game turn
@@ -442,6 +445,34 @@ public class TowerLogic {
         return sentCount; // Return the number of robots that received the message
     }
 
+    private static boolean isChipTower(RobotController rc) {
+        // Check if the tower is one of the money or paint towers at any level
+        UnitType towerType = rc.getType();
+        return towerType == UnitType.LEVEL_ONE_MONEY_TOWER ||
+                towerType == UnitType.LEVEL_TWO_MONEY_TOWER ||
+                towerType == UnitType.LEVEL_THREE_MONEY_TOWER;
+    }
+
+    public static void checkIsChipTowerAndSendToPaintTower(RobotController rc, int senderID) throws GameActionException {
+        if (isChipTower(rc) && rc.getPaint() > 350){
+            MapLocation closestPaintTower = TowerUtils.getClosestPaintTower();
+            if (closestPaintTower != null){
+                // Get the RobotInfo for the robot with the given senderID
+                RobotInfo robotInfo = rc.senseRobot(senderID);
+
+                if (robotInfo != null){
+                    // Get the MapLocation of the robot
+                    MapLocation robotLocation = robotInfo.getLocation();
+
+                    // Construct a response message with the closest paint tower coordinates
+                    int messageContent = (closestPaintTower.x << 6) | closestPaintTower.y | (MOVE_TO_CLOSEST_PAINT_TOWER_COMMAND << 12);
+                    // Send the message back to the robot at its location
+                    rc.sendMessage(robotLocation, messageContent);
+                }
+            }
+        }
+    }
+
 
     public static void handleMessages(RobotController rc) throws GameActionException {
         Message[] messages = rc.readMessages(-1); // Read all messages from the past 5 rounds
@@ -452,6 +483,7 @@ public class TowerLogic {
 
         for (Message message : messages) {
             int messageContent = message.getBytes();
+            int senderID = message.getSenderID(); // Get the ID of the robot that sent the message
 
             // Decode command and coordinates
             int x = (messageContent >> 6) & 63; // Extract x-coordinate (bits 6-11)
@@ -462,7 +494,18 @@ public class TowerLogic {
             //System.out.println(targetLoc);
             // Execute actions based on command
             switch (command) {
+                case 6: // update closest paint tower set
+                    MapLocation newTowerLocation = new MapLocation(x, y);
+                    TowerUtils.updatePaintTowers(newTowerLocation);
+                    break;
+
+                case 7: // tower destroyed, remove from set.
+                    MapLocation destroyedTowerLocation = new MapLocation(x, y);
+                    TowerUtils.removeDestroyedPaintTower(destroyedTowerLocation);
+                    break;
+
                 case 10: // attack region with large amount of paint
+                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
                     if (determineGamePhase(currentTurn) != "EARLY_GAME" && isDefault){
                         System.out.println("Large region with paint command received. Now forming the required formation of troops");
                         targetLoc = new MapLocation(x, y);
@@ -471,6 +514,7 @@ public class TowerLogic {
                         isLargeRegionWithEnemyPaint = true;
                     }
                 case 8: // attack Splasher
+                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
                     if (determineGamePhase(currentTurn) != "EARLY_GAME" && isDefault){
                         System.out.println("Attack splasher command received. Now forming the required formation of troops");
                         targetLoc = new MapLocation(x, y);
@@ -479,6 +523,7 @@ public class TowerLogic {
                         isAttackSplasherNeeded = true;
                     }
                 case 9: // defend Splasher
+                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
                     if (determineGamePhase(currentTurn) != "EARLY_GAME" && isDefault){
                         System.out.println("Attack splasher command received. Now forming the required formation of troops");
                         targetLoc = new MapLocation(x, y);
@@ -487,6 +532,7 @@ public class TowerLogic {
                         isDefendSplasherNeeded = true;
                     }
                 case 5: // attack tower
+                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
                     System.out.println("Received attack command, checking if tower is free...");
                     if (isDefault){
                         System.out.println("Attack tower command received. Now forming the required formation of troops");
@@ -496,6 +542,7 @@ public class TowerLogic {
                         isEnemyTowerFound = true;
                     }
                 case 2: // damaged ruin found
+                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
                     if (isDefault){
                         targetLoc = new MapLocation(x, y);
                         // send 2 mopper + soldier : early game
