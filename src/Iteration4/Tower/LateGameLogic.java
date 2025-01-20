@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class LateGameLogic extends TowerLogic{
 
-    private static final int CHIP_SAVE_AMOUNT = 5300;
+    private static final int CHIP_SAVE_AMOUNT = 5100;
     static void runLateGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
