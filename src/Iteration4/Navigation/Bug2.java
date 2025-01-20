@@ -12,7 +12,7 @@ public class Bug2 {
     static MapLocation prevDest = new MapLocation(-1, -1);
     static MapLocation lineStart = new MapLocation(-1,-1);
     static MapLocation lineEnd = new MapLocation(-1,-1);
-    static HashSet<MapLocation> visited = new HashSet<>();;
+    static HashSet<MapLocation> visited = new HashSet<>();
     static boolean isTracing = false;
     static Direction wallDirection = null;
     static int obstacleDist = 0, dx, dy, sx, sy;
@@ -37,6 +37,7 @@ public class Bug2 {
                 isTracing = true;
                 wallDirection = dir;
                 obstacleDist = curPos.distanceSquaredTo(dest);
+                visited.clear();
             }
             return;
         }
