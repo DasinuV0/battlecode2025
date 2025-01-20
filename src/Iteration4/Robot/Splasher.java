@@ -103,7 +103,7 @@ public class Splasher extends Robot {
             rc.setIndicatorString("Attacking with splash");
             MapLocation attackLocation = getEnemyPaintZone(rc);
             // attack
-            // Navigation.Bug2.move(attackLocation);
+            Navigation.Bug2.move(attackLocation);
             // rc.setIndicatorString("Moving towards" + attackLocation);
             if (rc.canAttack(rc.getLocation())) {
                 rc.attack(rc.getLocation());
@@ -113,9 +113,9 @@ public class Splasher extends Robot {
                 locationReached = false;
                 rc.setIndicatorString("Moving towards" + attackLocation);
             } else {
-                targetLocation = attackLocation.add(rc.getLocation().directionTo(attackLocation).opposite());
+                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
                 locationReached = false;
-                rc.setIndicatorString("Moving towards" + attackLocation.add(rc.getLocation().directionTo(attackLocation).opposite()));
+                rc.setIndicatorString("(Opposite) Moving towards" + rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite()));
             }
         }
     
