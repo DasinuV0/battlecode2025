@@ -69,29 +69,33 @@ public class Splasher extends Robot {
          if (lowPaintFlag) {
             runLowPaintSplasher();
         } else if (isAttackSplasher) {
+            rc.setIndicatorString("Attack splasher");
             runAttackSplasher();
         } else if (isDefenseSplasher) {
             runDefenseSplasher();
+        } else {
+            runAttackSplasher();
         }
 
     }
 
     void runAttackSplasher() throws GameActionException {
-        // A=0,B=1,C=2,D=3       
-        if (!locationReached) {            
-            if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
-                locationReached = true;
-            }
-            Navigation.Bug2.move(targetLocation);
-        } else {
-            // stay in the same region
-            int x = rng.nextInt(rc.getMapWidth());
-            int y = rng.nextInt(rc.getMapHeight());
-            targetLocation = new MapLocation(x,y);
-            rc.setIndicatorString("move to" + x + " " + y);
-            Navigation.Bug2.move(targetLocation);           
-        }        
-    
+        // A=0,B=1,C=2,D=3
+        if (targetLocation.x != -1) {
+            if (!locationReached) {            
+                if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
+                    locationReached = true;
+                }
+                Navigation.Bug2.move(targetLocation);
+            } else {
+                // stay in the same region
+                int x = rng.nextInt(rc.getMapWidth());
+                int y = rng.nextInt(rc.getMapHeight());
+                targetLocation = new MapLocation(x,y);
+                rc.setIndicatorString("move to" + x + " " + y);
+                Navigation.Bug2.move(targetLocation);           
+            }        
+        }
         // if more than 3 tiles empty -> attack
         int emptyTiles = calculateEmptyTiles(rc);
     
