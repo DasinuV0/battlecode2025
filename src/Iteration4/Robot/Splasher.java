@@ -28,7 +28,7 @@ public class Splasher extends Robot {
 
     public void beginTurn() throws GameActionException {
         resetFlags();
-        listenMessage();
+        if (!locationReached) { listenMessage(); }
         updateLowPaintFlag();
         // updateLowHealthFlag();
 
