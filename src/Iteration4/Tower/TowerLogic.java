@@ -352,7 +352,7 @@ public class TowerLogic {
             switch (command) {
                 case 6: // update closest paint tower set
                     MapLocation newTowerLocation = new MapLocation(x, y);
-                    TowerUtils.updatePaintTowers(newTowerLocation);
+                    TowerUtils.updatePaintTowers(newTowerLocation, rc);
                     break;
 
                 case 7: // tower destroyed, remove from set.
