@@ -19,6 +19,7 @@ import battlecode.common.*;
 public class Splasher extends Robot {
 
     static boolean locationReached = false;
+    static boolean hasTarget = false;
     private LinkedList<MapLocation> recentLocations = new LinkedList<MapLocation>();
 
     public Splasher(RobotController _rc) throws GameActionException {
@@ -28,7 +29,7 @@ public class Splasher extends Robot {
 
     public void beginTurn() throws GameActionException {
         resetFlags();
-        if (!locationReached) { listenMessage(); }
+        if (!hasTarget) { listenMessage(); }
         updateLowPaintFlag();
         // updateLowHealthFlag();
 
@@ -82,13 +83,14 @@ public class Splasher extends Robot {
     void runAttackSplasher() throws GameActionException {
         // A=0,B=1,C=2,D=3
         if (targetLocation.x != -1) {
+            hasTarget = true;
             if (!locationReached) {            
                 if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
                     locationReached = true;
                 }
                 Navigation.Bug2.move(targetLocation);
             } else {
-                // stay in the same region
+                // move to random location
                 int x = rng.nextInt(rc.getMapWidth());
                 int y = rng.nextInt(rc.getMapHeight());
                 targetLocation = new MapLocation(x,y);
@@ -111,10 +113,12 @@ public class Splasher extends Robot {
             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                 targetLocation = attackLocation;
                 locationReached = false;
+                hasTarget = true;
                 rc.setIndicatorString("Moving towards" + attackLocation);
             } else {
                 targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
                 locationReached = false;
+                hasTarget = true;
                 rc.setIndicatorString("(Opposite) Moving towards" + rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite()));
             }
         }
