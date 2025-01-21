@@ -36,6 +36,22 @@ public class Robot {
         static final int SENDPAINTZONE = 10;
     }   
 
+    // Class to represent a paint tower and its distance to the current robot location
+    static class TowerInfo {
+        MapLocation location;
+        int distanceSquared;
+
+        TowerInfo(MapLocation location, int distanceSquared) {
+            this.location = location;
+            this.distanceSquared = distanceSquared;
+        }
+
+        // Method to calculate the distance from the robot's location to the tower
+        public int distanceSquaredTo(MapLocation other) {
+            return this.location.distanceSquaredTo(other);
+        }
+    }
+
     /**
      * Constants for Rush strategy
      */
@@ -70,6 +86,8 @@ public class Robot {
 
     static RobotController rc;
 
+    // static PriorityQueue<TowerInfo> paintTowersPos = new PriorityQueue<>(Comparator.comparingInt(t -> t.distanceSquaredTo(currentLocation)));
+    // static PriorityQueue<TowerInfo> moneyTowersPos = new PriorityQueue<>(Comparator.comparingInt(t -> t.distanceSquaredTo(currentLocation)));
     static Set<MapLocation> paintTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> moneyTowersPos = new  LinkedHashSet<>();
     static Set<MapLocation> enemyTowersPos = new LinkedHashSet<>();
