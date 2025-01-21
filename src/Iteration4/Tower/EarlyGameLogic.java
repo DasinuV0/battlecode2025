@@ -5,6 +5,7 @@ import battlecode.common.*;
 public class EarlyGameLogic extends TowerLogic{
     private static final int CHIP_SAVE_AMOUNT = 1200;
 
+
     static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
 //        Direction dir = directions[rng.nextInt(directions.length)];
