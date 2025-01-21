@@ -239,6 +239,10 @@ public class Mopper extends Robot {
             // else if (nearestAllyTower.x != -1)
             //     Navigation.Bug2.move(nearestAllyTower);
         
+            //go back if can't send message
+            if (!rc.canSendMessage(nearestAllyTower))
+                Navigation.Bug2.move(nearestAllyTower);
+                     
                      //try to clean enemy tile
             if (tileToclean != null){
                     Navigation.Bug2.move(tileToclean);
@@ -247,8 +251,6 @@ public class Mopper extends Robot {
                         tileToclean = null;
             }
 
-            if (!rc.canSendMessage(nearestAllyTower))
-                Navigation.Bug2.move(nearestAllyTower);
 
         }
 
@@ -277,6 +279,40 @@ public class Mopper extends Robot {
                     rc.transferPaint(nearestAllyPaintTower, localPaintToTake);
                 else
                     Navigation.Bug2.move(nearestAllyPaintTower);
+                return;
+            }
+
+            if (enemyTowersPos.size() > 0){
+                //Done: what to do once an enemy tower is found
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x == -1){
+                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
+                    tryToRebuildTower();
+                    return;
+                }
+                //reset the target location
+                targetLocation = new MapLocation(-1,-1);
+                //go to the nearest ally tower 
+                Navigation.Bug2.move(nearestAllyTower);
+                rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+                System.out.println("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
+
+
+                if (rc.canSendMessage(nearestAllyTower)){
+                    MapLocation firstElement = new MapLocation(0, 0);
+                    // Get an iterator
+                    Iterator<MapLocation> iterator = enemyTowersPos.iterator();
+                    if (iterator.hasNext()) {
+                        firstElement = iterator.next();
+                        // Remove the first element
+                        iterator.remove();
+                    }
+                    rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.ENEMYTOWERFOUND,firstElement)); // DONE: add first firstElement to the messag
+                    //.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
+                    
+                    rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                    rc.setIndicatorString("message sent: enemy tower found");
+                }
                 return;
             }
 
@@ -330,45 +366,13 @@ public class Mopper extends Robot {
 
                             //try to clean enemy tile
             if (tileToclean != null){
+                rc.setIndicatorString("try to clean tile");
                 //reset target location 
                 targetLocation = new MapLocation(-1,-1);
                 Navigation.Bug2.move(tileToclean);
                 rc.setIndicatorDot(tileToclean, 0,0,255);
                 if (tryToPaintAtLoc(tileToclean, PaintType.ENEMY_PRIMARY) || tryToPaintAtLoc(tileToclean, PaintType.ENEMY_SECONDARY))
                     tileToclean = null;
-            }
-
-            if (enemyTowersPos.size() > 0){
-                //Done: what to do once an enemy tower is found
-                MapLocation nearestAllyTower = getNearestAllyTower();
-                if (nearestAllyTower.x == -1){
-                    rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
-                    tryToRebuildTower();
-                    return;
-                }
-                //reset the target location
-                targetLocation = new MapLocation(-1,-1);
-                //go to the nearest ally tower 
-                Navigation.Bug2.move(nearestAllyTower);
-                rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
-                System.out.println("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
-
-
-                if (rc.canSendMessage(nearestAllyTower)){
-                    MapLocation firstElement = new MapLocation(0, 0);
-                    // Get an iterator
-                    Iterator<MapLocation> iterator = enemyTowersPos.iterator();
-                    if (iterator.hasNext()) {
-                        firstElement = iterator.next();
-                        // Remove the first element
-                        iterator.remove();
-                    }
-                    rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.ENEMYTOWERFOUND,firstElement)); // DONE: add first firstElement to the messag
-                    //.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
-                    
-                    rc.setIndicatorDot(nearestAllyTower, 0,255,0);
-                    rc.setIndicatorString("message sent: enemy tower found");
-                }
                 return;
             }
 
@@ -390,10 +394,14 @@ public class Mopper extends Robot {
 
 
             // Move randomly if no objective.
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)){
-                rc.move(dir);
-                rc.setIndicatorString("move randomly");
+        
+            //if it still didn't move, bugnav to a random pos
+            if (rc.isMovementReady() && targetLocation.x == -1){
+                int x = rng.nextInt(rc.getMapWidth());
+                int y = rng.nextInt(rc.getMapHeight());
+                targetLocation = new MapLocation(x,y);
+                rc.setIndicatorString("move to" + x + " " + y);
+                Navigation.Bug2.move(targetLocation);
             }
         }
 
