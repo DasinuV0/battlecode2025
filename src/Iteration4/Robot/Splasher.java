@@ -99,17 +99,19 @@ public class Splasher extends Robot {
             }        
         }
         // if more than 3 tiles empty -> attack
-        int emptyTiles = calculateEmptyTiles(rc);
+        // int emptyTiles = calculateEmptyTiles(rc);
+        MapLocation attackLocation = getEnemyPaintZone(rc);
     
-        if (emptyTiles > 3) {
+        // if (emptyTiles > 3) {
+        if (attackLocation.x != -1) {
             rc.setIndicatorString("Attacking with splash");
-            MapLocation attackLocation = getEnemyPaintZone(rc);
+            // MapLocation attackLocation = getEnemyPaintZone(rc);
             // attack
             Navigation.Bug2.move(attackLocation);
             // rc.setIndicatorString("Moving towards" + attackLocation);
-            if (rc.canAttack(rc.getLocation())) {
-                rc.attack(rc.getLocation());
-            }
+            if (rc.canAttack(attackLocation)) {
+                rc.attack(attackLocation);
+            } 
             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                 targetLocation = attackLocation;
                 locationReached = false;
