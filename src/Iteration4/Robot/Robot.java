@@ -495,9 +495,11 @@ public class Robot {
             int matrixX = center + relativeX;
             int matrixY = center + relativeY;
             if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY)
-                visionArea[matrixY][matrixX] = 1;
+                visionArea[matrixY][matrixX] = 2;
             if(mapInfo.getPaint() == PaintType.ALLY_PRIMARY || mapInfo.getPaint() == PaintType.ALLY_SECONDARY)
                 visionArea[matrixY][matrixX] = -1;
+            if(mapInfo.getPaint() == PaintType.EMPTY)
+                visionArea[matrixY][matrixX] = 1;
         }
 
         int maxOverlap = 0;
