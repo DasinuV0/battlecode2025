@@ -16,10 +16,14 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 
 public class Soldier extends Robot {
+
+
     MapLocation targetTower;
     Direction dirToEnemy;
     MapLocation lastRuinWithPatternDamagedFoundPos; //ruinLoc 
     int lastRuinWithPatternDamagedFoundRound; // the round we see the ruin
+    MapLocation resourceCenter = new MapLocation(-1,-1); //for SRP
+    Map<MapLocation, Integer> invalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -82,46 +86,48 @@ public class Soldier extends Robot {
             lastRuinWithPatternDamagedFoundRound = -1;
         }
 
+        //search for a "good" spot for resource centre, if resource centre is not already found
+        if (resourceCenter.x == -1){
+            MapLocation nearestAllyTower = getNearestAllyTower();
+            MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
+            for (MapInfo mapInfo : surrMapInfos) {
+                if (mapInfo.isPassable() == false)
+                    continue;
+                MapLocation currentTile = mapInfo.getMapLocation();
+                if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2 && mapInfo.getMark() == PaintType.EMPTY) {
+                    //if currentTile is considered as a invalid center, wait 50 rounds to check this tile again
+                    if (invalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - invalidResourceCenter.get(currentTile) < 50)
+                        continue;
+                    resourceCenter = currentTile;
+                    // paintSRP(resourceCenter);
+                    break;
+                }
+            }
+        }
 
-        if (lastRuinWithPatternDamagedFoundPos.x != -1)
-            rc.setIndicatorDot(lastRuinWithPatternDamagedFoundPos, 255,0,0);
+
+        // if (lastRuinWithPatternDamagedFoundPos.x != -1)
+        //     rc.setIndicatorDot(lastRuinWithPatternDamagedFoundPos, 255,0,0);
         
-        // if suicideRobot, find the enemy tower
-        // if (isSuicideRobot == 1) rushTowerFind(rc);
         
     }
-
-    // void rushTowerFind(RobotController _rc) throws GameActionException {
-    //     Team myTeam = rc.getTeam();
-    //     MapLocation myLocation = rc.getLocation();
-    //     if (this.checkedEnemyTower == 0) {
-    //         RobotInfo[] nearbyAllyRobots = rc.senseNearbyRobots(-1, myTeam);
-    //         if (nearbyAllyRobots[0].getType().isTowerType()) {
-    //             //.out.println("ally Tower found at " + nearbyAllyRobots[0].location);
-    //             this.checkedEnemyTower = 1;
-    //             MapLocation allyTower = nearbyAllyRobots[0].getLocation();
-    //             this.targetTower = Symmetry.getEnemyStartingTowerCoord(rc, allyTower);
-    //             this.dirToEnemy = myLocation.directionTo(targetTower);
-    //         }
-    //     }
-    // }
 
     //Instructions at the end of each turn
     public void endTurn() throws GameActionException {
        
     }
 
-    public static void paintSRP(RobotController rc, MapLocation center) throws GameActionException {
+    void paintSRP(MapLocation center) throws GameActionException {
         if (rc.canPaint(center)) {
             if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
                 rc.attack(center, true);
         }
-        else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-            Navigation.Bug2.move(center);
-            if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
-                rc.attack(center, true);
-        }
-
+        // else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
+        //     Navigation.Bug2.move(center);
+        //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
+        //         rc.attack(center, true);
+        // }
+        rc.setIndicatorDot(center, 255,255,0);
         int[][] attackPositions = {
                 {2, 2, 1}, {1, 2, 1}, {2, 1, 1},  // Quadrant 1
                 {-2, 2, 1}, {-1, 2, 1}, {-2, 1, 1}, // Quadrant 2
@@ -131,43 +137,85 @@ public class Soldier extends Robot {
                 {0, -1, 0}, {0, -2, 0}, {0, 1, 0}, {0, 2, 0}, // Vertical
                 {1, 1, 0}, {-1, 1, 0}, {-1, -1, 0}, {1, -1, 0} // Diagonal
         };
+
+        boolean paintTile = false;
         for (int[] pos : attackPositions) {
             MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
-            if (rc.canAttack(target)) {
-                boolean paintType = false;
+            if (rc.canPaint(target)) {
+                int paintType = -1;
+                rc.setIndicatorDot(target,13,241,4);
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
-                    paintType = true;
+                    paintType = 1;
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
-                    paintType = false;
-                if(paintType != (pos[2] == 1))
+                    paintType = 0;
+                int expectedPaintType = (pos[2] == 1) ? 1 : 0;
+                if(paintType != expectedPaintType){
                     rc.attack(target, pos[2] == 1);
-            }
-            else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-                Navigation.Bug2.move(target);
-                boolean paintType = false;
-                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
-                    paintType = true;
-                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
-                    paintType = false;
-                if(paintType != (pos[2] == 1))
-                    rc.attack(target, pos[2] == 1);
+                    paintTile = true;
+                    break;
+                }
             }
         }
+
+        //if i'm at the center and i can't paint anything, skip this center and set it as a invalid center
+        if (rc.getLocation().x == center.x && rc.getLocation().y == center.y  && !paintTile){
+            invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
+            resourceCenter = new MapLocation(-1,-1);
+        }
+        Navigation.Bug2.move(center);
     }
 
-    MapLocation NearestAllyTower = rc.getLocation();
-    MapLocation resourceCenter = new MapLocation(-1,-1);
+    void paintSRPWithNoMoving() throws GameActionException {
+        // if (rc.canPaint(center)) {
+        //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
+        //         rc.attack(center, true);
+        // }
+        // else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
+        //     Navigation.Bug2.move(center);
+        //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
+        //         rc.attack(center, true);
+        // }
+        // MapLocation center = rc.getLocation();//pls change this, so what if a the centre doesn't now exists
+        // int[][] attackPositions = {
+        //         {2, 2, 1}, {1, 2, 1}, {2, 1, 1},  // Quadrant 1
+        //         {-2, 2, 1}, {-1, 2, 1}, {-2, 1, 1}, // Quadrant 2
+        //         {-2, -2, 1}, {-1, -2, 1}, {-2, -1, 1}, // Quadrant 3
+        //         {2, -2, 1}, {1, -2, 1}, {2, -1, 1}, // Quadrant 4
+        //         {-1, 0, 0}, {-2, 0, 0}, {1, 0, 0}, {2, 0, 0}, // Horizontal
+        //         {0, -1, 0}, {0, -2, 0}, {0, 1, 0}, {0, 2, 0}, // Vertical
+        //         {1, 1, 0}, {-1, 1, 0}, {-1, -1, 0}, {1, -1, 0} // Diagonal
+        // };
+        // for (int[] pos : attackPositions) {
+        //     MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
+        //     if (rc.canAttack(target)) {
+        //         boolean paintType = false;
+        //         if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
+        //             paintType = true;
+        //         if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+        //             paintType = false;
+        //         if(paintType != (pos[2] == 1))
+        //             rc.attack(target, pos[2] == 1);
+        //     }
+        //     // else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
+        //     //     Navigation.Bug2.move(target);
+        //     //     boolean paintType = false;
+        //     //     if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
+        //     //         paintType = true;
+        //     //     if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+        //     //         paintType = false;
+        //     //     if(paintType != (pos[2] == 1))
+        //     //         rc.attack(target, pos[2] == 1);
+        //     // }
+        // }
+
+        // if (rc.senseMapInfo(rc.getLocation()).getPaint() == PaintType.EMPTY)
+        //     rc.attack(rc.getLocation());
+        if (rc.senseMapInfo(rc.getLocation()).getPaint() == PaintType.EMPTY && rc.canAttack(rc.getLocation()))
+            rc.attack(rc.getLocation());
+    }
+
     //Core turn method
     public void runTurn() throws GameActionException {  
-        // if (isSuicideRobot == 1) {
-        //     rc.setIndicatorString("suicideRobot");
-        //     Navigation.Bug2.move(targetTower);
-            
-        //     if (rc.canAttack(targetTower)) {
-        //         rc.attack(targetTower);
-        //     }
-        // }     
-        //stayPut, moveTarget, ruinWithPatternDamaged, lowPaintFlag, ruinsFound, enemyTowerFound
         /*
         STAYPUT MODE
         paint tower nearby tiles
@@ -232,7 +280,7 @@ public class Soldier extends Robot {
         else if (exploreMode){
             rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
 
-            if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
+            if (resourceCenter.x == -1 && lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
                 //reset origin pos, if the bot is close enough to origin pos
                 if (originPos.x != -1){
                     rc.setIndicatorDot(originPos, 0,0,244);
@@ -240,25 +288,9 @@ public class Soldier extends Robot {
                             originPos = new MapLocation(-1,-1);
                 }
 
-                if(rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < rc.getLocation().distanceSquaredTo(NearestAllyTower))
-                    NearestAllyTower = getNearestAllyTower();
                 //paint while traveling
-                MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
-                for (MapInfo mapInfo : surrMapInfos) {
-                    MapLocation currentTile = mapInfo.getMapLocation();
-                    if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2 && mapInfo.getMark() == PaintType.EMPTY) {
-                        paintSRP(rc, currentTile);
-                        resourceCenter = currentTile;
-                        break;
-                    }
-                }
-                if(resourceCenter.x != -1)
-                    rc.setIndicatorString("Trying to complete RSP");
-                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(NearestAllyTower) < 200) {
-                    rc.completeResourcePattern(resourceCenter);
-                    rc.mark(resourceCenter, false);
-                    targetLocation = new MapLocation(-1,-1);
-                }
+                // paintSRPWithNoMoving();
+            
             }
 
             if (lowPaintFlag){
@@ -476,6 +508,19 @@ public class Soldier extends Robot {
                     return;//just take the first ruin found and build it
                 }
             
+            }
+
+            //if a good spot for SRP is found, try to complete RSP
+            if(resourceCenter.x != -1){
+                // targetLocation = new MapLocation(-1,-1);
+                rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
+                paintSRP(resourceCenter);
+                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < 200) {
+                    rc.completeResourcePattern(resourceCenter);
+                    rc.mark(resourceCenter, false);
+                    resourceCenter = new MapLocation(-1,-1);
+                }
+                return;
             }
 
             //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
