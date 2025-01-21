@@ -91,10 +91,15 @@ public class MidGameLogic extends TowerLogic{
             }
 
             else { // if none, spawn one
-                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){
-                    System.out.println("Saving ruins");
+                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){ // save chips regardless of tower
+                    System.out.println("Saving ruins regardless of tower type");
                     return;
                 }
+                else if (isChipTower(rc) && rc.getPaint() < 300){ // save paint for chip towers
+                    System.out.println("Is chip tower, and paint <= 200: Saving ruins");
+                    return;
+                }
+
                 int randomInt = rand.nextInt(2) + 1;
 
                 if (randomInt == 1){ // spawn soldier
@@ -229,7 +234,8 @@ public class MidGameLogic extends TowerLogic{
                 }
 
                 System.out.println("1 Soldier spawned on paint tile, sending out to attack");
-                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
+                int currentSoldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, currentSoldierCountAfterSpawn);
                 isEnemyTowerFound = false;
                 isDefault = true;
                 saveTurn = 5;
