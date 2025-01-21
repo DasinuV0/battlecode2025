@@ -23,7 +23,7 @@ public class Soldier extends Robot {
     MapLocation lastRuinWithPatternDamagedFoundPos; //ruinLoc 
     int lastRuinWithPatternDamagedFoundRound; // the round we see the ruin
     MapLocation resourceCenter = new MapLocation(-1,-1); //for SRP
-    Map<MapLocation, Integer> invalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
+    // Map<MapLocation, Integer> invalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -68,7 +68,7 @@ public class Soldier extends Robot {
 
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        for (MapInfo tile : nearbyTiles)
+        for (MapInfo tile : nearbyTiles){
             // Search all nearby ruins
             if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null && (lastRuinWithPatternDamagedFoundPos.x != tile.getMapLocation().x || lastRuinWithPatternDamagedFoundPos.y != tile.getMapLocation().y) && originPos.x == -1){
                 rc.setIndicatorDot(tile.getMapLocation(), 1,23,42);
@@ -79,6 +79,7 @@ public class Soldier extends Robot {
             else if (emptyTile.x == -1 && tile.getPaint() == PaintType.EMPTY && tile.isPassable()){
                 emptyTile = tile.getMapLocation();
             }
+        }
 
         //if we saw a ruin, and we ignored that ruin for 50 rounds, start to consider it again
         if (lastRuinWithPatternDamagedFoundRound != -1 && rc.getRoundNum() - lastRuinWithPatternDamagedFoundRound > 50){
@@ -87,7 +88,7 @@ public class Soldier extends Robot {
         }
 
         //search for a "good" spot for resource centre, if resource centre is not already found
-        if (resourceCenter.x == -1){
+        if (resourceCenter.x == -1 || rc.canSenseLocation(resourceCenter) == false){
             MapLocation nearestAllyTower = getNearestAllyTower();
             MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
             for (MapInfo mapInfo : surrMapInfos) {
@@ -96,8 +97,8 @@ public class Soldier extends Robot {
                 MapLocation currentTile = mapInfo.getMapLocation();
                 if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2 && mapInfo.getMark() == PaintType.EMPTY) {
                     //if currentTile is considered as a invalid center, wait 50 rounds to check this tile again
-                    if (invalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - invalidResourceCenter.get(currentTile) < 50)
-                        continue;
+                    // if (invalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - invalidResourceCenter.get(currentTile) < 50)
+                    //     continue;
                     resourceCenter = currentTile;
                     // paintSRP(resourceCenter);
                     break;
@@ -139,8 +140,17 @@ public class Soldier extends Robot {
         };
 
         boolean paintTile = false;
+        boolean unpaintableTile = false;
         for (int[] pos : attackPositions) {
             MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
+            if (rc.canSenseLocation(target) == false)
+                continue; //skip tiles that are not in the vision range
+
+            // //if target is a wall or is paint by enemy, ignore this center
+            // if (rc.senseMapInfo(target).isPassable() == false || rc.senseMapInfo(target).getPaint().isEnemy()){
+            //     unpaintableTile = true;
+            //     break;
+            // }
             if (rc.canPaint(target)) {
                 int paintType = -1;
                 rc.setIndicatorDot(target,13,241,4);
@@ -149,20 +159,25 @@ public class Soldier extends Robot {
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = 0;
                 int expectedPaintType = (pos[2] == 1) ? 1 : 0;
-                if(paintType != expectedPaintType){
+                if(paintType != expectedPaintType && rc.canAttack(target)){
                     rc.attack(target, pos[2] == 1);
                     paintTile = true;
-                    break;
                 }
             }
+
         }
 
-        //if i'm at the center and i can't paint anything, skip this center and set it as a invalid center
-        if (rc.getLocation().x == center.x && rc.getLocation().y == center.y  && !paintTile){
-            invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
-            resourceCenter = new MapLocation(-1,-1);
-        }
-        Navigation.Bug2.move(center);
+        // if (unpaintableTile){
+        //     invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
+        //     resourceCenter = new MapLocation(-1,-1);
+        // }
+
+        // //if i'm at the center and i can't paint anything, skip this center and set it as a invalid center
+        // if (rc.getLocation().x == center.x && rc.getLocation().y == center.y  && !paintTile){
+        //     invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
+        //     resourceCenter = new MapLocation(-1,-1);
+        // }
+        // Navigation.Bug2.move(center);
     }
 
     void paintSRPWithNoMoving() throws GameActionException {
@@ -280,7 +295,7 @@ public class Soldier extends Robot {
         else if (exploreMode){
             rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
 
-            if (resourceCenter.x == -1 && lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
+            if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
                 //reset origin pos, if the bot is close enough to origin pos
                 if (originPos.x != -1){
                     rc.setIndicatorDot(originPos, 0,0,244);
@@ -288,9 +303,21 @@ public class Soldier extends Robot {
                             originPos = new MapLocation(-1,-1);
                 }
 
-                //paint while traveling
-                // paintSRPWithNoMoving();
-            
+                //if a good spot for SRP is found, try to complete RSP
+                if(resourceCenter.x != -1){
+                    // targetLocation = new MapLocation(-1,-1);
+                    rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
+                    System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
+                    paintSRP(resourceCenter);
+                    if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < 200) {
+                        rc.completeResourcePattern(resourceCenter);
+                        rc.mark(resourceCenter, false);
+                        resourceCenter = new MapLocation(-1,-1);
+                    }
+                    
+                }
+                else//paint while traveling
+                    paintSRPWithNoMoving();
             }
 
             if (lowPaintFlag){
@@ -327,7 +354,7 @@ public class Soldier extends Robot {
                     Navigation.Bug2.move(nearestAllyTower);
                     if (rc.canSendMessage(nearestAllyTower)){
                         rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
-                        System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
+                        //System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
                         rc.setIndicatorDot(nearestAllyTower, 0,255,0);
                     }
                     // if (rc.canSendMessage(nearestAllyTower))
@@ -379,6 +406,7 @@ public class Soldier extends Robot {
                 }
                 //reset the target location
                 targetLocation = new MapLocation(-1,-1);
+                originPos = new MapLocation(-1,-1);
                 //go to the nearest ally tower 
                 Navigation.Bug2.move(nearestAllyTower);
                 rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
@@ -409,6 +437,7 @@ public class Soldier extends Robot {
             if (buildingTower.x != -1){
                 //reset target location
                 targetLocation = new MapLocation(-1,-1);
+                originPos = new MapLocation(-1,-1);
 
                 rc.setIndicatorString("try to build the tower at (" + buildingTower.x + " " + buildingTower.y + ")");
                 Navigation.Bug2.move(buildingTower);
@@ -506,19 +535,6 @@ public class Soldier extends Robot {
 
                     tryToBuildTower(curRuin);
                     return;//just take the first ruin found and build it
-                }
-            
-            }
-
-            //if a good spot for SRP is found, try to complete RSP
-            if(resourceCenter.x != -1){
-                // targetLocation = new MapLocation(-1,-1);
-                rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
-                paintSRP(resourceCenter);
-                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < 200) {
-                    rc.completeResourcePattern(resourceCenter);
-                    rc.mark(resourceCenter, false);
-                    resourceCenter = new MapLocation(-1,-1);
                 }
                 return;
             }
@@ -628,7 +644,7 @@ public class Soldier extends Robot {
                     Navigation.Bug2.move(nearestAllyTower);
                     if (rc.canSendMessage(nearestAllyTower)){
                         rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
-                        System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
+                        //System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
                         rc.setIndicatorDot(nearestAllyTower, 0,255,0);
                     }
                     // if (rc.canSendMessage(nearestAllyTower))
