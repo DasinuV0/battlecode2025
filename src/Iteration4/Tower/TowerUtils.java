@@ -5,15 +5,15 @@ import java.util.*;
 
 public class TowerUtils extends TowerLogic {
     // Static variables for storing tower data
-    private static MapLocation currentLocation; // Assuming this is updated somewhere else in your game logic
+    private static MapLocation currentLocation;
     private static PriorityQueue<PaintTower> paintTowers = new PriorityQueue<>(Comparator.comparingInt(t -> t.distanceSquaredTo(currentLocation)));
 
     // Class to represent a paint tower and its distance to the current robot location
-    private static class PaintTower {
+    private static class PaintTower{
         MapLocation location;
         int distanceSquared;
 
-        PaintTower(MapLocation location, int distanceSquared) {
+        PaintTower(MapLocation location, int distanceSquared){
             this.location = location;
             this.distanceSquared = distanceSquared;
         }
@@ -25,7 +25,8 @@ public class TowerUtils extends TowerLogic {
     }
 
     // Update the set of paint towers and update the closest one
-    public static void updatePaintTowers(MapLocation newTowerLocation) {
+    public static void updatePaintTowers(MapLocation newTowerLocation, RobotController rc){
+        currentLocation = rc.getLocation();
         // Calculate the distance from the robot (or tower) to the new paint tower
         int distanceSquared = currentLocation.distanceSquaredTo(newTowerLocation);
         // Add the new tower to the priority queue
