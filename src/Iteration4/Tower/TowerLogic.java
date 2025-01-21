@@ -287,7 +287,7 @@ public class TowerLogic {
         return sentCount; // Return the number of robots that received the message
     }
 
-    private static boolean isChipTower(RobotController rc) {
+    public static boolean isChipTower(RobotController rc) {
         // Check if the tower is one of the money or paint towers at any level
         UnitType towerType = rc.getType();
         return towerType == UnitType.LEVEL_ONE_MONEY_TOWER ||
