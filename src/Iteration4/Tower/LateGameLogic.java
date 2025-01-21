@@ -163,17 +163,20 @@ public class LateGameLogic extends TowerLogic{
                 sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCount);
             }
 
-            if (mopperCount >= 2){
+            if (mopperCount >= 1){
                 sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
                 System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
             }
-            else{ // try to have 2 moppers defend, if not enough, spawn if can
+
+            if (mopperCount < 2){ // try to have 2 moppers defend, if not enough, spawn if can
                 System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
                 if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
                     System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
                     //attackNearbyEnemies(rc);
                     return;
                 }
+                int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+                sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, countMopperAfterSpawn);
                 System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
             }
         }
