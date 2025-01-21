@@ -90,82 +90,57 @@ public class MidGameLogic extends TowerLogic{
                 System.out.println("Sent a splasher out to explore: " + targetLoc);
             }
 
-            else { // if none, spawn one
-                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){ // save chips regardless of tower
-                    System.out.println("Saving ruins regardless of tower type");
-                    return;
-                }
-                else if (isChipTower(rc) && rc.getPaint() < 300){ // save paint for chip towers
-                    System.out.println("Is chip tower, and paint <= 200: Saving ruins");
-                    return;
-                }
-
-                int randomInt = rand.nextInt(2) + 1;
-
-                if (randomInt == 1){ // spawn soldier
-                    if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
-                        //attackNearbyEnemies(rc);
-                        return; // Exit early to avoid setting flag to true
-                    }
-
-                    sendToLocation(rc);
-                    int countSoldierAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, countSoldierAfterSpawn);
-                    saveTurn = 5;
-                    System.out.println("Spawned Soldier on a paint tile and commanded it to go to random loc.");
-                }
-                else{ // spawn mopper
-                    if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
-                        //attackNearbyEnemies(rc);
-                        return; // Exit early to avoid setting flag to true
-                    }
-
-                    sendToLocation(rc);
-                    int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, countMopperAfterSpawn);
-                    saveTurn = 5;
-                    System.out.println("Spawned Mopper on a paint tile and commanded it to go to random loc.");
-                }
-
-                // return; // Exit early to avoid spawning Soldier in the same turn
+            if (rc.getMoney() <= CHIP_SAVE_AMOUNT || rc.getPaint() < 350){ // save chips regardless of tower
+                System.out.println("Saving ruins regardless of tower type");
+                return;
+            }
+            else if (isChipTower(rc) && rc.getPaint() < 350){ // save paint for chip towers
+                System.out.println("Is chip tower, and paint <= 200: Saving ruins");
+                return;
             }
 
-            if (rc.getPaint() >= 400){ // in case a bot stop moving in tower range, but isnt healed
-                if (rc.getMoney() <= CHIP_SAVE_AMOUNT){
-                    System.out.println("Saving ruins");
-                    return;
-                }
-                int randomInt = rand.nextInt(2) + 1;
+            int randomInt = rand.nextInt(3) + 1;
 
-                if (randomInt == 1){ // spawn soldier
-                    if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
-                        //attackNearbyEnemies(rc);
-                        return; // Exit early to avoid setting flag to true
-                    }
-
-                    sendToLocation(rc);
-                    int countSoldierAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, countSoldierAfterSpawn);
-                    saveTurn = 5;
-                    System.out.println("Spawned Soldier on a paint tile and commanded it to go to random loc.");
+            if (randomInt == 1) { // spawn splasher
+                if (!buildRobotOnPaintTile(rc, UnitType.SPLASHER)) {
+                    System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
+                    //attackNearbyEnemies(rc);
+                    return; // Exit early to avoid setting flag to true
                 }
-                else{ // spawn mopper
-                    if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
-                        //attackNearbyEnemies(rc);
-                        return; // Exit early to avoid setting flag to true
-                    }
 
-                    sendToLocation(rc);
-                    int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, countMopperAfterSpawn);
-                    saveTurn = 5;
-                    System.out.println("Spawned Mopper on a paint tile and commanded it to go to random loc.");
-                }
+                sendToLocation(rc);
+                int countSplasherAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
+                sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, countSplasherAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Splasher on a paint tile and commanded to go random loc.");
             }
+            else if (randomInt == 2) { // spawn soldier
+                if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)) {
+                    System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
+                    //attackNearbyEnemies(rc);
+                    return; // Exit early to avoid setting flag to true
+                }
+
+                sendToLocation(rc);
+                int countSoldierAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, countSoldierAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Soldier on a paint tile and commanded to go random loc.");
+            }
+            else{ // spawn mopper
+                if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)) {
+                    System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
+                    //attackNearbyEnemies(rc);
+                    return; // Exit early to avoid setting flag to true
+                }
+
+                sendToLocation(rc);
+                int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, countMopperAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Soldier on a paint tile and commanded to go random loc.");
+            }
+
         }
         else if (isDefendTower){ // defend mode
             int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
