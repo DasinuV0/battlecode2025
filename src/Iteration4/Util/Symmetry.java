@@ -176,9 +176,9 @@ public class Symmetry {
 
     public static MapLocation[] getPossibleEnemyLocations(RobotController rc, MapLocation coords) {
         MapLocation[] points = new MapLocation[3];
-        points[0] = new MapLocation(-coords.x, coords.y); // vertical
-        points[1] = new MapLocation(coords.x, -coords.y); // horizontal
-        points[2] = new MapLocation(-coords.y, -coords.x); // rotational
+        points[0] = new MapLocation(rc.getMapWidth() - coords.x, coords.y); // vertical
+        points[1] = new MapLocation(coords.x, rc.getMapHeight() - coords.y); // horizontal
+        points[2] = new MapLocation(rc.getMapHeight() - coords.y, rc.getMapWidth() - coords.x); // rotational
         return points;
     }
 }
