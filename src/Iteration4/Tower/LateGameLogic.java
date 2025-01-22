@@ -16,7 +16,7 @@ public class LateGameLogic extends TowerLogic{
         // always spawn a soldier at a random tile first
 
         MapLocation enemyLoc = detectEnemyOnDamage(rc);
-        if (enemyLoc != null){
+        if (enemyLoc != null && isHealthBelowFiftyPercent(rc)){
             isDefendTower = true;
             isDefault = false;
             isDamagedPatternFound = false;
@@ -141,43 +141,85 @@ public class LateGameLogic extends TowerLogic{
 
         }
         else if (isDefendTower){ // defend mode
-            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-            int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
-
             if (!canBuildRobotOnPaintTile(rc)){
                 buildRobotOnRandomTile(rc, UnitType.SPLASHER);
                 System.out.println("Spawned Splasher on a random tile");
             }
 
-            // while defending, if i have so many soldiers, just send them out
-            // since they are pointless in defending, but leave some for other tasks when
-            // defending is completed
-            if (soldierCount >= 1){
-                sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
-            }
+            int mopperCount = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+            int soldierCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+            int splasherCount = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
 
-            if (splasherCount >= 1){
-                sendToLocation(rc);
-                sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCount);
-            }
-
-            if (mopperCount >= 1){
-                sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
-                System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
-            }
-
-            if (mopperCount < 2){ // try to have 2 moppers defend, if not enough, spawn if can
-                System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
-                if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
-                    System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
-                    //attackNearbyEnemies(rc);
-                    return;
+            if (!isHealthBelowTwentyPercent(rc)){
+                if (soldierCount >= 1){
+                    sendToLocation(rc);
+                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
                 }
-                int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-                sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, countMopperAfterSpawn);
-                System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
+
+                if (mopperCount >= 1){
+                    sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
+                    System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
+                }
+
+                if (splasherCount >= 1){
+                    sendToLocation(rc);
+                    sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCount);
+                }
+
+                if (mopperCount < 2){ // try to have 2 moppers defend, if not enough, spawn if can
+                    System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
+                    if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
+                        System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
+                        //attackNearbyEnemies(rc);
+                        return;
+                    }
+                    int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+                    sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, countMopperAfterSpawn);
+                    System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
+                }
+            }
+            else{
+                // while defending, if i have so many soldiers, just send them out
+                // since they are pointless in defending, but leave some for other tasks when
+                // defending is completed
+                if (soldierCount >= 1){
+                    sendToLocation(rc);
+                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, enemyLoc, UnitType.SOLDIER, soldierCount);
+                }
+
+                if (mopperCount >= 1){
+                    sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, mopperCount);
+                    System.out.println("TOWER UNDER ATTACKED! SENDING ALL MOPPERS ON PAINT TO FIGHT");
+                }
+
+                if (splasherCount >= 1){
+                    sendToLocation(rc);
+                    sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCount);
+                }
+
+                if (mopperCount < 1){ // try to have 1 mopper defend, if not enough, spawn if can
+                    System.out.println("NOT ENOUGH MOPPER TO DEFEND, TRYING TO SPAWN MORE!!!!");
+                    if (!buildRobotOnPaintTile(rc, UnitType.MOPPER)){
+                        System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN MOPPER, MAYDAY!!!");
+                        //attackNearbyEnemies(rc);
+                        return;
+                    }
+                    int countMopperAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+                    sendMessageToRobots(rc, MOVE_TO_DEFEND_TOWER_COMMAND, enemyLoc, UnitType.MOPPER, countMopperAfterSpawn);
+                    System.out.println("SPAWNED A MOPPER TO DEFEND TOWER!!!");
+                }
+                if (soldierCount < 1){ // try to have 1 soldier defend, if not enough, spawn if can
+                    System.out.println("NOT ENOUGH SOLDIER TO DEFEND, TRYING TO SPAWN MORE!!!!");
+                    if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
+                        System.out.println("NO PAINT TILE DETECTED, CAN'T SPAWN SOLDIER, MAYDAY!!!");
+                        //attackNearbyEnemies(rc);
+                        return;
+                    }
+                    int countSoldierAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                    sendMessageToRobots(rc,  MOVE_TO_LOCATION_COMMAND, enemyLoc, UnitType.SOLDIER, countSoldierAfterSpawn);
+                    System.out.println("SPAWNED A SOLDIER TO REBUILD TOWER IN CASE ITS DESTROYED!!!");
+                }
+
             }
         }
         else if (isEnemyTowerFound){ // attack tower mode
