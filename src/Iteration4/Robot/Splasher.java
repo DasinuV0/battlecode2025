@@ -20,7 +20,7 @@ public class Splasher extends Robot {
 
     static boolean locationReached = false;
     // static boolean hasTarget = false;
-    static boolean exploreMode = true;
+    // static boolean exploreMode = true;
     private LinkedList<MapLocation> recentLocations = new LinkedList<MapLocation>();
 
     public Splasher(RobotController _rc) throws GameActionException {
@@ -33,6 +33,14 @@ public class Splasher extends Robot {
         if (exploreMode) { listenMessage(); }
         updateLowPaintFlag();
         // updateLowHealthFlag();
+
+        if ((targetLocation.x >= 0 && targetLocation.y >= 0) || receivedTarget ) {
+            hasTarget = true;
+            exploreMode = false;
+        } else {
+            hasTarget = false;
+            exploreMode = true;
+        }
 
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -83,7 +91,7 @@ public class Splasher extends Robot {
 
     void runAttackSplasher() throws GameActionException {
         // A=0,B=1,C=2,D=3
-        if (targetLocation.x != -1) {            
+        if (targetLocation.x >= 0) {            
             rc.setIndicatorString("target location is " + targetLocation);
             if (!locationReached) {            
                 if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
@@ -107,7 +115,7 @@ public class Splasher extends Robot {
         MapLocation attackLocation = getEnemyPaintZone(rc);
     
         // if (emptyTiles > 3) {
-        if (attackLocation.x != -1) {
+        if (attackLocation.x >= 0) {
             rc.setIndicatorString("Attacking with splash");
             // MapLocation attackLocation = getEnemyPaintZone(rc);
             // attack
@@ -181,66 +189,151 @@ public class Splasher extends Robot {
          * 
          * move to target
          */
+        if (lowPaintFlag) {
+            runLowPaintSplasher();
+            return;
+        }
         if (hasTarget) {
             if (exploreMode) {
-                Navigation.Bug2.move(targetLocation);
-
-                if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
-                    hasTarget = false;                    
-                }
-
-                MapLocation attackLocation = getEnemyPaintZone(rc);
-                if (attackLocation.x != -1 && attackLocation.y != -1 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
-                    rc.setIndicatorString("Attacking location is " + attackLocation);
+                if (rc.getLocation().distanceSquaredTo(targetLocation) < 1) {
+                    // hasTarget = false;
+                    int x = rng.nextInt(rc.getMapWidth());
+                    int y = rng.nextInt(rc.getMapHeight());
+                    targetLocation = new MapLocation(x,y);
+                    hasTarget = true;
                     exploreMode = false;
-                    if (!rc.canAttack(attackLocation) && rc.isActionReady()) {
-                        targetLocation = attackLocation;
-                        hasTarget = true;
-                        return;
-                    } else {
-                        rc.attack(attackLocation);
-                        hasTarget = true;
-                        if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+
+                    MapLocation attackLocation = getEnemyPaintZone(rc);
+                    if (attackLocation.x >= 0 && attackLocation.y >= 0 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
+                        exploreMode = false;
+                        if (rc.canAttack(attackLocation)) {
+                            rc.setIndicatorString("(rand targ + explore) Attacking location is " + attackLocation);
+                            rc.attack(attackLocation);
+                            hasTarget = true;
+                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            } else {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            }
                         } else {
-                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            targetLocation = attackLocation;
+                            hasTarget = true; 
+                            Navigation.Bug2.move(targetLocation);
+                            return;                       
                         }
+                    } else {
+                        Navigation.Bug2.move(targetLocation);
                         return;
                     }
-                }
-            } else {
-                rc.setIndicatorString("target location is " + targetLocation);
-                Navigation.Bug2.move(targetLocation);
-                if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
-                    hasTarget = false;
-                }
-                MapLocation attackLocation = getEnemyPaintZone(rc);
-                if (attackLocation.x != -1 && attackLocation.y != -1 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
-                    rc.setIndicatorString("2Attacking location is " + attackLocation);
-                    exploreMode = false;
-                    if (rc.canAttack(attackLocation)) {
-                        rc.attack(attackLocation);
-                        hasTarget = true;
-                        if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                } else {
+                    MapLocation attackLocation = getEnemyPaintZone(rc);
+                    if (attackLocation.x >= 0 && attackLocation.y >= 0 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
+                        exploreMode = false;
+                        if (rc.canAttack(attackLocation)) {
+                            rc.setIndicatorString("(has targ + explore) Attacking location is " + attackLocation);
+                            rc.attack(attackLocation);
+                            hasTarget = true;
+                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            } else {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            }
                         } else {
-                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            targetLocation = attackLocation;
+                            hasTarget = true;               
                         }
                     } else {
-                        targetLocation = attackLocation;
-                        hasTarget = true;                        
+                        hasTarget = true;
+                        exploreMode = true;
+                    }
+
+                    Navigation.Bug2.move(targetLocation);
+                    return;
+                }
+            } else {
+                Navigation.Bug2.move(targetLocation);
+
+                if (rc.getLocation().distanceSquaredTo(targetLocation) <= 1) {
+                    // hasTarget = false;
+                    int x = rng.nextInt(rc.getMapWidth());
+                    int y = rng.nextInt(rc.getMapHeight());
+                    targetLocation = new MapLocation(x,y);
+                    hasTarget = true;
+                    exploreMode = true;
+
+                    MapLocation attackLocation = getEnemyPaintZone(rc);
+                    if (attackLocation.x >= 0 && attackLocation.y >= 0 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
+                        exploreMode = false;
+                        if (rc.canAttack(attackLocation)) {
+                            rc.setIndicatorString("(targ + no explore) Attacking location is " + attackLocation);
+                            rc.attack(attackLocation);
+                            hasTarget = true;
+                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            } else {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            }
+                        } else {
+                            targetLocation = attackLocation;
+                            hasTarget = true; 
+                            Navigation.Bug2.move(targetLocation);
+                            return;                       
+                        }
+                    } else {
+                        Navigation.Bug2.move(targetLocation);
+                        return;
+                    }                   
+                } else {
+                    MapLocation attackLocation = getEnemyPaintZone(rc);
+                    if (attackLocation.x >= 0 && attackLocation.y >= 0 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
+                        exploreMode = false;
+                        if (rc.canAttack(attackLocation)) {
+                            rc.setIndicatorString("(targ + no explore -> diff) Attacking location is " + attackLocation);
+                            rc.attack(attackLocation);
+                            hasTarget = true;
+                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            } else {
+                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            }
+                        } else {
+                            targetLocation = attackLocation;
+                            hasTarget = true;
+                            return;                       
+                        }
                     }
                 }
             }
-        }
-
-        if (!hasTarget) {
+        } else {
             int x = rng.nextInt(rc.getMapWidth());
             int y = rng.nextInt(rc.getMapHeight());
             targetLocation = new MapLocation(x,y);
             hasTarget = true;
             exploreMode = true;
-            Navigation.Bug2.move(targetLocation);
+            
+            MapLocation attackLocation = getEnemyPaintZone(rc);
+            if (attackLocation.x >= 0 && attackLocation.y >= 0 && attackLocation.x < rc.getMapWidth() && attackLocation.y < rc.getMapHeight()) {
+                exploreMode = false;
+                if (rc.canAttack(attackLocation)) {
+                    rc.setIndicatorString("(rand targ + explore) Attacking location is " + attackLocation);
+                    rc.attack(attackLocation);
+                    hasTarget = true;
+                    if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                        targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                    } else {
+                        targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                    }
+                } else {
+                    targetLocation = attackLocation;
+                    hasTarget = true; 
+                    Navigation.Bug2.move(targetLocation);
+                    return;                       
+                }
+            } else {
+                Navigation.Bug2.move(targetLocation);
+                return;
+            }
+
         }
 
         
@@ -248,29 +341,29 @@ public class Splasher extends Robot {
 
     void runLowPaintSplasher() throws GameActionException {
         rc.setIndicatorString("need healing");
-            MapLocation nearestAllyTower = getNearestAllyTower();
-            if (nearestAllyTower.x == -1){
-                resetMessageFlag();
-                exploreMode = true;
-                rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
-                return;
-            }                
-
-
-            //if i can get paint from nearestAllyTower
-            if (rc.canTransferPaint(nearestAllyTower, PAINTTOTAKE)){
-                rc.transferPaint(nearestAllyTower, PAINTTOTAKE);
-            }
-            else if (friendMopperFound){
-                return;//stop here and wait for the mopper to give paint
-            }
-            else{
-                Navigation.Bug2.move(nearestAllyTower);
-                // if (rc.canSendMessage(nearestAllyTower))
-                    // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
-                rc.setIndicatorString("move to get healed");
-            }
+        MapLocation nearestAllyTower = getNearestAllyTower();
+        if (nearestAllyTower.x == -1){
+            resetMessageFlag();
+            // exploreMode = true;
+            rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
             return;
+        }                
+
+
+        //if i can get paint from nearestAllyTower
+        if (rc.canTransferPaint(nearestAllyTower, PAINTTOTAKE)){
+            rc.transferPaint(nearestAllyTower, PAINTTOTAKE);
+        }
+        else if (friendMopperFound){
+            return;//stop here and wait for the mopper to give paint
+        }
+        else{
+            Navigation.Bug2.move(nearestAllyTower);
+            // if (rc.canSendMessage(nearestAllyTower))
+                // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
+            rc.setIndicatorString("move to get healed");
+        }
+        return;
     }
 
     int calculateEmptyTiles(RobotController rc) throws GameActionException {

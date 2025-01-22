@@ -105,6 +105,7 @@ public class Robot {
     static boolean isDefenseSplasher;
 
     static boolean hasTarget = false;
+    static boolean receivedTarget = false;
 
    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
@@ -451,13 +452,12 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 isAttackSplasher = true;
                 targetLocation = new MapLocation(x,y);
+                receivedTarget = true;
             } else if (command == OptCode.DEFENCESPLASHER) {
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 isDefenseSplasher = true;
                 targetLocation = new MapLocation(x,y);
-                if (targetLocation.x != -1)
-                    hasTarget = true;
             }else if (command == OptCode.NEWPAINTTOWERPOSRECEIVED){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
