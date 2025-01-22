@@ -354,9 +354,9 @@ public class Splasher extends Robot {
         if (rc.canTransferPaint(nearestAllyTower, PAINTTOTAKE)){
             rc.transferPaint(nearestAllyTower, PAINTTOTAKE);
         }
-        else if (friendMopperFound){
-            return;//stop here and wait for the mopper to give paint
-        }
+        // else if (friendMopperFound){
+        //     return;//stop here and wait for the mopper to give paint
+        // }
         else{
             Navigation.Bug2.move(nearestAllyTower);
             // if (rc.canSendMessage(nearestAllyTower))

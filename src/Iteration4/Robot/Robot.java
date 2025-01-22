@@ -458,6 +458,7 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 isDefenseSplasher = true;
                 targetLocation = new MapLocation(x,y);
+                receivedTarget = true;
             }else if (command == OptCode.NEWPAINTTOWERPOSRECEIVED){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
