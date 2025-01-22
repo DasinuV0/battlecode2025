@@ -23,6 +23,7 @@ public class Mopper extends Robot {
     MapLocation targetTower;
     boolean enemyFound = false;
     MapLocation tileToclean;
+    MapLocation enemyPaintZone = new MapLocation(-1, -1); // for enemy paint zone
 
     public Mopper(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -378,18 +379,18 @@ public class Mopper extends Robot {
 
             // if Middle game, look for enemy paint zone and send message to tower
             if (rc.getRoundNum() > EARLY_GAME_TURNS) {
-                MapLocation enemyPaintZone = getEnemyPaintZone(rc);
-                if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1) {
-                    MapLocation nearestAllyTower = getNearestAllyTower();
-                    if (nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
-                        Navigation.Bug2.move(nearestAllyTower);
+                if (enemyPaintZone.x == -1 && enemyPaintZone.y == -1) {
+                    enemyPaintZone = getEnemyPaintZone(rc);  
+                }                              
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
+                    Navigation.Bug2.move(nearestAllyTower);
 
-                        int messageContent = encodeMessage(10, enemyPaintZone);
-                        if (rc.canSendMessage(nearestAllyTower)) {
-                            rc.sendMessage(nearestAllyTower, messageContent);
-                        }
+                    int messageContent = encodeMessage(10, enemyPaintZone);
+                    if (rc.canSendMessage(nearestAllyTower)) {
+                        rc.sendMessage(nearestAllyTower, messageContent);
                     }
-                }
+                }                         
             }
 
 
