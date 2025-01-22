@@ -104,6 +104,8 @@ public class Robot {
     static boolean isAttackSplasher;
     static boolean isDefenseSplasher;
 
+    static boolean hasTarget = false;
+
    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
     static boolean exploreMode;
@@ -454,6 +456,8 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 isDefenseSplasher = true;
                 targetLocation = new MapLocation(x,y);
+                if (targetLocation.x != -1)
+                    hasTarget = true;
             }else if (command == OptCode.NEWPAINTTOWERPOSRECEIVED){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
@@ -498,7 +502,7 @@ public class Robot {
                 visionArea[matrixY][matrixX] = 2;
             if(mapInfo.getPaint() == PaintType.ALLY_PRIMARY || mapInfo.getPaint() == PaintType.ALLY_SECONDARY)
                 visionArea[matrixY][matrixX] = -1;
-            if(mapInfo.getPaint() == PaintType.EMPTY)
+            if(mapInfo.getPaint() == PaintType.EMPTY && mapInfo.isPassable())
                 visionArea[matrixY][matrixX] = 1;
         }
 
@@ -893,7 +897,7 @@ public class Robot {
             bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (7 - center));
         }
 
-        if(maxOverlap > 3)
+        if(maxOverlap > 5)
             return bestLocation;
         return new MapLocation(-1, -1);
     }
