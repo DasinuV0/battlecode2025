@@ -59,8 +59,20 @@ public class TowerLogic {
 
     private static MapLocation lastClosestTower = null;
 
+    private static int maxHealth;
+
+    public static void initialize(RobotController rc) {
+        maxHealth = rc.getHealth();
+    }
+    static boolean hasInit = false;
+
+
     public static void run(RobotController rc) throws GameActionException {
         int currentTurn = rc.getRoundNum(); // Get the current game turn
+        if (!hasInit){
+            initialize(rc);
+            hasInit = true;
+        }
         //System.out.println("Current Turn: " + currentTurn);
 
         // Determine the game phase
@@ -494,6 +506,15 @@ public class TowerLogic {
         previousHealth = currentHealth;
         return null; // Return null if no damage or no enemies are found
     }
+
+    public static boolean isHealthBelowFiftyPercent(RobotController rc){
+        return rc.getHealth() < (maxHealth / 2);
+    }
+
+    public static boolean isHealthBelowTwentyPercent(RobotController rc){
+        return rc.getHealth() < (maxHealth / 5);
+    }
+
 
     public static int getMapArea(RobotController rc) throws GameActionException {
         // Get the map's width and height
