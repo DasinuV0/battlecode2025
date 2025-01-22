@@ -23,6 +23,7 @@ public class Soldier extends Robot {
     MapLocation lastRuinWithPatternDamagedFoundPos; //ruinLoc 
     int lastRuinWithPatternDamagedFoundRound; // the round we see the ruin
     MapLocation resourceCenter = new MapLocation(-1,-1); //for SRP
+    MapLocation enemyPaintZone = new MapLocation(-1,-1); // for enemy paint zone
     // Map<MapLocation, Integer> invalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
 
     public Soldier(RobotController _rc) throws GameActionException {
@@ -548,18 +549,18 @@ public class Soldier extends Robot {
 
             // if Middle game, look for enemy paint zone and send message to tower
             if (rc.getRoundNum() > EARLY_GAME_TURNS) {
-                MapLocation enemyPaintZone = getEnemyPaintZone(rc);
-                if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1) {
-                    MapLocation nearestAllyTower = getNearestAllyTower();
-                    if (nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
-                        Navigation.Bug2.move(nearestAllyTower);
+                if (enemyPaintZone.x == -1 && enemyPaintZone.y == -1) {
+                    enemyPaintZone = getEnemyPaintZone(rc);  
+                }                              
+                MapLocation nearestAllyTower = getNearestAllyTower();
+                if (nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
+                    Navigation.Bug2.move(nearestAllyTower);
 
-                        int messageContent = encodeMessage(10, enemyPaintZone);
-                        if (rc.canSendMessage(nearestAllyTower)) {
-                            rc.sendMessage(nearestAllyTower, messageContent);
-                        }
+                    int messageContent = encodeMessage(10, enemyPaintZone);
+                    if (rc.canSendMessage(nearestAllyTower)) {
+                        rc.sendMessage(nearestAllyTower, messageContent);
                     }
-                }
+                }                         
             }
         
             //if it still didn't move, bugnav to a random pos
