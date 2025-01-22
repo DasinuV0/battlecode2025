@@ -173,4 +173,12 @@ public class Symmetry {
             return new MapLocation(half_width / 2, half_height / 2);
         return new MapLocation(half_width + half_width / 2, half_height / 2);
     }
+
+    public static MapLocation[] getPossibleEnemyLocations(RobotController rc, MapLocation coords) {
+        MapLocation[] points = new MapLocation[3];
+        points[0] = new MapLocation(-coords.x, coords.y); // vertical
+        points[1] = new MapLocation(coords.x, -coords.y); // horizontal
+        points[2] = new MapLocation(-coords.y, -coords.x); // rotational
+        return points;
+    }
 }
