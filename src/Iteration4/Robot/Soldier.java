@@ -134,6 +134,40 @@ public class Soldier extends Robot {
        
     }
 
+    public static void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
+        Navigation.Bug2.move(new MapLocation(center.x-1, center.y-1));
+        rc.mark(new MapLocation(center.x-1, center.y-1), false);
+        int[][] attackPositions = {
+                {-2, 2, 0}, {-1, 2, 1}, {0, 2, 1}, {1, 2, 1}, {2, 2, 0}, // 1st line
+                {-2, 1, 1}, {-1, 1, 1}, {0, 1, 0}, {1, 1, 1}, {2, 1, 1}, // 2nd line
+                {-2, 0, 1}, {-1, 0, 0}, {1, 0, 0}, {2, 0, 1}, // 3rd line
+                {-2, -1, 1}, {-1, -1, 1}, {0, -1, 0}, {1, -1, 1}, {2, -1, 1}, // 4th line
+                {-2, -2, 0}, {-1, -2, 1}, {0, -2, 1}, {1, -2, 1}, {2, -2, 0} // 5th line
+        };
+        for (int[] pos : attackPositions) {
+            MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
+            if (rc.canAttack(target)) {
+                boolean paintType = false;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
+                    paintType = true;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                    paintType = false;
+                if(paintType != (pos[2] == 1))
+                    rc.attack(target, pos[2] == 1);
+            }
+            else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_SECONDARY) {
+                Navigation.Bug2.move(target);
+                boolean paintType = false;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
+                    paintType = true;
+                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                    paintType = false;
+                if(paintType != (pos[2] == 1))
+                    rc.attack(target, pos[2] == 1);
+            }
+        }
+    }
+    
     void paintSRP(MapLocation center) throws GameActionException {
         if (rc.canPaint(center)) {
             if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
