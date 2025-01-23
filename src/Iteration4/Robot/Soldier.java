@@ -547,7 +547,8 @@ public class Soldier extends Robot {
                     if (rc.canSendMessage(nearestAllyTower)) {
                         rc.sendMessage(nearestAllyTower, messageContent);
                     }
-                }                         
+                    return;                     
+                }    
             }
 
             //if a good spot for SRP is found, try to complete RSP
@@ -557,9 +558,9 @@ public class Soldier extends Robot {
                 System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
                 paintSRP(resourceCenter);
 
-                if (rc.senseMapInfo(resourceCenter).isResourcePatternCenter())
+                if (rc.canSenseLocation(resourceCenter) && rc.senseMapInfo(resourceCenter).isResourcePatternCenter())
                     resourceCenter = new MapLocation(-1,-1);
-                
+
 
                 if(rc.canCompleteResourcePattern(resourceCenter)) {
                     rc.completeResourcePattern(resourceCenter);
