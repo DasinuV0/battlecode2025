@@ -897,7 +897,7 @@ public class Robot {
             bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (7 - center));
         }
 
-        if(maxOverlap > 5)
+        if (bestLocation != null && rc.canSenseLocation(bestLocation) && rc.senseMapInfo(bestLocation).isPassable() && maxOverlap > 5)
             return bestLocation;
         return new MapLocation(-1, -1);
     }
