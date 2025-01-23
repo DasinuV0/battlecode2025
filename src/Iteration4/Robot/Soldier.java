@@ -27,6 +27,7 @@ public class Soldier extends Robot {
     Map<MapLocation, Integer> temporaryInvalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
     Map<MapLocation, Integer> temporaryInvalidEnemyPaintZone = new HashMap<>(); //for SRP, location as key and round number as val
     MapLocation enemyPaintZone = new MapLocation(-1,-1); // for enemy paint zone
+    int damagedPatternFoundMessageSentCount = 0;
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -105,7 +106,7 @@ public class Soldier extends Robot {
                     if (mapInfo.isResourcePatternCenter() && mapInfo.getPaint().isAlly())
                         continue;
                     //skip center that are at the edge of the map (we can't make SRP at edge)
-                    if (rc.getMapWidth() - currentTile.x < 2 || rc.getMapHeight() - currentTile.y < 2)
+                    if (rc.getMapWidth() - currentTile.x <= 2 || rc.getMapHeight() - currentTile.y <= 2)
                         continue;
                     // if currentTile is temporary considered as a invalid center, wait 50 rounds to check this tile again
                     if (temporaryInvalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - temporaryInvalidResourceCenter.get(currentTile) < 50)
@@ -351,21 +352,23 @@ public class Soldier extends Robot {
                 }
                 else{
                     Navigation.Bug2.move(nearestAllyTower);
+                    rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
                     if (rc.canSendMessage(nearestAllyTower)){
                         rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
-                        //System.out.println("message sent: " + encodeMessage(OptCode.NEEDPAINT));
-                        rc.setIndicatorDot(nearestAllyTower, 0,255,0);
+                        rc.setIndicatorString("message sent: " + encodeMessage(OptCode.NEEDPAINT));
                     }
                     // if (rc.canSendMessage(nearestAllyTower))
                         // rc.sendMessage(nearestAllyTower, OptCode.NEEDPAINT);
-                    rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
                 }
                 return;
             }
 
             //if in past round the bot found some tiles (which is part of a pattern) are paint by enemy
             if (ruinWithPatternDamaged.size() > 0){
-                MapLocation nearestAllyTower = getNearestAllyTower();
+                //go to paint tower, if no paint tower, then go to money tower
+                MapLocation nearestAllyTower = getNearestAllyPaintTower();
+                if (nearestAllyTower.x == -1)
+                    nearestAllyTower = getNearestAllyTower();
                 if (nearestAllyTower.x == -1){
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
                     tryToRebuildTower();
@@ -383,10 +386,14 @@ public class Soldier extends Robot {
                     Iterator<MapLocation> iterator = ruinWithPatternDamaged.iterator();
                     if (iterator.hasNext()) {
                         firstElement = iterator.next();
-                        // Remove the first element
-                        iterator.remove();
+                        // Remove the first element only when nearestAllyTower is a paint tower
+                        if (isPaintTower(rc.senseRobotAtLocation(nearestAllyTower).getType()))
+                            iterator.remove();
+                        if (damagedPatternFoundMessageSentCount > 3)
+                            iterator.remove();
                     }
                     rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // DONE: add first firstElement to the messag
+                    damagedPatternFoundMessageSentCount++; //count the number of times i sent this message to this tower
                     //.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
                     
                     //reset to explore mode
@@ -395,6 +402,8 @@ public class Soldier extends Robot {
 
                     rc.setIndicatorDot(nearestAllyTower, 0,255,0);
                     rc.setIndicatorString("message sent: damaged pattern found, " + ruinWithPatternDamaged.size() + " pattern damaged left");
+                }else{
+                    damagedPatternFoundMessageSentCount = 0;
                 }
                 return;
             }
@@ -561,6 +570,7 @@ public class Soldier extends Robot {
 
                     int messageContent = encodeMessage(OptCode.SENDPAINTZONE, enemyPaintZone);
                     if (rc.canSendMessage(nearestAllyTower)) {
+                        rc.setIndicatorString("message sent: enemyPaintZoneFound");
                         rc.sendMessage(nearestAllyTower, messageContent);
                         enemyPaintZone = new MapLocation(-1,-1);
                         //if message is sent go back to explore mode

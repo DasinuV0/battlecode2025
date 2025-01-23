@@ -417,6 +417,7 @@ public class Robot {
         for (Message m : messages) {
             int command = m.getBytes() >> 12;
             //.out.println("command " + command + " received");
+            System.out.println("command " + command + " received");
 
             if (command == OptCode.PUTSTATE){
                 stayPut = true;
@@ -462,7 +463,8 @@ public class Robot {
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 paintTowersPos.add(new MapLocation(x,y));
-                System.out.println("new paint tower received, it is at " + x + " " + y);
+                //go back to explore mode
+                exploreMode = true;
             }
         }
     }
