@@ -124,17 +124,17 @@ public class Splasher extends Robot {
             if (rc.canAttack(attackLocation)) {
                 rc.attack(attackLocation);
             } 
-            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                targetLocation = attackLocation;
-                locationReached = false;
-                hasTarget = true;
-                rc.setIndicatorString("Moving towards" + attackLocation);
-            } else {
-                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
-                locationReached = false;
-                hasTarget = true;
-                rc.setIndicatorString("(Opposite) Moving towards" + rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite()));
-            }
+            // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+            //     targetLocation = attackLocation;
+            //     locationReached = false;
+            //     hasTarget = true;
+            //     rc.setIndicatorString("Moving towards" + attackLocation);
+            // } else {
+            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+            //     locationReached = false;
+            //     hasTarget = true;
+            //     rc.setIndicatorString("(Opposite) Moving towards" + rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite()));
+            // }
         }
     
         // Update recent locations
@@ -210,11 +210,11 @@ public class Splasher extends Robot {
                             rc.setIndicatorString("(rand targ + explore) Attacking location is " + attackLocation);
                             rc.attack(attackLocation);
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
-                            } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
-                            }
+                            // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            // } else {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            // }
                         } else {
                             targetLocation = attackLocation;
                             hasTarget = true; 
@@ -233,11 +233,11 @@ public class Splasher extends Robot {
                             rc.setIndicatorString("(has targ + explore) Attacking location is " + attackLocation);
                             rc.attack(attackLocation);
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
-                            } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
-                            }
+                            // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            // } else {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            // }
                         } else {
                             targetLocation = attackLocation;
                             hasTarget = true;               
@@ -268,11 +268,11 @@ public class Splasher extends Robot {
                             rc.setIndicatorString("(targ + no explore) Attacking location is " + attackLocation);
                             rc.attack(attackLocation);
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
-                            } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
-                            }
+                            // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            // } else {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            // }
                         } else {
                             targetLocation = attackLocation;
                             hasTarget = true; 
@@ -291,11 +291,11 @@ public class Splasher extends Robot {
                             rc.setIndicatorString("(targ + no explore -> diff) Attacking location is " + attackLocation);
                             rc.attack(attackLocation);
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
-                            } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
-                            }
+                            // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            // } else {
+                            //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                            // }
                         } else {
                             targetLocation = attackLocation;
                             hasTarget = true;
@@ -318,11 +318,11 @@ public class Splasher extends Robot {
                     rc.setIndicatorString("(rand targ + explore) Attacking location is " + attackLocation);
                     rc.attack(attackLocation);
                     hasTarget = true;
-                    if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                        targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
-                    } else {
-                        targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
-                    }
+                    // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                    //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                    // } else {
+                    //     targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                    // }
                 } else {
                     targetLocation = attackLocation;
                     hasTarget = true; 
@@ -354,9 +354,9 @@ public class Splasher extends Robot {
         if (rc.canTransferPaint(nearestAllyTower, PAINTTOTAKE)){
             rc.transferPaint(nearestAllyTower, PAINTTOTAKE);
         }
-        else if (friendMopperFound){
-            return;//stop here and wait for the mopper to give paint
-        }
+        // else if (friendMopperFound){
+        //     return;//stop here and wait for the mopper to give paint
+        // }
         else{
             Navigation.Bug2.move(nearestAllyTower);
             // if (rc.canSendMessage(nearestAllyTower))
