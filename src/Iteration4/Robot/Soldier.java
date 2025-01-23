@@ -28,6 +28,7 @@ public class Soldier extends Robot {
     Map<MapLocation, Integer> temporaryInvalidEnemyPaintZone = new HashMap<>(); //for SRP, location as key and round number as val
     MapLocation enemyPaintZone = new MapLocation(-1,-1); // for enemy paint zone
     int damagedPatternFoundMessageSentCount = 0;
+    int enemyTowerMessageSentCount = 0;
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -134,7 +135,7 @@ public class Soldier extends Robot {
        
     }
 
-    public static void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
+    void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
         Navigation.Bug2.move(new MapLocation(center.x-1, center.y-1));
         rc.mark(new MapLocation(center.x-1, center.y-1), false);
         int[][] attackPositions = {
@@ -423,7 +424,7 @@ public class Soldier extends Robot {
                         // Remove the first element only when nearestAllyTower is a paint tower
                         if (isPaintTower(rc.senseRobotAtLocation(nearestAllyTower).getType()))
                             iterator.remove();
-                        if (damagedPatternFoundMessageSentCount > 3)
+                        else if (damagedPatternFoundMessageSentCount > 3)
                             iterator.remove();
                     }
                     rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.DAMAGEDPATTERN,firstElement)); // DONE: add first firstElement to the messag
@@ -444,7 +445,10 @@ public class Soldier extends Robot {
 
             if (enemyTowersPos.size() > 0){
                 //DONE: what to do once an enemy tower is found
-                MapLocation nearestAllyTower = getNearestAllyTower();
+                MapLocation nearestAllyTower = getNearestAllyPaintTower();
+                if (nearestAllyTower.x == -1)
+                    nearestAllyTower = getNearestAllyTower();
+
                 if (nearestAllyTower.x == -1){
                     rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
                     tryToRebuildTower();
@@ -464,14 +468,19 @@ public class Soldier extends Robot {
                     Iterator<MapLocation> iterator = enemyTowersPos.iterator();
                     if (iterator.hasNext()) {
                         firstElement = iterator.next();
-                        // Remove the first element
-                        iterator.remove();
+                        // Remove the first element only when nearestAllyTower is a paint tower
+                        if (isPaintTower(rc.senseRobotAtLocation(nearestAllyTower).getType()))
+                            iterator.remove();
+                        else if (enemyTowerMessageSentCount > 3)
+                            iterator.remove();
                     }
                     rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.ENEMYTOWERFOUND,firstElement)); // DONE: add first firstElement to the messag
-                    //.out.println("message sent to (" + nearestAllyTower.x + " " + nearestAllyTower.y + "): damaged pattern found");
+                    enemyTowerMessageSentCount++;
                     
                     rc.setIndicatorDot(nearestAllyTower, 0,255,0);
                     rc.setIndicatorString("message sent: enemy tower found");
+                }else{
+                    enemyTowerMessageSentCount = 0;
                 }
                 return;
             }
