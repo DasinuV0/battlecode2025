@@ -416,8 +416,7 @@ public class Robot {
 
         for (Message m : messages) {
             int command = m.getBytes() >> 12;
-            //.out.println("command " + command + " received");
-            System.out.println("command " + command + " received");
+            // System.out.println("command " + command + " received");
 
             if (command == OptCode.PUTSTATE){
                 stayPut = true;

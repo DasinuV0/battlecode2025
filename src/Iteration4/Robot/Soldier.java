@@ -347,9 +347,9 @@ public class Soldier extends Robot {
                     targetLocation = originPos;
                 }
                 // if bot is not in the vision range and a mopper is nearby
-                else if (!rc.canSenseLocation(nearestAllyTower) && friendMopperFound){
-                    return;//stop here and wait for the mopper to give paint
-                }
+                // else if (!rc.canSenseLocation(nearestAllyTower) && friendMopperFound){
+                //     return;//stop here and wait for the mopper to give paint
+                // }
                 else{
                     Navigation.Bug2.move(nearestAllyTower);
                     rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
