@@ -97,12 +97,15 @@ public class Soldier extends Robot {
                 if (mapInfo.isPassable() == false)
                     continue;
                 
-                //skip complete resourcePatternCenter 
-                if (mapInfo.isResourcePatternCenter() && mapInfo.getPaint().isAlly())
-                    continue;
-
+        
                 MapLocation currentTile = mapInfo.getMapLocation();
                 if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2 && mapInfo.getMark() == PaintType.EMPTY) {
+                    //skip completed resourcePatternCenter 
+                    if (mapInfo.isResourcePatternCenter() && mapInfo.getPaint().isAlly())
+                        continue;
+                    //skip center that are at the edge of the map (we can't make SRP at edge)
+                    if (rc.getMapWidth() - currentTile.x < 2 || rc.getMapHeight() - currentTile.y < 2)
+                        continue;
                     // if currentTile is temporary considered as a invalid center, wait 50 rounds to check this tile again
                     if (temporaryInvalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - temporaryInvalidResourceCenter.get(currentTile) < 50)
                         continue;
