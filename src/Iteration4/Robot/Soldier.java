@@ -23,9 +23,10 @@ public class Soldier extends Robot {
     MapLocation lastRuinWithPatternDamagedFoundPos; //ruinLoc 
     int lastRuinWithPatternDamagedFoundRound; // the round we see the ruin
     MapLocation resourceCenter = new MapLocation(-1,-1); //for SRP
+    Set<MapLocation> invalidResourceCenter = new HashSet<>(); //for SRP, this saves centers that has walls/towers/ruins that make this center ivalid
+    Map<MapLocation, Integer> temporaryInvalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
     MapLocation enemyPaintZone = new MapLocation(-1,-1); // for enemy paint zone
-    // Map<MapLocation, Integer> invalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
-
+    
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
         ruinWithPatternDamaged = new HashSet<>();
@@ -89,17 +90,26 @@ public class Soldier extends Robot {
         }
 
         //search for a "good" spot for resource centre, if resource centre is not already found
-        if (resourceCenter.x == -1 || rc.canSenseLocation(resourceCenter) == false){
+        if (resourceCenter.x == -1){
             MapLocation nearestAllyTower = getNearestAllyTower();
             MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
             for (MapInfo mapInfo : surrMapInfos) {
                 if (mapInfo.isPassable() == false)
                     continue;
+                
+                //skip complete resourcePatternCenter 
+                if (mapInfo.isResourcePatternCenter() && mapInfo.getPaint().isAlly())
+                    continue;
+
                 MapLocation currentTile = mapInfo.getMapLocation();
                 if(currentTile.x % 4 == 2 && currentTile.y % 4 == 2 && mapInfo.getMark() == PaintType.EMPTY) {
-                    //if currentTile is considered as a invalid center, wait 50 rounds to check this tile again
-                    // if (invalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - invalidResourceCenter.get(currentTile) < 50)
-                    //     continue;
+                    // if currentTile is temporary considered as a invalid center, wait 50 rounds to check this tile again
+                    if (temporaryInvalidResourceCenter.containsKey(currentTile) && rc.getRoundNum() - temporaryInvalidResourceCenter.get(currentTile) < 50)
+                        continue;
+                    // if currentTile is considered as a invalid center, never consider it again
+                    if (invalidResourceCenter.contains(currentTile))
+                        continue;
+
                     resourceCenter = currentTile;
                     // paintSRP(resourceCenter);
                     break;
@@ -142,16 +152,21 @@ public class Soldier extends Robot {
 
         boolean paintTile = false;
         boolean unpaintableTile = false;
+        boolean enemyTileFound = false;
         for (int[] pos : attackPositions) {
             MapLocation target = new MapLocation(center.x + pos[0], center.y + pos[1]);
             if (rc.canSenseLocation(target) == false)
                 continue; //skip tiles that are not in the vision range
 
-            // //if target is a wall or is paint by enemy, ignore this center
-            // if (rc.senseMapInfo(target).isPassable() == false || rc.senseMapInfo(target).getPaint().isEnemy()){
-            //     unpaintableTile = true;
-            //     break;
-            // }
+            //if target is a wall, ignore this center forever
+            if (rc.senseMapInfo(target).isPassable() == false)
+                unpaintableTile = true;
+
+            //if target is paint by enemy, ignore this center  for 50 turns
+            if (rc.senseMapInfo(target).getPaint().isEnemy())
+                enemyTileFound = true;
+            
+
             if (rc.canPaint(target)) {
                 int paintType = -1;
                 rc.setIndicatorDot(target,13,241,4);
@@ -168,17 +183,22 @@ public class Soldier extends Robot {
 
         }
 
-        // if (unpaintableTile){
-        //     invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
-        //     resourceCenter = new MapLocation(-1,-1);
-        // }
+        if (unpaintableTile){
+            invalidResourceCenter.add(resourceCenter);
+            resourceCenter = new MapLocation(-1,-1);
+        }
 
+        if (enemyTileFound){
+            temporaryInvalidResourceCenter.put(resourceCenter, rc.getRoundNum());
+            resourceCenter = new MapLocation(-1,-1);
+        }
+        
         // //if i'm at the center and i can't paint anything, skip this center and set it as a invalid center
         // if (rc.getLocation().x == center.x && rc.getLocation().y == center.y  && !paintTile){
         //     invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
         //     resourceCenter = new MapLocation(-1,-1);
         // }
-        // Navigation.Bug2.move(center);
+        Navigation.Bug2.move(center);
     }
 
     void paintSRPWithNoMoving() throws GameActionException {
@@ -278,7 +298,8 @@ public class Soldier extends Robot {
             Navigation.Bug2.move(nearestAllyTower);
             //if tiles near the tower is already paint, paint the pattern
             for (MapInfo patternTile : rc.senseNearbyMapInfos(nearestAllyTower, 8)){
-                if (patternTile.getMark() != patternTile.getPaint()){
+                //paint only tiles that are empty (this avoid us to destry any SRP)
+                if (patternTile.getPaint() == PaintType.EMPTY){
                     boolean useSecondaryColor = patternTile.getMark() == PaintType.ALLY_SECONDARY;
                     tryToPaintAtLoc(patternTile.getMapLocation(), useSecondaryColor);
                 }
@@ -294,33 +315,6 @@ public class Soldier extends Robot {
         }
 
         else if (exploreMode){
-            rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
-
-            if (lowPaintFlag == false && (rc.getNumberTowers() >= 25 || ruinsFound.size() == 0) && tryToReachTargetLocation()){
-                //reset origin pos, if the bot is close enough to origin pos
-                if (originPos.x != -1){
-                    rc.setIndicatorDot(originPos, 0,0,244);
-                    if (rc.getLocation().distanceSquaredTo(originPos) < 2)
-                            originPos = new MapLocation(-1,-1);
-                }
-
-                //if a good spot for SRP is found, try to complete RSP
-                if(resourceCenter.x != -1){
-                    // targetLocation = new MapLocation(-1,-1);
-                    rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
-                    System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
-                    paintSRP(resourceCenter);
-                    if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < 200) {
-                        rc.completeResourcePattern(resourceCenter);
-                        rc.mark(resourceCenter, false);
-                        resourceCenter = new MapLocation(-1,-1);
-                    }
-                    
-                }
-                else//paint while traveling
-                    paintSRPWithNoMoving();
-            }
-
             if (lowPaintFlag){
                 //save origin pos when i'm building the tower and runs out of paint
                 if (originPos.x == -1 && (buildingTower.x != -1 || resourceCenter.x != -1)){
@@ -540,13 +534,6 @@ public class Soldier extends Robot {
                 return;
             }
 
-            //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
-            if (emptyTile.x != -1 && rc.isMovementReady()){
-                Navigation.Bug2.move(emptyTile);
-                rc.setIndicatorString("move to a random empty tile");
-                tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
-            }
-
             // if Middle game, look for enemy paint zone and send message to tower
             if (rc.getRoundNum() > EARLY_GAME_TURNS) {
                 if (enemyPaintZone.x == -1 && enemyPaintZone.y == -1) {
@@ -561,6 +548,38 @@ public class Soldier extends Robot {
                         rc.sendMessage(nearestAllyTower, messageContent);
                     }
                 }                         
+            }
+
+            //if a good spot for SRP is found, try to complete RSP
+            if(resourceCenter.x != -1){
+                // targetLocation = new MapLocation(-1,-1);
+                rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
+                System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
+                paintSRP(resourceCenter);
+                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < 200) {
+                    rc.completeResourcePattern(resourceCenter);
+                    rc.mark(resourceCenter, false);
+                    resourceCenter = new MapLocation(-1,-1);
+                }
+                return; //focus on completing the SRP
+            }
+            else//paint while traveling
+                paintSRPWithNoMoving();
+
+            //if nothing interesting is found, try to reach the target location
+            if(tryToReachTargetLocation())
+                rc.setIndicatorString("explore mode: move to  " + targetLocation.x + " " + targetLocation.y);
+
+            //reset origin pos, if the bot is close enough to origin pos
+            if (originPos.x != -1 && rc.getLocation().distanceSquaredTo(originPos) < 2)
+                        originPos = new MapLocation(-1,-1);
+
+            //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
+            if (emptyTile.x != -1 && rc.isMovementReady()){
+                Navigation.Bug2.move(emptyTile);
+                rc.setIndicatorString("move to a random empty tile");
+                tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
+                return;
             }
         
             //if it still didn't move, bugnav to a random pos

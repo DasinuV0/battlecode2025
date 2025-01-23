@@ -201,7 +201,7 @@ public class Mopper extends Robot {
                 if (rc.senseMapInfo(rc.getLocation()).getPaint().isAlly()){
                     //go to stay put, when defend mode is finished
                     resetMessageFlag();
-                    stayPut = true;
+                    exploreMode = true;
                 }else{
                     MapLocation nearestAllyTower = getNearestAllyTower();
                     if (nearestAllyTower.x != -1)
