@@ -26,7 +26,7 @@ public class Robot {
         static final int SENDPAINTTOWERINFO = 6;
         static final int NEWPAINTTOWERPOSRECEIVED = 6;
         static final int OUTTOWERDESTROYED = 7;
-        
+
         // static final int RUINFOUND = 7;
         // static final int MOVETOSPECIFICLOC = 6;
         // static final int ENGAGEMENT = 7;
@@ -34,7 +34,7 @@ public class Robot {
         static final int ATTACKSPLASHER = 8;
         static final int DEFENCESPLASHER = 9;
         static final int SENDPAINTZONE = 10;
-    }   
+    }
 
     // Class to represent a paint tower and its distance to the current robot location
     static class TowerInfo {
@@ -107,16 +107,16 @@ public class Robot {
     static boolean hasTarget = false;
     static boolean receivedTarget = false;
 
-   //messages flags (this will updated only when a new message is received)
+    //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
     static boolean exploreMode;
-    static MapLocation targetLocation = new MapLocation(-1,-1);  
+    static MapLocation targetLocation = new MapLocation(-1,-1);
     static boolean healMode;  //specific to mopper
     static boolean removePatterMode; //specific to mopper
-    static boolean defendMode; //specific to mopper 
-    static boolean attackMode; //specific to soldier 
+    static boolean defendMode; //specific to mopper
+    static boolean attackMode; //specific to soldier
 
-        
+
     public Robot(RobotController _rc) throws GameActionException {
         this.rc = _rc;
         stayPut = true;
@@ -129,7 +129,7 @@ public class Robot {
 
     //Instructions at the end of each turn
     public void endTurn() throws GameActionException {
-       
+
     }
 
     //Core turn method
@@ -143,9 +143,9 @@ public class Robot {
         emptyTile = new MapLocation(-1,-1);
         friendMopperFound = false;
     }
-    
+
     void updateLowPaintFlag() throws GameActionException{
-        //get the robotInfo of rc and then calculate the percetange of the remain paint 
+        //get the robotInfo of rc and then calculate the percetange of the remain paint
         int remainPaint = calculatePaintPercentage(rc.senseRobotAtLocation(rc.getLocation()));
         //check if it is low paint
         if (remainPaint <= LOWPAINTTRESHHOLD)
@@ -153,7 +153,7 @@ public class Robot {
     }
 
     void updateLowHealthFlag() throws GameActionException{
-        //get the robotInfo of rc and then calculate the percetange of the remain paint 
+        //get the robotInfo of rc and then calculate the percetange of the remain paint
         int remainHealth = calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation()));
         //check if it is low paint
         if (remainHealth <= LOWHEALTHTHRESHOLD)
@@ -178,7 +178,7 @@ public class Robot {
                 minDist = currDist;
             }
         }
-     
+
         return nearestTower;
     }
 
@@ -198,7 +198,7 @@ public class Robot {
                 minDist = currDist;
             }
         }
-     
+
         return nearestTower;
     }
 
@@ -241,11 +241,11 @@ public class Robot {
         if (nearestAllyMoneyTower.x != -1 && rc.canSendMessage(nearestAllyMoneyTower)){
             MapLocation nearestAllyPaintTower = getNearestAllyPaintTower();
             if (nearestAllyPaintTower.x != -1){
-                rc.sendMessage(nearestAllyMoneyTower, encodeMessage(OptCode.SENDPAINTTOWERINFO,nearestAllyPaintTower)); 
+                rc.sendMessage(nearestAllyMoneyTower, encodeMessage(OptCode.SENDPAINTTOWERINFO,nearestAllyPaintTower));
                 rc.setIndicatorDot(nearestAllyMoneyTower,0,255,0);
                 System.out.println("paint tower at " + nearestAllyPaintTower.x + " " + nearestAllyPaintTower.y + " is sent to " + nearestAllyMoneyTower.x + " " + nearestAllyMoneyTower.y);
             }
-            
+
         }
     }
 
@@ -271,13 +271,13 @@ public class Robot {
         return false;
     }
 
-    //override tryToReachTargetLocation, specify the distance to stop 
+    //override tryToReachTargetLocation, specify the distance to stop
     boolean tryToReachTargetLocation(int dist) throws GameActionException{
         if (rc.getLocation().distanceSquaredTo(targetLocation) > dist){
             Navigation.Bug1.moveTo(targetLocation);
             //don't remove targetLocation
             // if (rc.getLocation().distanceSquaredTo(targetLocation) <= dist)
-                // targetLocation = new MapLocation(-1,-1);
+            // targetLocation = new MapLocation(-1,-1);
             return true;
         }
 
@@ -285,15 +285,15 @@ public class Robot {
     }
 
     UnitType getTowerToBuild() throws GameActionException{
-       if (true){//TODO: if i'm in the region 0,1
+        if (true){//TODO: if i'm in the region 0,1
             if (rc.getNumberTowers() % 2 == 0)
                 return UnitType.LEVEL_ONE_MONEY_TOWER;
             else
                 return UnitType.LEVEL_ONE_PAINT_TOWER;
         }
         //if i'm in the region 2
-        return UnitType.LEVEL_ONE_DEFENSE_TOWER;  
-        
+        return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+
     }
 
     void tryToMarkPattern(MapInfo curRuin) throws GameActionException{
@@ -338,7 +338,7 @@ public class Robot {
             rc.setTimelineMarker("Tower built", 0, 255, 0);
         }
     }
-    //override  
+    //override
     void tryToBuildTower(MapLocation targetLoc) throws GameActionException{
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
@@ -400,7 +400,7 @@ public class Robot {
         stayPut = false;
         exploreMode = false;
         // targetLocation = new MapLocation(-1,-1);
-        healMode = false;  
+        healMode = false;
         removePatterMode = false;
         defendMode = false;
         attackMode = false;
@@ -434,19 +434,19 @@ public class Robot {
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 removePatterMode = true;
-                targetLocation = new MapLocation(x,y); 
+                targetLocation = new MapLocation(x,y);
                 buildingTower = new MapLocation(x,y);
             }
             else if (command == OptCode.GOTODEFEND){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 defendMode = true;
-                targetLocation = new MapLocation(x,y);   
+                targetLocation = new MapLocation(x,y);
             }else if (command == OptCode.ATTACKTOWER){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
                 attackMode = true;
-                targetLocation = new MapLocation(x,y);   
+                targetLocation = new MapLocation(x,y);
             }else if (command == OptCode.ATTACKSPLASHER) {
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
@@ -458,7 +458,6 @@ public class Robot {
                 int x = (m.getBytes() >> 6) & 63;
                 isDefenseSplasher = true;
                 targetLocation = new MapLocation(x,y);
-                receivedTarget = true;
             }else if (command == OptCode.NEWPAINTTOWERPOSRECEIVED){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
@@ -488,7 +487,7 @@ public class Robot {
     }
 
     // 6031 bytecode
-  public static MapLocation getEnemyPaintZone(RobotController rc) {
+    public static MapLocation getEnemyPaintZone(RobotController rc) {
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
         int size = 9, center = 4;
         int[][] visionArea = new int[size][size];
@@ -515,7 +514,7 @@ public class Robot {
                 visionArea[2][0] + visionArea[2][1] + visionArea[2][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[0][1] + visionArea[0][2] + visionArea[0][3] +
@@ -523,7 +522,7 @@ public class Robot {
                 visionArea[2][1] + visionArea[2][2] + visionArea[2][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[0][2] + visionArea[0][3] + visionArea[0][4] +
@@ -531,7 +530,7 @@ public class Robot {
                 visionArea[2][2] + visionArea[2][3] + visionArea[2][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[0][3] + visionArea[0][4] + visionArea[0][5] +
@@ -539,7 +538,7 @@ public class Robot {
                 visionArea[2][3] + visionArea[2][4] + visionArea[2][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[0][4] + visionArea[0][5] + visionArea[0][6] +
@@ -547,7 +546,7 @@ public class Robot {
                 visionArea[2][4] + visionArea[2][5] + visionArea[2][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[0][5] + visionArea[0][6] + visionArea[0][7] +
@@ -555,7 +554,7 @@ public class Robot {
                 visionArea[2][5] + visionArea[2][6] + visionArea[2][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[0][6] + visionArea[0][7] + visionArea[0][8] +
@@ -563,7 +562,7 @@ public class Robot {
                 visionArea[2][6] + visionArea[2][7] + visionArea[2][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (1 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (1 - center));
         }
 
         overlapCount = visionArea[1][0] + visionArea[1][1] + visionArea[1][2] +
@@ -571,7 +570,7 @@ public class Robot {
                 visionArea[3][0] + visionArea[3][1] + visionArea[3][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (2 - center));
         }
 
         overlapCount = visionArea[1][1] + visionArea[1][2] + visionArea[1][3] +
@@ -579,7 +578,7 @@ public class Robot {
                 visionArea[3][1] + visionArea[3][2] + visionArea[3][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y + (2 - center));
         }
 
         overlapCount = visionArea[1][2] + visionArea[1][3] + visionArea[1][4] +
@@ -587,7 +586,7 @@ public class Robot {
                 visionArea[3][2] + visionArea[3][3] + visionArea[3][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (2 - center));
         }
 
         overlapCount = visionArea[1][3] + visionArea[1][4] + visionArea[1][5] +
@@ -595,7 +594,7 @@ public class Robot {
                 visionArea[3][3] + visionArea[3][4] + visionArea[3][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (2 - center));
         }
 
         overlapCount = visionArea[1][4] + visionArea[1][5] + visionArea[1][6] +
@@ -603,7 +602,7 @@ public class Robot {
                 visionArea[3][4] + visionArea[3][5] + visionArea[3][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (2 - center));
         }
 
         overlapCount = visionArea[1][5] + visionArea[1][6] + visionArea[1][7] +
@@ -611,7 +610,7 @@ public class Robot {
                 visionArea[3][5] + visionArea[3][6] + visionArea[3][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (2 - center));
         }
 
         overlapCount = visionArea[1][6] + visionArea[1][7] + visionArea[1][8] +
@@ -619,7 +618,7 @@ public class Robot {
                 visionArea[3][6] + visionArea[3][7] + visionArea[3][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (2 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (2 - center));
         }
 
         // Row 3 (i=3)
@@ -628,7 +627,7 @@ public class Robot {
                 visionArea[4][0] + visionArea[4][1] + visionArea[4][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[2][1] + visionArea[2][2] + visionArea[2][3] +
@@ -636,7 +635,7 @@ public class Robot {
                 visionArea[4][1] + visionArea[4][2] + visionArea[4][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[2][2] + visionArea[2][3] + visionArea[2][4] +
@@ -644,7 +643,7 @@ public class Robot {
                 visionArea[4][2] + visionArea[4][3] + visionArea[4][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[2][3] + visionArea[2][4] + visionArea[2][5] +
@@ -652,7 +651,7 @@ public class Robot {
                 visionArea[4][3] + visionArea[4][4] + visionArea[4][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[2][4] + visionArea[2][5] + visionArea[2][6] +
@@ -660,7 +659,7 @@ public class Robot {
                 visionArea[4][4] + visionArea[4][5] + visionArea[4][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[2][5] + visionArea[2][6] + visionArea[2][7] +
@@ -668,7 +667,7 @@ public class Robot {
                 visionArea[4][5] + visionArea[4][6] + visionArea[4][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[2][6] + visionArea[2][7] + visionArea[2][8] +
@@ -676,7 +675,7 @@ public class Robot {
                 visionArea[4][6] + visionArea[4][7] + visionArea[4][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (3 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (3 - center));
         }
 
         overlapCount = visionArea[3][0] + visionArea[3][1] + visionArea[3][2] +
@@ -684,7 +683,7 @@ public class Robot {
                 visionArea[5][0] + visionArea[5][1] + visionArea[5][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (4 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (4 - center));
         }
 
         overlapCount = visionArea[3][2] + visionArea[3][3] + visionArea[3][4] +
@@ -692,7 +691,7 @@ public class Robot {
                 visionArea[5][2] + visionArea[5][3] + visionArea[5][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (4 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (4 - center));
         }
 
         overlapCount = visionArea[3][3] + visionArea[3][4] + visionArea[3][5] +
@@ -700,7 +699,7 @@ public class Robot {
                 visionArea[5][3] + visionArea[5][4] + visionArea[5][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (4 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (4 - center));
         }
 
         overlapCount = visionArea[3][4] + visionArea[3][5] + visionArea[3][6] +
@@ -708,7 +707,7 @@ public class Robot {
                 visionArea[5][4] + visionArea[5][5] + visionArea[5][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (4 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (4 - center));
         }
 
         overlapCount = visionArea[3][5] + visionArea[3][6] + visionArea[3][7] +
@@ -716,7 +715,7 @@ public class Robot {
                 visionArea[5][5] + visionArea[5][6] + visionArea[5][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (4 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (4 - center));
         }
 
         overlapCount = visionArea[3][6] + visionArea[3][7] + visionArea[3][8] +
@@ -724,7 +723,7 @@ public class Robot {
                 visionArea[5][6] + visionArea[5][7] + visionArea[5][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (4 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (4 - center));
         }
 
         // Row 5 (i=5)
@@ -733,7 +732,7 @@ public class Robot {
                 visionArea[6][0] + visionArea[6][1] + visionArea[6][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (5 - center));
         }
 
         overlapCount = visionArea[4][1] + visionArea[4][2] + visionArea[4][3] +
@@ -741,7 +740,7 @@ public class Robot {
                 visionArea[6][1] + visionArea[6][2] + visionArea[6][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y + (5 - center));
         }
 
         overlapCount = visionArea[4][2] + visionArea[4][3] + visionArea[4][4] +
@@ -749,7 +748,7 @@ public class Robot {
                 visionArea[6][2] + visionArea[6][3] + visionArea[6][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (5 - center));
         }
 
         overlapCount = visionArea[4][3] + visionArea[4][4] + visionArea[4][5] +
@@ -757,7 +756,7 @@ public class Robot {
                 visionArea[6][3] + visionArea[6][4] + visionArea[6][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (5 - center));
         }
 
         overlapCount = visionArea[4][4] + visionArea[4][5] + visionArea[4][6] +
@@ -765,7 +764,7 @@ public class Robot {
                 visionArea[6][4] + visionArea[6][5] + visionArea[6][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (5 - center));
         }
 
         overlapCount = visionArea[4][5] + visionArea[4][6] + visionArea[4][7] +
@@ -773,7 +772,7 @@ public class Robot {
                 visionArea[6][5] + visionArea[6][6] + visionArea[6][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (5 - center));
         }
 
         overlapCount = visionArea[4][6] + visionArea[4][7] + visionArea[4][8] +
@@ -781,7 +780,7 @@ public class Robot {
                 visionArea[6][6] + visionArea[6][7] + visionArea[6][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (5 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (5 - center));
         }
 
         // Row 6 (i=6)
@@ -790,7 +789,7 @@ public class Robot {
                 visionArea[7][0] + visionArea[7][1] + visionArea[7][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (6 - center));
         }
 
         overlapCount = visionArea[5][1] + visionArea[5][2] + visionArea[5][3] +
@@ -798,7 +797,7 @@ public class Robot {
                 visionArea[7][1] + visionArea[7][2] + visionArea[7][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y + (6 - center));
         }
 
         overlapCount = visionArea[5][2] + visionArea[5][3] + visionArea[5][4] +
@@ -806,7 +805,7 @@ public class Robot {
                 visionArea[7][2] + visionArea[7][3] + visionArea[7][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (6 - center));
         }
 
         overlapCount = visionArea[5][3] + visionArea[5][4] + visionArea[5][5] +
@@ -814,7 +813,7 @@ public class Robot {
                 visionArea[7][3] + visionArea[7][4] + visionArea[7][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (6 - center));
         }
 
         overlapCount = visionArea[5][4] + visionArea[5][5] + visionArea[5][6] +
@@ -822,7 +821,7 @@ public class Robot {
                 visionArea[7][4] + visionArea[7][5] + visionArea[7][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (6 - center));
         }
 
         overlapCount = visionArea[5][5] + visionArea[5][6] + visionArea[5][7] +
@@ -830,7 +829,7 @@ public class Robot {
                 visionArea[7][5] + visionArea[7][6] + visionArea[7][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (6 - center));
         }
 
         overlapCount = visionArea[5][6] + visionArea[5][7] + visionArea[5][8] +
@@ -838,7 +837,7 @@ public class Robot {
                 visionArea[7][6] + visionArea[7][7] + visionArea[7][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (6 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (6 - center));
         }
 
         // Row 7 (i=7)
@@ -847,7 +846,7 @@ public class Robot {
                 visionArea[8][0] + visionArea[8][1] + visionArea[8][2];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (1 - center), rc.getLocation().y + (7 - center));
         }
 
         overlapCount = visionArea[6][1] + visionArea[6][2] + visionArea[6][3] +
@@ -855,7 +854,7 @@ public class Robot {
                 visionArea[8][1] + visionArea[8][2] + visionArea[8][3];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (2 - center), rc.getLocation().y + (7 - center));
         }
 
         overlapCount = visionArea[6][2] + visionArea[6][3] + visionArea[6][4] +
@@ -863,7 +862,7 @@ public class Robot {
                 visionArea[8][2] + visionArea[8][3] + visionArea[8][4];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (3 - center), rc.getLocation().y + (7 - center));
         }
 
         overlapCount = visionArea[6][3] + visionArea[6][4] + visionArea[6][5] +
@@ -871,7 +870,7 @@ public class Robot {
                 visionArea[8][3] + visionArea[8][4] + visionArea[8][5];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (4 - center), rc.getLocation().y + (7 - center));
         }
 
         overlapCount = visionArea[6][4] + visionArea[6][5] + visionArea[6][6] +
@@ -879,7 +878,7 @@ public class Robot {
                 visionArea[8][4] + visionArea[8][5] + visionArea[8][6];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (5 - center), rc.getLocation().y + (7 - center));
         }
 
         overlapCount = visionArea[6][5] + visionArea[6][6] + visionArea[6][7] +
@@ -887,7 +886,7 @@ public class Robot {
                 visionArea[8][5] + visionArea[8][6] + visionArea[8][7];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (6 - center), rc.getLocation().y + (7 - center));
         }
 
         overlapCount = visionArea[6][6] + visionArea[6][7] + visionArea[6][8] +
@@ -895,7 +894,7 @@ public class Robot {
                 visionArea[8][6] + visionArea[8][7] + visionArea[8][8];
         if (overlapCount > maxOverlap) {
             maxOverlap = overlapCount;
-            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y - (7 - center));
+            bestLocation = new MapLocation(rc.getLocation().x + (7 - center), rc.getLocation().y + (7 - center));
         }
 
         if(maxOverlap > 5)
