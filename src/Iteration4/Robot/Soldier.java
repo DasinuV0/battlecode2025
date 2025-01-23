@@ -26,7 +26,7 @@ public class Soldier extends Robot {
     Set<MapLocation> invalidResourceCenter = new HashSet<>(); //for SRP, this saves centers that has walls/towers/ruins that make this center ivalid
     Map<MapLocation, Integer> temporaryInvalidResourceCenter = new HashMap<>(); //for SRP, location as key and round number as val
     MapLocation enemyPaintZone = new MapLocation(-1,-1); // for enemy paint zone
-    
+
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
         ruinWithPatternDamaged = new HashSet<>();
@@ -556,7 +556,12 @@ public class Soldier extends Robot {
                 rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
                 System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
                 paintSRP(resourceCenter);
-                if(rc.canCompleteResourcePattern(resourceCenter) && rc.getLocation().distanceSquaredTo(getNearestAllyTower()) < 200) {
+
+                if (rc.senseMapInfo(resourceCenter).isResourcePatternCenter())
+                    resourceCenter = new MapLocation(-1,-1);
+                
+
+                if(rc.canCompleteResourcePattern(resourceCenter)) {
                     rc.completeResourcePattern(resourceCenter);
                     rc.mark(resourceCenter, false);
                     resourceCenter = new MapLocation(-1,-1);
