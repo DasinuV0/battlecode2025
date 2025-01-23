@@ -32,9 +32,9 @@ public class TowerLogic {
     };
 
     // Define thresholds for game phases
-    static final int EARLY_GAME_TURNS = 200;   // Example: First 200 turns are early game
-    static final int MID_GAME_TURNS = 1000;   // Example: Turns 201-1000 are mid-game
-    static final int LATE_GAME_TURNS = 2000;  // Example: Turns beyond 1000 are late game
+    static int EARLY_GAME_TURNS;
+    static int MID_GAME_TURNS;
+    static final int LATE_GAME_TURNS = 2000; // LATE_GAME_TURNS remains constant
     static final int STAY_PUT_COMMAND = 1;
     static final int MOVE_TO_DAMAGED_PATTERN_COMMAND = 2;
     static final int MOVE_TO_LOCATION_COMMAND = 3;
@@ -60,17 +60,32 @@ public class TowerLogic {
     private static MapLocation lastClosestTower = null;
 
     private static int maxHealth;
-
-    public static void initialize(RobotController rc) {
-        maxHealth = rc.getHealth();
-    }
     static boolean hasInit = false;
+    public static void initialize(RobotController rc) {maxHealth = rc.getHealth();}
+
+    public static void setGamePhaseDurations(RobotController rc) throws GameActionException {
+        int mapArea = getMapArea(rc);
+
+        if (mapArea < 1200){
+            EARLY_GAME_TURNS = 120;
+            MID_GAME_TURNS = 450;
+        }
+        else if (mapArea <= 2400){
+            EARLY_GAME_TURNS = 160;
+            MID_GAME_TURNS = 750;
+        }
+        else{
+            EARLY_GAME_TURNS = 200;
+            MID_GAME_TURNS = 1000;
+        }
+    }
 
 
     public static void run(RobotController rc) throws GameActionException {
         int currentTurn = rc.getRoundNum(); // Get the current game turn
         if (!hasInit){
             initialize(rc);
+            setGamePhaseDurations(rc);
             hasInit = true;
         }
         //System.out.println("Current Turn: " + currentTurn);
@@ -308,7 +323,7 @@ public class TowerLogic {
     }
 
     public static void checkIsChipTowerAndSendToPaintTower(RobotController rc, int senderID) throws GameActionException {
-        if (isChipTower(rc) && rc.getPaint() > 350) {
+        if (isChipTower(rc) && rc.getPaint() < 350) {
             MapLocation closestPaintTower = TowerUtils.getClosestPaintTower();
             if (closestPaintTower != null) {
                 // Get the RobotInfo for the robot with the given senderID
@@ -363,14 +378,18 @@ public class TowerLogic {
             // Execute actions based on command
             switch (command) {
                 case 6: // update closest paint tower set
-                    MapLocation newTowerLocation = new MapLocation(x, y);
-                    TowerUtils.updatePaintTowers(newTowerLocation, rc);
+                    if (isChipTower(rc)){
+                        MapLocation newTowerLocation = new MapLocation(x, y);
+                        TowerUtils.updatePaintTowers(newTowerLocation, rc);
+                    }
                     break;
 
                 case 7: // tower destroyed, remove from set.
-                    MapLocation destroyedTowerLocation = new MapLocation(x, y);
-                    TowerUtils.removeDestroyedPaintTower(destroyedTowerLocation);
-                    checkIsChipTowerAndSendToPaintTower(rc, senderID);
+                    if (isChipTower(rc)){
+                        MapLocation destroyedTowerLocation = new MapLocation(x, y);
+                        TowerUtils.removeDestroyedPaintTower(destroyedTowerLocation);
+                        checkIsChipTowerAndSendToPaintTower(rc, senderID);
+                    }
                     break;
                 case 3: // give robot paint command
                     checkIsChipTowerAndSendToPaintTower(rc, senderID);
