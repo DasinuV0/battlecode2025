@@ -487,7 +487,7 @@ public class Robot {
     }
 
     // 6031 bytecode
-    public static MapLocation getEnemyPaintZone(RobotController rc) {
+    public static MapLocation getEnemyPaintZone(RobotController rc) throws GameActionException {
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
         int size = 9, center = 4;
         int[][] visionArea = new int[size][size];
