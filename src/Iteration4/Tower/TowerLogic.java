@@ -66,17 +66,21 @@ public class TowerLogic {
     public static void setGamePhaseDurations(RobotController rc) throws GameActionException {
         int mapArea = getMapArea(rc);
 
-        if (mapArea < 1200){
-            EARLY_GAME_TURNS = 120;
-            MID_GAME_TURNS = 450;
+        if (mapArea <= 1200){
+            EARLY_GAME_TURNS = 50;
+            MID_GAME_TURNS = 200;
+        }
+        else if (mapArea <= 1800){
+            EARLY_GAME_TURNS = 75;
+            MID_GAME_TURNS = 300;
         }
         else if (mapArea <= 2400){
-            EARLY_GAME_TURNS = 160;
-            MID_GAME_TURNS = 750;
+            EARLY_GAME_TURNS = 100;
+            MID_GAME_TURNS = 400;
         }
         else{
-            EARLY_GAME_TURNS = 200;
-            MID_GAME_TURNS = 1000;
+            EARLY_GAME_TURNS = 125;
+            MID_GAME_TURNS = 500;
         }
     }
 
