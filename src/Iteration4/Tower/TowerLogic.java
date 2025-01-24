@@ -32,7 +32,7 @@ public class TowerLogic {
     };
 
     // Define thresholds for game phases
-    static public int EARLY_GAME_TURNS;
+    static int EARLY_GAME_TURNS;
     static int MID_GAME_TURNS;
     static final int LATE_GAME_TURNS = 2000; // LATE_GAME_TURNS remains constant
     static final int STAY_PUT_COMMAND = 1;
