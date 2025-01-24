@@ -204,8 +204,10 @@ public class Soldier extends Robot {
     }
 
     public static void buildDefenseTower(RobotController rc, MapLocation center) throws GameActionException {
-        if (rc.canMark(new MapLocation(center.x, center.y-1)))
+        if (rc.canMark(new MapLocation(center.x, center.y-1))) {
             rc.mark(new MapLocation(center.x, center.y-1), true);
+            rc.mark(new MapLocation(center.x+1, center.y), true);
+        }
         int[][] attackPositions = {
                 {-2, 2, 0}, {-1, 2, 0}, {0, 2, 1}, {1, 2, 0}, {2, 2, 0}, // 1st line
                 {-2, 1, 0}, {-1, 1, 1}, {0, 1, 1}, {1, 1, 1}, {2, 1, 0}, // 2nd line
