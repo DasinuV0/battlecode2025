@@ -63,13 +63,22 @@ public class LateGameLogic extends TowerLogic{
                 return;
             }
 
-//            if (!randomSoldierSpawnedYet && currentTurn < 10){
-//                buildRobotOnRandomTile(rc, UnitType.SOLDIER);
-//                System.out.println("Spawned Splasher on a random tile");
-//                randomSoldierSpawnedYet = true;
-//                //attackNearbyEnemies(rc);
-//                return;
-//            }
+            if (!randomSoldierSpawnedYet && currentTurn < 10){
+                buildRobotOnRandomTile(rc, UnitType.SOLDIER);
+                System.out.println("Spawned Splasher on a random tile");
+                randomSoldierSpawnedYet = true;
+                //attackNearbyEnemies(rc);
+                return;
+            }
+
+            if (isChipTower(rc) && getMapArea(rc) > 1200){ // just spawn soldiers on chip towers
+                buildRobotOnPaintTile(rc, UnitType.SOLDIER);
+                sendToLocation(rc);
+                int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Soldier on a paint tile and commanded it to move.");
+            }
 
             if (isChipTower(rc) && x < 2 && getMapArea(rc) <= 1200){ // be more aggresive, spawn soldier && splasher out
                 if (!spawnSplasherYet){
@@ -79,7 +88,6 @@ public class LateGameLogic extends TowerLogic{
                         return; // Exit early to avoid setting flag to true
                     }
 
-                    // Command the Soldier to stay put
                     sendToLocation(rc);
                     int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
                     sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
@@ -95,7 +103,6 @@ public class LateGameLogic extends TowerLogic{
                         return; // Exit early to avoid setting flag to true
                     }
 
-                    // Command the Soldier to stay put
                     sendToLocation(rc);
                     int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
                     sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
