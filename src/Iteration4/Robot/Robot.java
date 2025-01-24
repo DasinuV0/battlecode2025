@@ -323,35 +323,43 @@ public class Robot {
         }
     }
 
-    void tryToBuildTower(MapInfo curRuin) throws GameActionException{
+    boolean tryToBuildTower(MapInfo curRuin) throws GameActionException{
         MapLocation targetLoc = curRuin.getMapLocation();
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
+        return false;
     }
     //override
-    void tryToBuildTower(MapLocation targetLoc) throws GameActionException{
+    boolean tryToBuildTower(MapLocation targetLoc) throws GameActionException{
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_DEFENSE_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
         if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc)){
             rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, targetLoc);
             rc.setTimelineMarker("Tower built", 0, 255, 0);
+            return true;
         }
+        return false;
     }
 
     void tryToRebuildTower() throws GameActionException{
@@ -461,7 +469,9 @@ public class Robot {
             }else if (command == OptCode.NEWPAINTTOWERPOSRECEIVED){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
-                paintTowersPos.add(new MapLocation(x,y));
+                //add only valid paint pos
+                if (y != 63 && x != 63 && y != -1 && x != -1)
+                    paintTowersPos.add(new MapLocation(x,y));
                 //go back to explore mode
                 exploreMode = true;
             }

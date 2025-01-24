@@ -30,6 +30,7 @@ public class Soldier extends Robot {
     int damagedPatternFoundMessageSentCount = 0;
     int enemyTowerMessageSentCount = 0;
     int mapArea;
+    UnitType spawnTower;
 
     public Soldier(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -144,7 +145,8 @@ public class Soldier extends Robot {
 
         // if (lastRuinWithPatternDamagedFoundPos.x != -1)
         //     rc.setIndicatorDot(lastRuinWithPatternDamagedFoundPos, 255,0,0);
-        
+        if (spawnTower == null)
+            spawnTower = rc.senseRobotAtLocation(getNearestAllyTower()).type;
         
     }
 
@@ -154,8 +156,8 @@ public class Soldier extends Robot {
     }
 
     public static void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
-        Navigation.Bug2.move(center);
-        rc.mark(new MapLocation(center.x, center.y-1), false);
+        if (rc.canMark(new MapLocation(center.x, center.y-1)))
+            rc.mark(new MapLocation(center.x, center.y-1), false);
         int[][] attackPositions = {
                 {-2, 2, 0}, {-1, 2, 1}, {0, 2, 1}, {1, 2, 1}, {2, 2, 0}, // 1st line
                 {-2, 1, 1}, {-1, 1, 1}, {0, 1, 0}, {1, 1, 1}, {2, 1, 1}, // 2nd line
@@ -178,8 +180,8 @@ public class Soldier extends Robot {
     }
 
     public static void buildPaintTower(RobotController rc, MapLocation center) throws GameActionException {
-        Navigation.Bug2.move(center);
-        rc.mark(new MapLocation(center.x, center.y-1), true);
+        if (rc.canMark(new MapLocation(center.x, center.y-1)))
+            rc.mark(new MapLocation(center.x, center.y-1), true);
         int[][] attackPositions = {
                 {-2, 2, 1}, {-1, 2, 0}, {0, 2, 0}, {1, 2, 0}, {2, 2, 1}, // 1st line
                 {-2, 1, 0}, {-1, 1, 1}, {0, 1, 0}, {1, 1, 1}, {2, 1, 0}, // 2nd line
@@ -202,8 +204,8 @@ public class Soldier extends Robot {
     }
 
     public static void buildDefenseTower(RobotController rc, MapLocation center) throws GameActionException {
-        Navigation.Bug2.move(center);
-        rc.mark(new MapLocation(center.x, center.y-1), false);
+        if (rc.canMark(new MapLocation(center.x, center.y-1)))
+            rc.mark(new MapLocation(center.x, center.y-1), true);
         int[][] attackPositions = {
                 {-2, 2, 0}, {-1, 2, 0}, {0, 2, 1}, {1, 2, 0}, {2, 2, 0}, // 1st line
                 {-2, 1, 0}, {-1, 1, 1}, {0, 1, 1}, {1, 1, 1}, {2, 1, 0}, // 2nd line
@@ -230,7 +232,12 @@ public class Soldier extends Robot {
         int totTower = rc.getNumberTowers();
         int percetange = knownTower / totTower * 100;
 
-        if (percetange > 40){
+        if (rc.getRoundNum() < EARLY_GAME_TURNS){
+            if (isMoneyTower(spawnTower))
+                return UnitType.LEVEL_ONE_PAINT_TOWER;
+            else
+                return UnitType.LEVEL_ONE_MONEY_TOWER;
+        }else if (percetange > 40){
             if (paintTowersPos.size() < moneyTowersPos.size())
                 return UnitType.LEVEL_ONE_PAINT_TOWER;
             else
@@ -682,7 +689,7 @@ public class Soldier extends Robot {
                 }
 
                 //if no one is building a tower at this ruin
-                if (whatIBuild == null)
+                if (whatIBuild == null || rc.senseNearbyRobots(-1, rc.getTeam()).length == 0)
                     whatIBuild = nextTowerToBuild();
 
                 if (whatIBuild == UnitType.LEVEL_ONE_MONEY_TOWER)
@@ -690,7 +697,12 @@ public class Soldier extends Robot {
                 else
                     buildPaintTower(rc,buildingTower);
 
-                tryToBuildTower(buildingTower);
+                if (tryToBuildTower(buildingTower)){
+                    if (isMoneyTower(spawnTower))
+                        spawnTower = UnitType.LEVEL_ONE_PAINT_TOWER;
+                    else
+                        spawnTower = UnitType.LEVEL_ONE_MONEY_TOWER;
+                }
                 //if building tower is within the vision range, check if the tower is built
                 if (rc.canSenseLocation(buildingTower) && rc.canSenseRobotAtLocation(buildingTower)){
                     buildingTower = new MapLocation(-1,-1);
@@ -735,11 +747,12 @@ public class Soldier extends Robot {
             }
 
 
-            //if a good spot for SRP is found, try to complete RSP
-            if(resourceCenter.x != -1){
+            //if a good spot for SRP is found, try to complete RSP. Also make sure that resource center is within the vision range
+            if(resourceCenter.x != -1 && rc.canSenseLocation(resourceCenter)){
                 // targetLocation = new MapLocation(-1,-1);
                 rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y + "(origin pos = " + originPos);
                 System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
+
                 if(!rc.senseMapInfo(resourceCenter).isResourcePatternCenter())
                     paintSRP(resourceCenter);
 
