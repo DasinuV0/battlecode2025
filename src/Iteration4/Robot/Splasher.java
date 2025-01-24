@@ -22,7 +22,9 @@ public class Splasher extends Robot {
     // static boolean hasTarget = false;
     // static boolean exploreMode = true;
     private LinkedList<MapLocation> recentLocations = new LinkedList<MapLocation>();
-    private MapLocation attackLocation = new MapLocation(-1,-1);
+    private MapLocation attackLocation = new MapLocation(-1,-1);   
+    private MapLocation interMediateLocation = new MapLocation(-1,-1); 
+    private boolean hasIntermediateLocation = false;
 
     public Splasher(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -31,8 +33,9 @@ public class Splasher extends Robot {
 
     public void beginTurn() throws GameActionException {
         resetFlags();
-        if (exploreMode) { listenMessage(); }
+        if (exploreMode || lowPaintTower) { listenMessage(); }
         updateLowPaintFlag();
+        tryToSendPaintPos();
         // updateLowHealthFlag();
 
         if ((targetLocation.x >= 0 && targetLocation.y >= 0) || receivedTarget ) {
@@ -41,6 +44,12 @@ public class Splasher extends Robot {
         } else {
             hasTarget = false;
             exploreMode = true;
+        }
+
+        if (hasIntermediateLocation && interMediateLocation.x != -1) {
+            targetLocation = interMediateLocation;
+            interMediateLocation = new MapLocation(-1,-1);
+            hasIntermediateLocation = false;
         }
 
         //check if any tower is found
@@ -53,6 +62,13 @@ public class Splasher extends Robot {
                     moneyTowersPos.add(robot.location);
             else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
+        }
+
+        MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(-1);
+        for (MapInfo mapInfo : surrMapInfos) {
+            if (mapInfo.isResourcePatternCenter()) {
+                detectedSRP = true;
+            }
         }
     }
 
@@ -72,6 +88,12 @@ public class Splasher extends Robot {
         // if (recentLocations.size() > 5) {
         //     recentLocations.removeFirst();
         // }
+        if (rc.senseMapInfo(rc.getLocation()).getPaint().isEnemy()) {
+            interMediateLocation = targetLocation;
+            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(targetLocation).opposite());
+            hasIntermediateLocation = true;
+            rc.setIndicatorString("Moving away to: " + targetLocation);
+        }
 
     }
 
@@ -122,7 +144,7 @@ public class Splasher extends Robot {
             // attack
             Navigation.Bug2.move(attackLocation);
             // rc.setIndicatorString("Moving towards" + attackLocation);
-            if (rc.canAttack(attackLocation)) {
+            if (rc.canAttack(attackLocation) && detectedSRP == false) {
                 rc.attack(attackLocation);
             } 
             // if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
@@ -209,7 +231,9 @@ public class Splasher extends Robot {
                         exploreMode = false;
                         if (rc.canAttack(attackLocation)) {
                             rc.setIndicatorString("(rand targ + explore) attacking diff loc: " + attackLocation);
-                            rc.attack(attackLocation);
+                            if (detectedSRP == false) {
+                                rc.attack(attackLocation);
+                            }
                             hasTarget = true;
                             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                                 targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
@@ -239,7 +263,9 @@ public class Splasher extends Robot {
                         exploreMode = false;
                         if (rc.canAttack(attackLocation)) {
                             rc.setIndicatorString("(has targ + explore) Attacking location is " + attackLocation);
-                            rc.attack(attackLocation);
+                            if (detectedSRP == false) {
+                                rc.attack(attackLocation);
+                            }
                             hasTarget = true;
                             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                                 targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
@@ -279,7 +305,9 @@ public class Splasher extends Robot {
                         exploreMode = false;
                         if (rc.canAttack(attackLocation)) {
                             rc.setIndicatorString("(targ + no explore) Attacking location is " + attackLocation);
-                            rc.attack(attackLocation);
+                            if (detectedSRP == false) {
+                                rc.attack(attackLocation);
+                            }
                             hasTarget = true;
                             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                                 targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
@@ -306,7 +334,9 @@ public class Splasher extends Robot {
                         exploreMode = false;
                         if (rc.canAttack(attackLocation)) {
                             rc.setIndicatorString("(targ + no explore -> diff) Attacking location is " + attackLocation);
-                            rc.attack(attackLocation);
+                            if (detectedSRP == false) {
+                                rc.attack(attackLocation);
+                            }
                             hasTarget = true;
                             if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                                 targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
@@ -336,7 +366,9 @@ public class Splasher extends Robot {
                 exploreMode = false;
                 if (rc.canAttack(attackLocation)) {
                     rc.setIndicatorString("(rand targ) Attacking location " + attackLocation);
-                    rc.attack(attackLocation);
+                    if (detectedSRP == false) {
+                        rc.attack(attackLocation);
+                    }                    
                     hasTarget = true;
                     if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
                         targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
@@ -364,8 +396,10 @@ public class Splasher extends Robot {
 
     void runLowPaintSplasher() throws GameActionException {
         rc.setIndicatorString("need healing");
+        boolean isPaintTower = false;
         MapLocation nearestAllyTower = getNearestAllyPaintTower();
         if (nearestAllyTower.x == -1) {
+            isPaintTower = false;
             nearestAllyTower = getNearestAllyTower();
         }
         if (nearestAllyTower.x == -1){
@@ -373,8 +407,7 @@ public class Splasher extends Robot {
             // exploreMode = true;
             rc.setIndicatorString("tower is destroyed, go back to explore mode and try to re-build the tower");
             return;
-        }                
-
+        }                        
 
         //if i can get paint from nearestAllyTower
         int localPaintToTake = rc.getPaint() - rc.getType().paintCapacity;
@@ -384,13 +417,26 @@ public class Splasher extends Robot {
         // else if (!rc.canSenseLocation(nearestAllyTower) && friendMopperFound){
         //     return;//stop here and wait for the mopper to give paint
         // }
-        else{
-            Navigation.Bug2.move(nearestAllyTower);
-            rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
-            if (rc.canSendMessage(nearestAllyTower)){
-                rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
-                rc.setIndicatorString("message sent: " + encodeMessage(OptCode.NEEDPAINT));
-            }
+        else{ 
+            if (!isPaintTower) {
+                Navigation.Bug2.move(nearestAllyTower);
+                if (rc.canSendMessage(nearestAllyTower)){
+                    rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.EXPLORE));
+                    rc.setIndicatorString("message sent to chip tower: " + encodeMessage(OptCode.EXPLORE));
+                }
+            } else {
+                if (!lowPaintTower) {
+                    int x = rng.nextInt(rc.getMapWidth());
+                    int y = rng.nextInt(rc.getMapHeight());
+                    targetLocation = new MapLocation(x,y);
+                    hasTarget = true;
+                    exploreMode = true;
+                    rc.setIndicatorString("low paint tower, moving to random point: " + targetLocation);                    
+                }
+                Navigation.Bug2.move(targetLocation);
+                rc.setIndicatorString("low paint, Moving to target location: " + targetLocation);
+            }                     
+            
         }
         return;
     }
