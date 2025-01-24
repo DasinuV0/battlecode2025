@@ -739,7 +739,10 @@ public class Soldier extends Robot {
                         temporaryInvalidEnemyPaintZone.put(enemyPaintZone,rc.getRoundNum());
                 }  
     
-                MapLocation nearestAllyTower = getNearestAllyTower();
+                MapLocation nearestAllyTower = getNearestAllyPaintTower();
+                if (nearestAllyTower.x == -1)
+                    nearestAllyTower = getNearestAllyTower();
+
                 //if enemyPaintZone found, and nearesetTower exists 
                 if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1 && nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
                     rc.setIndicatorString("enemyPaintZoneFound at " + enemyPaintZone + " go back to " + nearestAllyTower);

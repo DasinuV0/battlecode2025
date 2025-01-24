@@ -1,7 +1,7 @@
-package Robot;
+package Robotv3;
 
 import battlecode.common.*;
-import Navigation.Bug2.*;
+import Navigation.Bug1.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -79,7 +79,6 @@ public class Soldier extends Robot {
         for (MapInfo tile : nearbyTiles){
             // Search all nearby ruins
             if (tile.hasRuin() && rc.senseRobotAtLocation(tile.getMapLocation()) == null && (lastRuinWithPatternDamagedFoundPos.x != tile.getMapLocation().x || lastRuinWithPatternDamagedFoundPos.y != tile.getMapLocation().y) && originPos.x == -1){
-                rc.setIndicatorDot(tile.getMapLocation(), 1,23,42);
                 ruinsFound.add(tile);
                 
                 //if we already found a resource center, ignore it if tile is too close to the center
@@ -145,14 +144,31 @@ public class Soldier extends Robot {
 
         // if (lastRuinWithPatternDamagedFoundPos.x != -1)
         //     rc.setIndicatorDot(lastRuinWithPatternDamagedFoundPos, 255,0,0);
-        if (spawnTower == null && rc.canSenseLocation(getNearestAllyTower()))
-            spawnTower = rc.senseRobotAtLocation(getNearestAllyTower()).type;
+        if (spawnTower == null){
+            if (rc.canSenseLocation(getNearestAllyTower()))
+                spawnTower = rc.senseRobotAtLocation(getNearestAllyTower()).type;
+            else{
+                //tower destroyed, rebuild defense tower
+                resetMessageFlag();
+                // exploreMode = true;
+                for (MapInfo ruin : ruinsFound){
+                    buildDefenseTower(rc,ruin.getMapLocation());
+                    break;
+                }
+            }
+        }
         
     }
 
     //Instructions at the end of each turn
     public void endTurn() throws GameActionException {
         tryToSendPaintPos(); //send nearest paint location to money tower when it's possible
+        MapLocation nearesetTower = getNearestAllyMoneyTower();        
+        MapLocation nearesetTowerTile1 = new MapLocation(nearesetTower.x+1, nearesetTower.y);
+        //mark this tower as defense tower, so that when this tower is destroyed, bots will build defense tower
+        if (rc.canMark(nearesetTowerTile1) && rc.senseMapInfo(nearesetTowerTile1).getMark() == PaintType.EMPTY) {
+            rc.mark(nearesetTowerTile1, true);
+        }
     }
 
     public static void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
@@ -204,8 +220,8 @@ public class Soldier extends Robot {
     }
 
     public static void buildDefenseTower(RobotController rc, MapLocation center) throws GameActionException {
-        if (rc.canMark(new MapLocation(center.x, center.y-1))) {
-            rc.mark(new MapLocation(center.x, center.y-1), true);
+        if (rc.canMark(new MapLocation(center.x + 1, center.y))) {
+            // rc.mark(new MapLocation(center.x, center.y-1), true);
             rc.mark(new MapLocation(center.x+1, center.y), true);
         }
         int[][] attackPositions = {
@@ -228,7 +244,7 @@ public class Soldier extends Robot {
             }
         }
     }
-    
+
     UnitType nextTowerToBuild() throws GameActionException{
         int knownTower = paintTowersPos.size() + moneyTowersPos.size();
         int totTower = rc.getNumberTowers();
@@ -258,7 +274,7 @@ public class Soldier extends Robot {
                 rc.attack(center, true);
         }
         // else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-        //     Navigation.Bug2.move(center);
+        //     Navigation.Bug1.moveTo(center);
         //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
         //         rc.attack(center, true);
         // }
@@ -292,7 +308,7 @@ public class Soldier extends Robot {
 
             if (rc.canPaint(target)) {
                 int paintType = -1;
-                rc.setIndicatorDot(target,13,241,4);
+                // rc.setIndicatorDot(target,13,241,4);
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
                     paintType = 1;
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
@@ -321,7 +337,7 @@ public class Soldier extends Robot {
         //     invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
         //     resourceCenter = new MapLocation(-1,-1);
         // }
-        Navigation.Bug2.move(center);
+        Navigation.Bug1.moveTo(center);
     }
 
      void paintSRPWithNoMoving() throws GameActionException {
@@ -330,7 +346,7 @@ public class Soldier extends Robot {
         //         rc.attack(center, true);
         // }
         // else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-        //     Navigation.Bug2.move(center);
+        //     Navigation.Bug1.moveTo(center);
         //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
         //         rc.attack(center, true);
         // }
@@ -356,7 +372,7 @@ public class Soldier extends Robot {
         //             rc.attack(target, pos[2] == 1);
         //     }
         //     // else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-        //     //     Navigation.Bug2.move(target);
+        //     //     Navigation.Bug1.moveTo(target);
         //     //     boolean paintType = false;
         //     //     if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
         //     //         paintType = true;
@@ -391,7 +407,7 @@ public class Soldier extends Robot {
 
                         if (rc.canPaint(target)) {
                             int paintType = -1;
-                            rc.setIndicatorDot(target,13,241,4);
+                            // rc.setIndicatorDot(target,13,241,4);
                             if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
                                 paintType = 1;
                             if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
@@ -457,7 +473,7 @@ public class Soldier extends Robot {
                     return;
             }
             
-            Navigation.Bug2.move(nearestAllyTower);
+            Navigation.Bug1.moveTo(nearestAllyTower);
             //if tiles near the tower is already paint, paint the pattern
             for (MapInfo patternTile : rc.senseNearbyMapInfos(nearestAllyTower, 8)){
                 //paint only tiles that are empty (this avoid us to destry any SRP)
@@ -508,7 +524,7 @@ public class Soldier extends Robot {
                 //     return;//stop here and wait for the mopper to give paint
                 // }
                 else{
-                    Navigation.Bug2.move(nearestAllyTower);
+                    Navigation.Bug1.moveTo(nearestAllyTower);
                     rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
                     if (rc.canSendMessage(nearestAllyTower)){
                         rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
@@ -538,7 +554,7 @@ public class Soldier extends Robot {
                 //reset the target location
                 targetLocation = new MapLocation(-1,-1);
                 //go to the nearest ally tower 
-                Navigation.Bug2.move(nearestAllyTower);
+                Navigation.Bug1.moveTo(nearestAllyTower);
                 rc.setIndicatorString("damaged pattern find: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
                 if (rc.canSendMessage(nearestAllyTower)){
@@ -584,7 +600,7 @@ public class Soldier extends Robot {
                 targetLocation = new MapLocation(-1,-1);
                 originPos = new MapLocation(-1,-1);
                 //go to the nearest ally tower 
-                Navigation.Bug2.move(nearestAllyTower);
+                Navigation.Bug1.moveTo(nearestAllyTower);
                 rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
 
@@ -649,7 +665,7 @@ public class Soldier extends Robot {
                 originPos = new MapLocation(-1,-1);
 
                 rc.setIndicatorString("try to build the tower at (" + buildingTower.x + " " + buildingTower.y + ")");
-                Navigation.Bug2.move(buildingTower);
+                Navigation.Bug1.moveTo(buildingTower);
                 // tryToMarkPattern(buildingTower);
 
                 boolean damagedPatternFound = false;
@@ -670,36 +686,30 @@ public class Soldier extends Robot {
                         damagedPatternFound = true;
                         rc.setIndicatorString("pattern damaged, enemy paint found."); //TODO: find a way to avoid multiple bot find the same enemy tile and all go back to the tower
                     }
-
-                    //if someone is already bulding the tower, follow them
-                    if (patternTile.getMark() == PaintType.ALLY_PRIMARY)
-                        whatIBuild = UnitType.LEVEL_ONE_MONEY_TOWER;
-                    if (patternTile.getMark() == PaintType.ALLY_SECONDARY)
-                        whatIBuild = UnitType.LEVEL_ONE_PAINT_TOWER;
-                    
-                    // //if we see an ally mark
-                    // else if (patternTile.getMark().isAlly()){
-                    //     // Navigation.Bug2.move(buildingTower);
-
-                    //     //if the tile is not paint as expected (primary color instead of secondary or vice versa or empty paint)
-                    //     if (patternTile.getMark() != patternTile.getPaint()){
-                    //         boolean useSecondaryColor = patternTile.getMark() == PaintType.ALLY_SECONDARY;
-                    //         tryToPaintAtLoc(patternTile.getMapLocation(), useSecondaryColor);
-                    //         rc.setIndicatorString("try to build the tower at (" + buildingTower.x + " " + buildingTower.y + ")");
-                    //     }
-                    // }
                 }
+
+                //if someone is already bulding the tower, follow them
+                if (rc.canSenseLocation(new MapLocation(buildingTower.x, buildingTower.y - 1)) && rc.senseMapInfo(new MapLocation(buildingTower.x, buildingTower.y - 1)).getMark() == PaintType.ALLY_PRIMARY)
+                    whatIBuild = UnitType.LEVEL_ONE_MONEY_TOWER;
+                if (rc.canSenseLocation(new MapLocation(buildingTower.x, buildingTower.y - 1)) && rc.senseMapInfo(new MapLocation(buildingTower.x, buildingTower.y - 1)).getMark() == PaintType.ALLY_SECONDARY)
+                    whatIBuild = UnitType.LEVEL_ONE_PAINT_TOWER;
 
                 //if no one is building a tower at this ruin
                 if (whatIBuild == null || rc.senseNearbyRobots(-1, rc.getTeam()).length == 0)
                     whatIBuild = nextTowerToBuild();
 
+                //if this tower is destroyed by enemy, build defense tower
+                if (rc.canSenseLocation(new MapLocation(buildingTower.x + 1, buildingTower.y)) && rc.senseMapInfo(new MapLocation(buildingTower.x + 1, buildingTower.y)).getMark() == PaintType.ALLY_SECONDARY)
+                    whatIBuild = UnitType.LEVEL_ONE_DEFENSE_TOWER;
+
                 if (whatIBuild == UnitType.LEVEL_ONE_MONEY_TOWER)
                     buildMoneyTower(rc,buildingTower);
-                else
+                else if (whatIBuild == UnitType.LEVEL_ONE_PAINT_TOWER)
                     buildPaintTower(rc,buildingTower);
+                else
+                    buildDefenseTower(rc,buildingTower);
 
-                if (tryToBuildTower(buildingTower)){
+                if (tryToBuildTower(buildingTower)){                   
                     if (isMoneyTower(spawnTower))
                         spawnTower = UnitType.LEVEL_ONE_PAINT_TOWER;
                     else
@@ -729,14 +739,11 @@ public class Soldier extends Robot {
                         temporaryInvalidEnemyPaintZone.put(enemyPaintZone,rc.getRoundNum());
                 }  
     
-                MapLocation nearestAllyTower = getNearestAllyPaintTower();
-                if (nearestAllyTower.x == -1)
-                    nearestAllyTower = getNearestAllyTower();
-                    
+                MapLocation nearestAllyTower = getNearestAllyTower();
                 //if enemyPaintZone found, and nearesetTower exists 
                 if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1 && nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
                     rc.setIndicatorString("enemyPaintZoneFound at " + enemyPaintZone + " go back to " + nearestAllyTower);
-                    Navigation.Bug2.move(nearestAllyTower);
+                    Navigation.Bug1.moveTo(nearestAllyTower);
 
                     int messageContent = encodeMessage(OptCode.SENDPAINTZONE, enemyPaintZone);
                     if (rc.canSendMessage(nearestAllyTower)) {
@@ -780,7 +787,7 @@ public class Soldier extends Robot {
 
             //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
             if (emptyTile.x != -1 && rc.isMovementReady()){
-                Navigation.Bug2.move(emptyTile);
+                Navigation.Bug1.moveTo(emptyTile);
                 rc.setIndicatorString("move to a random empty tile");
                 tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
                 return;
@@ -792,7 +799,7 @@ public class Soldier extends Robot {
                 int y = rng.nextInt(rc.getMapHeight());
                 targetLocation = new MapLocation(x,y);
                 rc.setIndicatorString("move to" + x + " " + y);
-                Navigation.Bug2.move(targetLocation);
+                Navigation.Bug1.moveTo(targetLocation);
             }
         }
         
