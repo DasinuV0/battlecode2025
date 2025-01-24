@@ -701,7 +701,8 @@ public class Soldier extends Robot {
                 // targetLocation = new MapLocation(-1,-1);
                 rc.setIndicatorString("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y + "(origin pos = " + originPos);
                 System.out.println("Trying to complete RSP with centere at " + resourceCenter.x + " " + resourceCenter.y);
-                paintSRP(resourceCenter);
+                if(!rc.senseMapInfo(resourceCenter).isResourcePatternCenter())
+                    paintSRP(resourceCenter);
 
                 if (rc.canSenseLocation(resourceCenter) && rc.senseMapInfo(resourceCenter).isResourcePatternCenter())
                     resourceCenter = new MapLocation(-1,-1);
