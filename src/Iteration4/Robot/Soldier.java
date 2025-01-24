@@ -145,14 +145,14 @@ public class Soldier extends Robot {
 
         // if (lastRuinWithPatternDamagedFoundPos.x != -1)
         //     rc.setIndicatorDot(lastRuinWithPatternDamagedFoundPos, 255,0,0);
-        if (spawnTower == null)
+        if (spawnTower == null && rc.canSenseLocation(getNearestAllyTower()))
             spawnTower = rc.senseRobotAtLocation(getNearestAllyTower()).type;
         
     }
 
     //Instructions at the end of each turn
     public void endTurn() throws GameActionException {
-       
+        tryToSendPaintPos(); //send nearest paint location to money tower when it's possible
     }
 
     public static void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
