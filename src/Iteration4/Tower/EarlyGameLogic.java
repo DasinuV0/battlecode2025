@@ -6,6 +6,8 @@ public class EarlyGameLogic extends TowerLogic{
     private static final int CHIP_SAVE_AMOUNT = 1200;
     private static boolean spawnSplasherYet = false;
     static int x = 0;
+    private static boolean hasDamagedPatternRobots = false;
+    private static boolean hasEnemyTowerRobots = false;
 
     static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
@@ -62,7 +64,7 @@ public class EarlyGameLogic extends TowerLogic{
                 return;
             }
 
-            if (isChipTower(rc) && x < 2){ // be more aggresive, spawn soldier && splasher out
+            if (isChipTower(rc) && x < 2 && getMapArea(rc) <= 1200){ // be more aggresive, spawn soldier && splasher out
                 if (!spawnSplasherYet){
                     if (!buildRobotOnPaintTile(rc, UnitType.SPLASHER)){
                         System.out.println("No tiles found that are friendly so far, not spawning splasher xxx");
@@ -202,6 +204,16 @@ public class EarlyGameLogic extends TowerLogic{
 
         }
         else if (isEnemyTowerFound){ // attack tower mode
+            if (hasEnemyTowerRobots){
+                int currentSoldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, currentSoldierCountAfterSpawn);
+                isDefault = true;
+                hasEnemyTowerRobots = false;
+                isEnemyTowerFound = false;
+                saveTurn = 4;
+                return;
+            }
+
             System.out.println("Enemy tower found, now preparing robots to attack");
 
             if (!canBuildRobotOnPaintTile(rc)){
@@ -228,14 +240,21 @@ public class EarlyGameLogic extends TowerLogic{
                 }
 
                 System.out.println("1 Soldier spawned on paint tile, sending out to attack");
-                sendMessageToRobots(rc, MOVE_TO_ATTACK_TOWER_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
-                isEnemyTowerFound = false;
-                isDefault = true;
-                saveTurn = 5;
+                hasEnemyTowerRobots = true;
             }
 
         }
         else if (isDamagedPatternFound){ // damage pattern found mode
+            if (hasDamagedPatternRobots){
+                int currentMopperCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
+                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, currentMopperCountAfterSpawn);
+                isDefault = true;
+                hasDamagedPatternRobots = false;
+                isDamagedPatternFound = false;
+                saveTurn = 4;
+                return;
+            }
+
             System.out.println("Oh no! Damaged pattern is found!");
 
             if (!canBuildRobotOnPaintTile(rc)){
@@ -261,6 +280,10 @@ public class EarlyGameLogic extends TowerLogic{
             else if (soldierCount >= 1){
                 sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
             }
+            else if (mopperCount >= 1){
+                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
+                isDamagedPatternFound = false;
+            }
 
 //            if (!calledSoldierStayPutYet){
 //                sendMessageToRobots(rc, STAY_PUT_COMMAND, null, UnitType.SOLDIER, 1);
@@ -282,11 +305,7 @@ public class EarlyGameLogic extends TowerLogic{
                     return; // Exit early to avoid sending wrong mopper message
                 }
                 System.out.println("Spawned MOPPER on a paint tile and commanded it to stay put.");
-                int currentMopperCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.MOPPER);
-                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, currentMopperCountAfterSpawn);
-                isDefault = true;
-                isDamagedPatternFound = false;
-                saveTurn = 5;
+                hasDamagedPatternRobots = true;
             }
 //            else if (mopperCount >= 2){
 //                sendMessageToRobots(rc, MOVE_TO_DAMAGED_PATTERN_COMMAND, targetLoc, UnitType.MOPPER, 2);
