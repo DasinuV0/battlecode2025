@@ -8,6 +8,7 @@ public class EarlyGameLogic extends TowerLogic{
     static int x = 0;
     private static boolean hasDamagedPatternRobots = false;
     private static boolean hasEnemyTowerRobots = false;
+    private static int saveTurn = 0;
 
     static void runEarlyGame(RobotController rc) throws GameActionException{
         //System.out.println("Running Early Game Logic");
@@ -30,15 +31,15 @@ public class EarlyGameLogic extends TowerLogic{
             isDefendTower = false;
             isDamagedPatternFound = false;
             isEnemyTowerFound = false;
-            saveTurn = 0;
             isDefault = true;
+            saveTurn = 0;
         }
 
         if (!isDefendTower) handleMessages(rc);
         attackNearbyEnemies(rc);
 
 
-        if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
+        if (saveTurn > 0 && enemyLoc == null){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
             System.out.println("Currently is a saving turn: " + saveTurn);
             saveTurn--;
             //attackNearbyEnemies(rc);
@@ -51,18 +52,28 @@ public class EarlyGameLogic extends TowerLogic{
 
             if (!canBuildRobotOnPaintTile(rc)){
                 buildRobotOnRandomTile(rc, UnitType.SPLASHER);
-                System.out.println("Spawned Splasher on a random tile");
+                System.out.println("Spawned Splasher on a random tile pppppp");
                 saveTurn = 5;
                 return;
             }
 
             if (!randomSoldierSpawnedYet && currentTurn < 10){
                 buildRobotOnRandomTile(rc, UnitType.SOLDIER);
-                System.out.println("Spawned Soldier on a random tile");
+                System.out.println("Spawned Soldier on a random  kkkk");
                 randomSoldierSpawnedYet = true;
                 //attackNearbyEnemies(rc);
                 return;
             }
+
+            if (isChipTower(rc) && getMapArea(rc) > 1200){ // just spawn soldiers on chip towers
+                buildRobotOnPaintTile(rc, UnitType.SOLDIER);
+                sendToLocation(rc);
+                int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Soldier on a paint tile and commanded it to move.");
+            }
+
 
             if (isChipTower(rc) && x < 2 && getMapArea(rc) <= 1200){ // be more aggresive, spawn soldier && splasher out
                 if (!spawnSplasherYet){
@@ -72,7 +83,6 @@ public class EarlyGameLogic extends TowerLogic{
                         return; // Exit early to avoid setting flag to true
                     }
 
-                    // Command the Soldier to stay put
                     sendToLocation(rc);
                     int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
                     sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
@@ -88,7 +98,6 @@ public class EarlyGameLogic extends TowerLogic{
                         return; // Exit early to avoid setting flag to true
                     }
 
-                    // Command the Soldier to stay put
                     sendToLocation(rc);
                     int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
                     sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
@@ -105,7 +114,7 @@ public class EarlyGameLogic extends TowerLogic{
                 System.out.println("Sent a soldier out to explore: " + targetLoc);
             }
 
-            else if (soldierCount >= 1){ // send them out, but keep one
+            if (soldierCount >= 1){ // send them out, but keep one
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCount);
                 saveTurn = 5;
