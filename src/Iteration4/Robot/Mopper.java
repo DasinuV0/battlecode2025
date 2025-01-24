@@ -348,7 +348,7 @@ public class Mopper extends Robot {
                 targetLocation = new MapLocation(-1,-1);
 
                 for (MapInfo curRuin : ruinsFound){
-                    tryToMarkPattern(curRuin);
+                    // tryToMarkPattern(curRuin);
                     tryToBuildTower(curRuin);
 
                     //if eneny paint found near the ruin
