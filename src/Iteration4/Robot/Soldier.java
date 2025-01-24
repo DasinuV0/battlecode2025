@@ -100,7 +100,7 @@ public class Soldier extends Robot {
 
         //search for a "good" spot for resource centre, if resource centre is not already found
         final int THRESHOLD = mapArea <= 1200 ? 4 : 5;
-        if (resourceCenter.x == -1 && rc.getNumberTowers() > THRESHOLD){
+        if (resourceCenter.x == -1 && rc.getNumberTowers() >= THRESHOLD){
             MapLocation nearestAllyTower = getNearestAllyTower();
             MapInfo[] surrMapInfos = rc.senseNearbyMapInfos();
             for (MapInfo mapInfo : surrMapInfos) {
