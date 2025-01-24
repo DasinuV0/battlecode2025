@@ -137,7 +137,7 @@ public class Soldier extends Robot {
 
     public static void buildMoneyTower(RobotController rc, MapLocation center) throws GameActionException {
         Navigation.Bug2.move(center);
-        rc.mark(new MapLocation(center.x-1, center.y-1), false);
+        rc.mark(new MapLocation(center.x, center.y-1), false);
         int[][] attackPositions = {
                 {-2, 2, 0}, {-1, 2, 1}, {0, 2, 1}, {1, 2, 1}, {2, 2, 0}, // 1st line
                 {-2, 1, 1}, {-1, 1, 1}, {0, 1, 0}, {1, 1, 1}, {2, 1, 1}, // 2nd line
@@ -151,9 +151,9 @@ public class Soldier extends Robot {
                 boolean paintType = false;
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
                     paintType = true;
-                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                else if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = false;
-                if(paintType != (pos[2] == 1))
+                else if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
                     rc.attack(target, pos[2] == 1);
             }
         }
@@ -161,7 +161,7 @@ public class Soldier extends Robot {
 
     public static void buildPaintTower(RobotController rc, MapLocation center) throws GameActionException {
         Navigation.Bug2.move(center);
-        rc.mark(new MapLocation(center.x-1, center.y-1), false);
+        rc.mark(new MapLocation(center.x, center.y-1), false);
         int[][] attackPositions = {
                 {-2, 2, 1}, {-1, 2, 0}, {0, 2, 0}, {1, 2, 0}, {2, 2, 1}, // 1st line
                 {-2, 1, 0}, {-1, 1, 1}, {0, 1, 0}, {1, 1, 1}, {2, 1, 0}, // 2nd line
@@ -175,9 +175,9 @@ public class Soldier extends Robot {
                 boolean paintType = false;
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
                     paintType = true;
-                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                else if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = false;
-                if(paintType != (pos[2] == 1))
+                else if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
                     rc.attack(target, pos[2] == 1);
             }
         }
@@ -185,7 +185,7 @@ public class Soldier extends Robot {
 
     public static void buildDefenseTower(RobotController rc, MapLocation center) throws GameActionException {
         Navigation.Bug2.move(center);
-        rc.mark(new MapLocation(center.x-1, center.y-1), false);
+        rc.mark(new MapLocation(center.x, center.y-1), false);
         int[][] attackPositions = {
                 {-2, 2, 0}, {-1, 2, 0}, {0, 2, 1}, {1, 2, 0}, {2, 2, 0}, // 1st line
                 {-2, 1, 0}, {-1, 1, 1}, {0, 1, 1}, {1, 1, 1}, {2, 1, 0}, // 2nd line
@@ -199,9 +199,9 @@ public class Soldier extends Robot {
                 boolean paintType = false;
                 if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
                     paintType = true;
-                if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
+                else if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = false;
-                if(paintType != (pos[2] == 1))
+                else if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
                     rc.attack(target, pos[2] == 1);
             }
         }
