@@ -1,7 +1,7 @@
-package Robot;
+package Robotv3;
 
 import battlecode.common.*;
-import Navigation.Bug2.*;
+import Navigation.Bug1.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -274,7 +274,7 @@ public class Soldier extends Robot {
                 rc.attack(center, true);
         }
         // else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-        //     Navigation.Bug2.move(center);
+        //     Navigation.Bug1.moveTo(center);
         //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
         //         rc.attack(center, true);
         // }
@@ -337,7 +337,7 @@ public class Soldier extends Robot {
         //     invalidResourceCenter.put(resourceCenter, rc.getRoundNum());
         //     resourceCenter = new MapLocation(-1,-1);
         // }
-        Navigation.Bug2.move(center);
+        Navigation.Bug1.moveTo(center);
     }
 
      void paintSRPWithNoMoving() throws GameActionException {
@@ -346,7 +346,7 @@ public class Soldier extends Robot {
         //         rc.attack(center, true);
         // }
         // else if(rc.senseMapInfo(center).isPassable() && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-        //     Navigation.Bug2.move(center);
+        //     Navigation.Bug1.moveTo(center);
         //     if(rc.senseMapInfo(center).getPaint() != PaintType.ALLY_SECONDARY)
         //         rc.attack(center, true);
         // }
@@ -372,7 +372,7 @@ public class Soldier extends Robot {
         //             rc.attack(target, pos[2] == 1);
         //     }
         //     // else if(rc.senseMapInfo(target).isPassable() && rc.senseMapInfo(target).getPaint() != PaintType.ENEMY_PRIMARY && rc.senseMapInfo(center).getPaint() != PaintType.ENEMY_SECONDARY) {
-        //     //     Navigation.Bug2.move(target);
+        //     //     Navigation.Bug1.moveTo(target);
         //     //     boolean paintType = false;
         //     //     if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
         //     //         paintType = true;
@@ -473,7 +473,7 @@ public class Soldier extends Robot {
                     return;
             }
             
-            Navigation.Bug2.move(nearestAllyTower);
+            Navigation.Bug1.moveTo(nearestAllyTower);
             //if tiles near the tower is already paint, paint the pattern
             for (MapInfo patternTile : rc.senseNearbyMapInfos(nearestAllyTower, 8)){
                 //paint only tiles that are empty (this avoid us to destry any SRP)
@@ -524,7 +524,7 @@ public class Soldier extends Robot {
                 //     return;//stop here and wait for the mopper to give paint
                 // }
                 else{
-                    Navigation.Bug2.move(nearestAllyTower);
+                    Navigation.Bug1.moveTo(nearestAllyTower);
                     rc.setIndicatorString("move to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ") to get healed");
                     if (rc.canSendMessage(nearestAllyTower)){
                         rc.sendMessage(nearestAllyTower, encodeMessage(OptCode.NEEDPAINT));
@@ -554,7 +554,7 @@ public class Soldier extends Robot {
                 //reset the target location
                 targetLocation = new MapLocation(-1,-1);
                 //go to the nearest ally tower 
-                Navigation.Bug2.move(nearestAllyTower);
+                Navigation.Bug1.moveTo(nearestAllyTower);
                 rc.setIndicatorString("damaged pattern find: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
                 if (rc.canSendMessage(nearestAllyTower)){
@@ -600,7 +600,7 @@ public class Soldier extends Robot {
                 targetLocation = new MapLocation(-1,-1);
                 originPos = new MapLocation(-1,-1);
                 //go to the nearest ally tower 
-                Navigation.Bug2.move(nearestAllyTower);
+                Navigation.Bug1.moveTo(nearestAllyTower);
                 rc.setIndicatorString("enemy tower found: going to (" + nearestAllyTower.x + " " + nearestAllyTower.y + ")");
 
 
@@ -665,7 +665,7 @@ public class Soldier extends Robot {
                 originPos = new MapLocation(-1,-1);
 
                 rc.setIndicatorString("try to build the tower at (" + buildingTower.x + " " + buildingTower.y + ")");
-                Navigation.Bug2.move(buildingTower);
+                Navigation.Bug1.moveTo(buildingTower);
                 // tryToMarkPattern(buildingTower);
 
                 boolean damagedPatternFound = false;
@@ -739,14 +739,11 @@ public class Soldier extends Robot {
                         temporaryInvalidEnemyPaintZone.put(enemyPaintZone,rc.getRoundNum());
                 }  
     
-                MapLocation nearestAllyTower = getNearestAllyPaintTower();
-                if (nearestAllyTower.x == -1)
-                    nearestAllyTower = getNearestAllyTower();
-
+                MapLocation nearestAllyTower = getNearestAllyTower();
                 //if enemyPaintZone found, and nearesetTower exists 
                 if (enemyPaintZone.x != -1 && enemyPaintZone.y != -1 && nearestAllyTower.x != -1 && nearestAllyTower.y != -1) {
                     rc.setIndicatorString("enemyPaintZoneFound at " + enemyPaintZone + " go back to " + nearestAllyTower);
-                    Navigation.Bug2.move(nearestAllyTower);
+                    Navigation.Bug1.moveTo(nearestAllyTower);
 
                     int messageContent = encodeMessage(OptCode.SENDPAINTZONE, enemyPaintZone);
                     if (rc.canSendMessage(nearestAllyTower)) {
@@ -790,7 +787,7 @@ public class Soldier extends Robot {
 
             //if so far, it din't move, explore unpaint tile (TODO: that is whitin the region)
             if (emptyTile.x != -1 && rc.isMovementReady()){
-                Navigation.Bug2.move(emptyTile);
+                Navigation.Bug1.moveTo(emptyTile);
                 rc.setIndicatorString("move to a random empty tile");
                 tryToPaintAtLoc(rc.getLocation(), PaintType.EMPTY);
                 return;
@@ -802,7 +799,7 @@ public class Soldier extends Robot {
                 int y = rng.nextInt(rc.getMapHeight());
                 targetLocation = new MapLocation(x,y);
                 rc.setIndicatorString("move to" + x + " " + y);
-                Navigation.Bug2.move(targetLocation);
+                Navigation.Bug1.moveTo(targetLocation);
             }
         }
         

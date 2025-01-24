@@ -1,4 +1,4 @@
-package Robot;
+package Robotv3;
 
 import battlecode.common.*;
 import Navigation.Bug1.*;
@@ -106,8 +106,6 @@ public class Robot {
 
     static boolean hasTarget = false;
     static boolean receivedTarget = false;
-    static boolean detectedSRP = false;
-    static boolean lowPaintTower = false;
 
     //messages flags (this will updated only when a new message is received)
     static boolean stayPut;
@@ -143,8 +141,7 @@ public class Robot {
         lowPaintFlag = false;
         ruinsFound = new HashSet<>();
         emptyTile = new MapLocation(-1,-1);
-        friendMopperFound = false;   
-        detectedSRP = false;     
+        friendMopperFound = false;
     }
 
     void updateLowPaintFlag() throws GameActionException{
@@ -366,8 +363,10 @@ public class Robot {
     }
 
     void tryToRebuildTower() throws GameActionException{
-        for (MapInfo curRuin : ruinsFound)
+        for (MapInfo curRuin : ruinsFound){
+            // buildDefenseTower(rc,curRuin.getMapLocation());
             tryToBuildTower(curRuin);
+        }
 
         //if none of them is built, go closer to one of them
         // if (ruinsFound.size() > 0){
@@ -435,25 +434,12 @@ public class Robot {
             else if (command == OptCode.EXPLORE){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;
-                if (rc.getType() != UnitType.SPLASHER) {
-                    exploreMode = true;
-                    if (targetLocation.x == -1)
-                        targetLocation = new MapLocation(x,y);
-                    //ignore command, if we have a valid origin pos
-                    if (originPos.x != -1)
-                        targetLocation = originPos;
-                } else {
-                    // if we are a splasher 
-                    if (x == 63 || y == 63) {
-                        targetLocation = new MapLocation(-1, -1);
-                        exploreMode = true;
-                    } else {
-                        targetLocation = new MapLocation(x, y);
-                        lowPaintTower = true;
-                        exploreMode = false;
-                    }
-                    rc.setIndicatorString("Received explore command to location: " + targetLocation);
-                }
+                exploreMode = true;
+                if (targetLocation.x == -1)
+                    targetLocation = new MapLocation(x,y);
+                //ignore command, if we have a valid origin pos
+                if (originPos.x != -1)
+                    targetLocation = originPos;
             }else if (command == OptCode.DAMAGEDPATTERN){
                 int y = m.getBytes() & 63;
                 int x = (m.getBytes() >> 6) & 63;

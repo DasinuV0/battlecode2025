@@ -45,7 +45,7 @@ public class MidGameLogic extends TowerLogic{
 
 
         if (saveTurn > 0){ // after non-default command is done, set a delay of 5 turns so bots can move out of range first
-//            checkAndUpgradeTowers(rc, CHIP_TRESHOLD);
+//          checkAndUpgradeTowers(rc, CHIP_TRESHOLD);
             System.out.println("Currently is a saving turn: " + saveTurn);
             saveTurn--;
             //attackNearbyEnemies(rc);
@@ -73,40 +73,6 @@ public class MidGameLogic extends TowerLogic{
 //                return;
 //            }
 
-            if (isChipTower(rc) && x < 2 && getMapArea(rc) <= 1200){ // be more aggresive, spawn soldier && splasher out
-                if (!spawnSplasherYet){
-                    if (!buildRobotOnPaintTile(rc, UnitType.SPLASHER)){
-                        System.out.println("No tiles found that are friendly so far, not spawning splasher xxx");
-                        //attackNearbyEnemies(rc);
-                        return; // Exit early to avoid setting flag to true
-                    }
-
-                    // Command the Soldier to stay put
-                    sendToLocation(rc);
-                    int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
-                    sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
-                    saveTurn = 5;
-                    System.out.println("Spawned Splasher on a paint tile and commanded it to move.");
-                    spawnSplasherYet = true;
-                    x++;
-                }
-                else{
-                    if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
-                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxx");
-                        //attackNearbyEnemies(rc);
-                        return; // Exit early to avoid setting flag to true
-                    }
-
-                    // Command the Soldier to stay put
-                    sendToLocation(rc);
-                    int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
-                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
-                    saveTurn = 5;
-                    System.out.println("Spawned Soldier on a paint tile and commanded it to move.");
-                    x++;
-                }
-            }
-
             if (mopperCount >= 1){ // send them out
                 sendToLocation(rc);
                 sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.MOPPER, mopperCount);
@@ -127,6 +93,51 @@ public class MidGameLogic extends TowerLogic{
                 System.out.println("Sent a splasher out to explore: " + targetLoc);
             }
 
+            if (isChipTower(rc) && getMapArea(rc) > 1200){ // just spawn soldiers on chip towers
+                buildRobotOnPaintTile(rc, UnitType.SOLDIER);
+                sendToLocation(rc);
+                int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Soldier on a paint tile and commanded it to move.");
+            }
+
+
+            if (isChipTower(rc) && x < 2 && getMapArea(rc) <= 1200){ // be more aggresive, spawn soldier && splasher out
+                if (!spawnSplasherYet){
+                    if (!buildRobotOnPaintTile(rc, UnitType.SPLASHER)){
+                        System.out.println("No tiles found that are friendly so far, not spawning splasher xxx");
+                        //attackNearbyEnemies(rc);
+                        return; // Exit early to avoid setting flag to true
+                    }
+
+                    // Command the Soldier to stay put
+                    sendToLocation(rc);
+                    int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
+                    sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
+                    saveTurn = 5;
+                    System.out.println("Spawned Splasher on a paint tile and commanded it to move xxxxxxxxxxxyyyyyyyyyyyyyyyyy.");
+                    spawnSplasherYet = true;
+                    x++;
+                }
+                else{
+                    //int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
+                    //sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
+                    if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
+                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+                        //attackNearbyEnemies(rc);
+                        return; // Exit early to avoid setting flag to true
+                    }
+
+                    // Command the Soldier to stay put
+                    sendToLocation(rc);
+                    int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
+                    saveTurn = 5;
+                    System.out.println("Spawned Soldier on a paint tile and commanded it to move xxxxxxxxxxxxzzzzzzzzzzzzzzz to: " + targetLoc);
+                }
+            }
+
             if (rc.getMoney() <= CHIP_SAVE_AMOUNT || rc.getPaint() < 350){ // save chips regardless of tower
                 System.out.println("Saving ruins regardless of tower type");
                 return;
@@ -135,6 +146,7 @@ public class MidGameLogic extends TowerLogic{
                 System.out.println("Is chip tower, and paint <= 200: Saving ruins");
                 return;
             }
+
 
             int randomInt = rand.nextInt(3) + 1;
 
