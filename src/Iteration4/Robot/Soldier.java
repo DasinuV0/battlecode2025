@@ -153,7 +153,7 @@ public class Soldier extends Robot {
                     paintType = true;
                 else if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = false;
-                else if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
+                if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
                     rc.attack(target, pos[2] == 1);
             }
         }
@@ -177,7 +177,7 @@ public class Soldier extends Robot {
                     paintType = true;
                 else if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = false;
-                else if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
+                if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
                     rc.attack(target, pos[2] == 1);
             }
         }
@@ -201,7 +201,7 @@ public class Soldier extends Robot {
                     paintType = true;
                 else if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
                     paintType = false;
-                else if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
+                if((paintType != (pos[2] == 1)) || (rc.senseMapInfo(target).getPaint() == PaintType.EMPTY))
                     rc.attack(target, pos[2] == 1);
             }
         }
