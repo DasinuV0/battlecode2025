@@ -709,7 +709,6 @@ public class Soldier extends Robot {
 
                 if(rc.canCompleteResourcePattern(resourceCenter)) {
                     rc.completeResourcePattern(resourceCenter);
-                    rc.mark(resourceCenter, false);
                     resourceCenter = new MapLocation(-1,-1);
                 }
                 return; //focus on completing the SRP
