@@ -504,10 +504,10 @@ public class Robot {
             if(mapInfo.getPaint() == PaintType.ALLY_PRIMARY || mapInfo.getPaint() == PaintType.ALLY_SECONDARY)
                 visionArea[matrixY][matrixX] = -1;            
             if(mapInfo.getPaint() == PaintType.EMPTY && mapInfo.isPassable()) {
-                if (rc.getType() == UnitType.SOLDIER) {
+                if (rc.getType() == UnitType.SOLDIER) 
                     visionArea[matrixY][matrixX] = 0;    
-                }
-                visionArea[matrixY][matrixX] = 1;
+                else
+                    visionArea[matrixY][matrixX] = 1;
             }
         }
 
@@ -904,7 +904,7 @@ public class Robot {
 
         final int THRESHOLD = rc.getType() == UnitType.SOLDIER ? 11 : 5;
 
-        if (bestLocation != null && rc.canSenseLocation(bestLocation) && rc.senseMapInfo(bestLocation).isPassable() && maxOverlap > THRESHOLD)
+        if (bestLocation != null && /*rc.canSenseLocation(bestLocation) && rc.senseMapInfo(bestLocation).isPassable() && */ maxOverlap > THRESHOLD)
             return bestLocation;
         return new MapLocation(-1, -1);
     }
