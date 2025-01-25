@@ -4,7 +4,8 @@ import battlecode.common.*;
 
 public class LateGameLogic extends TowerLogic{
     private static boolean spawnSplasherYet = false;
-    static int x = 0;
+    private static int x = 0;
+    private static int y = 0;
     private static boolean hasDamagedPatternRobots = false;
     private static boolean hasEnemyTowerRobots = false;
 
@@ -70,6 +71,52 @@ public class LateGameLogic extends TowerLogic{
                 //attackNearbyEnemies(rc);
                 return;
             }
+
+            if (isDefenseTower(rc) && getMapArea(rc) > 1200){ // just spawn soldiers on defense towers
+                buildRobotOnPaintTile(rc, UnitType.SOLDIER);
+                sendToLocation(rc);
+                int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
+                saveTurn = 5;
+                System.out.println("Spawned Soldier on a paint tile and commanded it to move.");
+            }
+
+            if (isDefenseTower(rc) && y < 2 && getMapArea(rc) <= 1200){ // be more aggresive, spawn soldier && splasher out
+                if (!spawnSplasherYet){
+                    if (!buildRobotOnPaintTile(rc, UnitType.SPLASHER)){
+                        System.out.println("No tiles found that are friendly so far, not spawning splasher xxx");
+                        //attackNearbyEnemies(rc);
+                        return; // Exit early to avoid setting flag to true
+                    }
+
+                    // Command the Soldier to stay put
+                    sendToLocation(rc);
+                    int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
+                    sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
+                    saveTurn = 5;
+                    System.out.println("Spawned Splasher on a paint tile and commanded it to move xxxxxxxxxxxyyyyyyyyyyyyyyyyy.");
+                    spawnSplasherYet = true;
+                    y++;
+                }
+                else{
+                    //int splasherCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SPLASHER);
+                    //sendMessageToRobots(rc, MOVE_TO_ATTACK_USING_SPLASHER_COMMAND, targetLoc, UnitType.SPLASHER, splasherCountAfterSpawn);
+                    if (!buildRobotOnPaintTile(rc, UnitType.SOLDIER)){
+                        System.out.println("No tiles found that are friendly so far, not spawning soldier xxxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy");
+                        //attackNearbyEnemies(rc);
+                        return; // Exit early to avoid setting flag to true
+                    }
+
+                    // Command the Soldier to stay put
+                    sendToLocation(rc);
+                    int soldierCountAfterSpawn = countUnitsInTowerRangeOnPaint(rc, UnitType.SOLDIER);
+                    sendMessageToRobots(rc, MOVE_TO_LOCATION_COMMAND, targetLoc, UnitType.SOLDIER, soldierCountAfterSpawn);
+                    saveTurn = 5;
+                    System.out.println("Spawned Soldier on a paint tile and commanded it to move xxxxxxxxxxxxzzzzzzzzzzzzzzz to: " + targetLoc);
+                    y++;
+                }
+            }
+
 
             if (isChipTower(rc) && getMapArea(rc) > 1200){ // just spawn soldiers on chip towers
                 buildRobotOnPaintTile(rc, UnitType.SOLDIER);
