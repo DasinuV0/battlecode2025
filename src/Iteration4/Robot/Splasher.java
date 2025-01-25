@@ -111,8 +111,8 @@ public class Splasher extends Robot {
                     Navigation.Bug2.move(defenseTowerLocation);
                 }
             } else {
-                // Move randomly until out of range of the defense tower
-                while (rc.canSenseLocation(defenseTowerLocation) && rc.senseRobotAtLocation(defenseTowerLocation).type == UnitType.DEFENSE_TOWER) {
+                // Move randomly until out of range of the defense tower 
+                while (rc.canSenseLocation(defenseTowerLocation) && isDefendTower(rc.senseRobotAtLocation(defenseTowerLocation).getType())) {
                     moveRandomly();
                 }
             }

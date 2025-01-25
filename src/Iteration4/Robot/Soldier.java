@@ -766,6 +766,13 @@ public class Soldier extends Robot {
                 if (rc.getChips() > 7000 && rc.canSenseLocation(new MapLocation(buildingTower.x + 1, buildingTower.y)) && rc.senseMapInfo(new MapLocation(buildingTower.x + 1, buildingTower.y)).getMark() == PaintType.ALLY_SECONDARY)
                     whatIBuild = UnitType.LEVEL_ONE_DEFENSE_TOWER;
 
+                int xPercentage = buildingTower.x * 100 / rc.getMapWidth() ;
+                int yPercentage = buildingTower.y * 100 / rc.getMapHeight();
+                rc.setIndicatorString(xPercentage + " " + yPercentage);
+                if (/*rc.getNumberTowers() >= 4 && */ xPercentage >= 30 && xPercentage <= 70 && yPercentage >= 30 && yPercentage <= 70)
+                    whatIBuild = UnitType.LEVEL_ONE_DEFENSE_TOWER;
+
+
                 if (whatIBuild == UnitType.LEVEL_ONE_MONEY_TOWER)
                     buildMoneyTower(rc,buildingTower);
                 else if (whatIBuild == UnitType.LEVEL_ONE_PAINT_TOWER)
