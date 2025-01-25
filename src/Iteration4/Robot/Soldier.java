@@ -769,7 +769,7 @@ public class Soldier extends Robot {
                 int xPercentage = buildingTower.x * 100 / rc.getMapWidth() ;
                 int yPercentage = buildingTower.y * 100 / rc.getMapHeight();
                 rc.setIndicatorString(xPercentage + " " + yPercentage);
-                if (/*rc.getNumberTowers() >= 4 && */ xPercentage >= 30 && xPercentage <= 70 && yPercentage >= 30 && yPercentage <= 70)
+                if (rc.getMapHeight() <=25 && rc.getMapWidth() <= 25 && xPercentage >= 30 && xPercentage <= 70 && yPercentage >= 30 && yPercentage <= 70)
                     whatIBuild = UnitType.LEVEL_ONE_DEFENSE_TOWER;
 
 
