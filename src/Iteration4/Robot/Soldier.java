@@ -704,8 +704,8 @@ public class Soldier extends Robot {
                 if (whatIBuild == null || rc.senseNearbyRobots(-1, rc.getTeam()).length == 0)
                     whatIBuild = nextTowerToBuild();
 
-                //if this tower is destroyed by enemy, build defense tower
-                if (rc.canSenseLocation(new MapLocation(buildingTower.x + 1, buildingTower.y)) && rc.senseMapInfo(new MapLocation(buildingTower.x + 1, buildingTower.y)).getMark() == PaintType.ALLY_SECONDARY)
+                //if this tower is destroyed by enemy and we have good economy, build defense tower
+                if (rc.getChips() > 7000 && rc.canSenseLocation(new MapLocation(buildingTower.x + 1, buildingTower.y)) && rc.senseMapInfo(new MapLocation(buildingTower.x + 1, buildingTower.y)).getMark() == PaintType.ALLY_SECONDARY)
                     whatIBuild = UnitType.LEVEL_ONE_DEFENSE_TOWER;
 
                 if (whatIBuild == UnitType.LEVEL_ONE_MONEY_TOWER)
