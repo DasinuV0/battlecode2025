@@ -26,6 +26,8 @@ public class Splasher extends Robot {
     private MapLocation interMediateLocation = new MapLocation(-1,-1); 
     private boolean hasIntermediateLocation = false;
     private int TOWERTHRESHOLD = 0;
+    private int defenseTowerAttacked = 0;
+    private RobotInfo currDefenseTower = null;
 
     public Splasher(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -72,6 +74,11 @@ public class Splasher extends Robot {
             else if (robot.team != rc.getTeam() && isDefendTower(robot.type))
                 defenseTowerDetected = true;
                 defenseTowerLocation = robot.location;
+                RobotInfo prevDefenseTower = currDefenseTower;
+                currDefenseTower = robot;
+                if (prevDefenseTower != null && prevDefenseTower.getID() != currDefenseTower.getID()) {
+                    defenseTowerAttacked = 0;
+                }
         }
 
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(-1);
@@ -88,7 +95,15 @@ public class Splasher extends Robot {
         }
 
         if (defenseTowerDetected) {
-            if (splasherCount > 5) {
+            if (currDefenseTower.getHealth() <= 800 && splasherCount >= 2 && defenseTowerAttacked < 1) {
+                // Move towards or attack the defense tower
+                if (rc.canAttack(defenseTowerLocation)) {
+                    rc.attack(defenseTowerLocation);
+                    defenseTowerAttacked++;
+                } else {
+                    Navigation.Bug2.move(defenseTowerLocation);
+                }
+            } else if (splasherCount > 5 && defenseTowerAttacked < 1) {
                 // Move towards or attack the defense tower
                 if (rc.canAttack(defenseTowerLocation)) {
                     rc.attack(defenseTowerLocation);
