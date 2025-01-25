@@ -326,6 +326,14 @@ public class TowerLogic {
                 towerType == UnitType.LEVEL_THREE_MONEY_TOWER;
     }
 
+    public static boolean isDefenseTower(RobotController rc) {
+        // Check if the tower is one of the money or paint towers at any level
+        UnitType towerType = rc.getType();
+        return towerType == UnitType.LEVEL_ONE_DEFENSE_TOWER ||
+                towerType == UnitType.LEVEL_TWO_DEFENSE_TOWER ||
+                towerType == UnitType.LEVEL_THREE_DEFENSE_TOWER;
+    }
+
     public static void checkIsChipTowerAndSendToPaintTower(RobotController rc, int senderID) throws GameActionException {
         if (isChipTower(rc) && rc.getPaint() < 350) {
             MapLocation closestPaintTower = TowerUtils.getClosestPaintTower();
