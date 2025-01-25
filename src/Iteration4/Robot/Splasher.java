@@ -53,6 +53,10 @@ public class Splasher extends Robot {
             hasIntermediateLocation = false;
         }
 
+        int splasherCount = 0;
+        boolean defenseTowerDetected = false;
+        MapLocation defenseTowerLocation = new MapLocation(-1,-1);
+
         //check if any tower is found
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots) {
@@ -63,6 +67,11 @@ public class Splasher extends Robot {
                     moneyTowersPos.add(robot.location);
             else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
+            else if (robot.team == rc.getTeam() && robot.type == UnitType.SPLASHER)
+                splasherCount++;
+            else if (robot.team != rc.getTeam() && isDefendTower(robot.type))
+                defenseTowerDetected = true;
+                defenseTowerLocation = robot.location;
         }
 
         MapInfo[] surrMapInfos = rc.senseNearbyMapInfos(-1);
@@ -77,6 +86,23 @@ public class Splasher extends Robot {
         } else {
             TOWERTHRESHOLD = 9;
         }
+
+        if (defenseTowerDetected) {
+            if (splasherCount > 5) {
+                // Move towards or attack the defense tower
+                if (rc.canAttack(defenseTowerLocation)) {
+                    rc.attack(defenseTowerLocation);
+                } else {
+                    Navigation.Bug2.move(defenseTowerLocation);
+                }
+            } else {
+                // Move randomly until out of range of the defense tower
+                while (rc.canSenseLocation(defenseTowerLocation) && rc.senseRobotAtLocation(defenseTowerLocation).type == UnitType.DEFENSE_TOWER) {
+                    moveRandomly();
+                }
+            }
+        }
+
     }
 
     public void endTurn() throws GameActionException {
@@ -178,13 +204,13 @@ public class Splasher extends Robot {
         Random rand = new Random();
         Direction[] directions = Direction.values();
         Direction dir = directions[rand.nextInt(directions.length)];
-        if (rc.canMove(dir) && !recentLocations.contains(rc.adjacentLocation(dir))) {
+        if (rc.canMove(dir)) {
             rc.move(dir);
-        } else if (rc.canMove(dir.rotateLeft()) && !recentLocations.contains(rc.adjacentLocation(dir.rotateLeft()))) {
+        } else if (rc.canMove(dir.rotateLeft())) {
             rc.move(dir.rotateLeft());
-        } else if (rc.canMove(dir.rotateRight()) && !recentLocations.contains(rc.adjacentLocation(dir.rotateRight()))) {
+        } else if (rc.canMove(dir.rotateRight())) {
             rc.move(dir.rotateRight());
-        } else if (rc.canMove(dir.opposite()) && !recentLocations.contains(rc.adjacentLocation(dir.opposite()))) {
+        } else if (rc.canMove(dir.opposite())) {
             rc.move(dir.opposite());
         }
     }
