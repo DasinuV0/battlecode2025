@@ -71,7 +71,7 @@ public class Mopper extends Robot {
                 robotToHealSet.add(robot.location);
             }
             
-            if (robot.team != rc.getTeam() && (isMoneyTower(robot.type) || isMoneyTower(robot.type)))
+            if (robot.team != rc.getTeam() && (isMoneyTower(robot.type) || isPaintTower(robot.type)))
                 enemyTowersPos.add(robot.location);
         }
         

@@ -70,7 +70,7 @@ public class Soldier extends Robot {
                 moneyTowersPos.add(robot.location);
             else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
-            else if (robot.team != rc.getTeam() && (isMoneyTower(robot.type) || isMoneyTower(robot.type)))
+            else if (robot.team != rc.getTeam() && (isMoneyTower(robot.type) || isPaintTower(robot.type)))
                 enemyTowersPos.add(robot.location);
 
 
