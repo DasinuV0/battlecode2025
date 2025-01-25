@@ -397,37 +397,95 @@ public class Soldier extends Robot {
             boolean exit = false;
             for (MapInfo mapInfo : surrMapInfos) {
                 MapLocation location = mapInfo.getMapLocation();
-                if(location.x % 4 == 2 && location.y % 4 == 2) {
-                    int[][] attackPositions = {
-                            {2, 2, 1}, {1, 2, 1}, {2, 1, 1},  // Quadrant 1
-                            {-2, 2, 1}, {-1, 2, 1}, {-2, 1, 1}, // Quadrant 2
-                            {-2, -2, 1}, {-1, -2, 1}, {-2, -1, 1}, // Quadrant 3
-                            {2, -2, 1}, {1, -2, 1}, {2, -1, 1}, // Quadrant 4
-                            {-1, 0, 0}, {-2, 0, 0}, {1, 0, 0}, {2, 0, 0}, // Horizontal
-                            {0, -1, 0}, {0, -2, 0}, {0, 1, 0}, {0, 2, 0}, // Vertical
-                            {1, 1, 0}, {-1, 1, 0}, {-1, -1, 0}, {1, -1, 0} // Diagonal
-                    };
-                    for (int[] pos : attackPositions) {
-                        MapLocation target = new MapLocation(location.x + pos[0], location.y + pos[1]);
-
-                        if (rc.canPaint(target)) {
-                            int paintType = -1;
-                            // rc.setIndicatorDot(target,13,241,4);
-                            if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_SECONDARY)
-                                paintType = 1;
-                            if(rc.senseMapInfo(target).getPaint() == PaintType.ALLY_PRIMARY)
-                                paintType = 0;
-                            int expectedPaintType = (pos[2] == 1) ? 1 : 0;
-                            if((paintType != expectedPaintType || rc.senseMapInfo(target).getPaint() == PaintType.EMPTY) && rc.canAttack(target)) {
-                                rc.attack(target, pos[2] == 1);
-                                exit = true;
-                                break;
+                if (rc.canPaint(location)) {
+                    int paintType = -1;
+                    if(rc.senseMapInfo(location).getPaint() == PaintType.ALLY_SECONDARY)
+                        paintType = 1;
+                    if(rc.senseMapInfo(location).getPaint() == PaintType.ALLY_PRIMARY)
+                        paintType = 0;
+                    int x = location.x & 3, y = location.y & 3;
+                    switch (x) {
+                        case 0:
+                            switch (y) {
+                                case 0:
+                                    if (1 != paintType)
+                                        rc.attack(location, true);
+                                    break;
+                                case 1:
+                                    if (1 != paintType)
+                                        rc.attack(location, true);
+                                    break;
+                                case 2:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 3:
+                                    if (1 != paintType)
+                                        rc.attack(location, true);
+                                    break;
                             }
-                        }
-
+                            break;
+                        case 1:
+                            switch (y) {
+                                case 0:
+                                    if (1 != paintType)
+                                        rc.attack(location, true);
+                                    break;
+                                case 1:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 2:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 3:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                            }
+                            break;
+                        case 2:
+                            switch (y) {
+                                case 0:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 1:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 2:
+                                    if (1 != paintType)
+                                        rc.attack(location, true);
+                                    break;
+                                case 3:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                            }
+                            break;
+                        case 3:
+                            switch (y) {
+                                case 0:
+                                    if (1 != paintType)
+                                        rc.attack(location, true);
+                                    break;
+                                case 1:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 2:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                                case 3:
+                                    if (0 != paintType)
+                                        rc.attack(location, false);
+                                    break;
+                            }
+                            break;
                     }
-                    if(exit)
-                        break;
                 }
             }
         }
