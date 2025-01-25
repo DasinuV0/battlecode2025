@@ -949,4 +949,12 @@ public class Robot {
     boolean isDefendTower(UnitType tower){
         return tower == UnitType.LEVEL_ONE_DEFENSE_TOWER || tower == UnitType.LEVEL_TWO_DEFENSE_TOWER || tower == UnitType.LEVEL_THREE_DEFENSE_TOWER;
     }
+
+
+    boolean isSmallerMap() {
+        int mapHeight = rc.getMapHeight();
+        int mapWidth = rc.getMapWidth();
+        int mapArea = mapHeight * mapWidth;
+        return mapArea <= 600;
+    }
 }

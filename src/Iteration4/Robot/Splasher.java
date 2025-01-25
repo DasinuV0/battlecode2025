@@ -25,6 +25,7 @@ public class Splasher extends Robot {
     private MapLocation attackLocation = new MapLocation(-1,-1);   
     private MapLocation interMediateLocation = new MapLocation(-1,-1); 
     private boolean hasIntermediateLocation = false;
+    private int TOWERTHRESHOLD = 0;
 
     public Splasher(RobotController _rc) throws GameActionException {
         super(_rc);
@@ -69,6 +70,12 @@ public class Splasher extends Robot {
             if (mapInfo.isResourcePatternCenter()) {
                 detectedSRP = true;
             }
+        }
+
+        if (isSmallerMap()) {
+            TOWERTHRESHOLD = 5;
+        } else {
+            TOWERTHRESHOLD = 9;
         }
     }
 
@@ -235,10 +242,18 @@ public class Splasher extends Robot {
                                 rc.attack(attackLocation);
                             }
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            if (rc.getNumberTowers() > TOWERTHRESHOLD) {
+                                if (rng.nextDouble() < 0.7) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                }
                             } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                }
                             }
                             attackLocation = new MapLocation(-1,-1);
                         } else {
@@ -267,10 +282,18 @@ public class Splasher extends Robot {
                                 rc.attack(attackLocation);
                             }
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            if (rc.getNumberTowers() > TOWERTHRESHOLD) {
+                                if (rng.nextDouble() < 0.7) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                }
                             } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                }
                             }
                             attackLocation = new MapLocation(-1,-1);
                         } else {
@@ -309,10 +332,18 @@ public class Splasher extends Robot {
                                 rc.attack(attackLocation);
                             }
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            if (rc.getNumberTowers() > TOWERTHRESHOLD) {
+                                if (rng.nextDouble() < 0.7) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                }
                             } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                }
                             }
                             attackLocation = new MapLocation(-1,-1);
                         } else {
@@ -338,10 +369,18 @@ public class Splasher extends Robot {
                                 rc.attack(attackLocation);
                             }
                             hasTarget = true;
-                            if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                            if (rc.getNumberTowers() > TOWERTHRESHOLD) {
+                                if (rng.nextDouble() < 0.7) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                }
                             } else {
-                                targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                                } else {
+                                    targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                                }
                             }
                             attackLocation = new MapLocation(-1,-1);
                         } else {
@@ -370,10 +409,18 @@ public class Splasher extends Robot {
                         rc.attack(attackLocation);
                     }                    
                     hasTarget = true;
-                    if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
-                        targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                    if (rc.getNumberTowers() > TOWERTHRESHOLD) {
+                        if (rng.nextDouble() < 0.7) {
+                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                        } else {
+                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                        }
                     } else {
-                        targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                        if (calculateHealthPercentage(rc.senseRobotAtLocation(rc.getLocation())) > 30 && rc.getActionCooldownTurns() <= 1) {
+                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation));
+                        } else {
+                            targetLocation = rc.getLocation().add(rc.getLocation().directionTo(attackLocation).opposite());
+                        }
                     }
                     attackLocation = new MapLocation(-1,-1);
                 } else {
