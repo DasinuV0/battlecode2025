@@ -118,10 +118,12 @@ public class Robot {
     static boolean defendMode; //specific to mopper
     static boolean attackMode; //specific to soldier
 
+    int stayPutCounter;
 
     public Robot(RobotController _rc) throws GameActionException {
         this.rc = _rc;
         stayPut = true;
+        stayPutCounter = 0;
     }
 
     //instructions run at the beginning of each turn
@@ -431,6 +433,7 @@ public class Robot {
 
             if (command == OptCode.PUTSTATE){
                 stayPut = true;
+                stayPutCounter = 0;
             }
             else if (command == OptCode.EXPLORE){
                 int y = m.getBytes() & 63;

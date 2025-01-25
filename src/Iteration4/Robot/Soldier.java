@@ -70,7 +70,7 @@ public class Soldier extends Robot {
                 moneyTowersPos.add(robot.location);
             else if (robot.team == rc.getTeam() && robot.type == UnitType.MOPPER)
                 friendMopperFound = true;
-            else if (robot.team != rc.getTeam() && robot.type.isTowerType())
+            else if (robot.team != rc.getTeam() && (isMoneyTower(robot.type) || isMoneyTower(robot.type)))
                 enemyTowersPos.add(robot.location);
 
 
@@ -168,6 +168,11 @@ public class Soldier extends Robot {
         //mark this tower as defense tower, so that when this tower is destroyed, bots will build defense tower
         if (rc.canMark(nearesetTowerTile1) && rc.senseMapInfo(nearesetTowerTile1).getMark() == PaintType.EMPTY) {
             rc.mark(nearesetTowerTile1, true);
+        }
+
+        if (stayPutCounter >= 3){
+            resetMessageFlag();
+            exploreMode = true;
         }
     }
 
@@ -450,6 +455,7 @@ public class Soldier extends Robot {
          */
         if (stayPut){
             rc.setIndicatorString("stay put");
+            stayPutCounter++;
             MapLocation nearestAllyTower = getNearestAllyTower();
             if (nearestAllyTower.x == -1){
                 resetMessageFlag();
@@ -801,7 +807,7 @@ public class Soldier extends Robot {
                 int x = rng.nextInt(rc.getMapWidth());
                 int y = rng.nextInt(rc.getMapHeight());
                 targetLocation = new MapLocation(x,y);
-                rc.setIndicatorString("move to" + x + " " + y);
+                rc.setIndicatorString("move to " + x + " " + y);
                 Navigation.Bug2.move(targetLocation);
             }
         }
